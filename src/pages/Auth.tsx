@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Users, Timer } from 'lucide-react';
+import { BookOpen, Users, Timer, UserPlus } from 'lucide-react';
 
 export function Auth() {
   const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ export function Auth() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInAnonymously } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +45,20 @@ export function Auth() {
       setError(error.message);
     } else {
       setMessage('Check your email for the confirmation link!');
+    }
+    
+    setLoading(false);
+  };
+
+  const handleAnonymousSignIn = async () => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    const { error } = await signInAnonymously();
+    
+    if (error) {
+      setError(error.message);
     }
     
     setLoading(false);
@@ -174,6 +188,21 @@ export function Auth() {
                 </form>
               </TabsContent>
             </Tabs>
+
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button 
+                onClick={handleAnonymousSignIn}
+                variant="outline"
+                className="w-full border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 flex items-center justify-center gap-2"
+                disabled={loading}
+              >
+                <UserPlus size={16} />
+                {loading ? 'Signing In...' : 'Continue as Guest'}
+              </Button>
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                You can create an account later to save your progress
+              </p>
+            </div>
 
             {error && (
               <Alert className="mt-4 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
