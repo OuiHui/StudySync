@@ -75,11 +75,11 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md h-[500px] border-0 shadow-xl">
-        <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+      <Card className="w-full max-w-md h-[500px] border-0 shadow-xl dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between p-4 border-b dark:border-gray-700">
           <div className="flex items-center space-x-2">
             <Users size={18} className="text-blue-500" />
-            <CardTitle className="text-lg">{groupName} Chat</CardTitle>
+            <CardTitle className="text-lg dark:text-white">{groupName} Chat</CardTitle>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X size={18} />
@@ -95,24 +95,24 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
                   <div className={`px-3 py-2 rounded-lg ${
                     msg.userId === '1' 
                       ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                   }`}>
                     {msg.userId !== '1' && (
                       <div className="flex items-center space-x-1 mb-1">
                         <span className="text-xs">{msg.avatar}</span>
-                        <p className="text-xs font-medium text-gray-600">{msg.userName}</p>
+                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{msg.userName}</p>
                       </div>
                     )}
                     <p className="text-sm">{msg.message}</p>
                     <p className={`text-xs mt-1 ${
-                      msg.userId === '1' ? 'text-blue-100' : 'text-gray-500'
+                      msg.userId === '1' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {msg.timestamp}
                     </p>
                   </div>
                 </div>
                 {msg.userId !== '1' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm mr-2 order-0">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0">
                     {msg.avatar}
                   </div>
                 )}
@@ -121,7 +121,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
           </div>
 
           {/* Message Input */}
-          <div className="border-t p-4">
+          <div className="border-t dark:border-gray-700 p-4">
             <div className="flex space-x-2">
               <Textarea
                 value={message}
