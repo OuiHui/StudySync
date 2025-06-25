@@ -47,7 +47,8 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
       setMessages(groupMessages);
     } catch (err) {
       console.error('Error loading messages:', err);
-      setError('Failed to load messages. Please try again.');
+      // If no conversation exists, just show empty state instead of error
+      setMessages([]);
     } finally {
       setLoading(false);
     }
@@ -73,7 +74,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     },
     {
       id: '3',
-      userId: '1',
+      userId: user?.id || 'current-user',
       userName: 'You',
       message: 'Perfect! Let\'s start with chapter 7',
       timestamp: '14:35',
@@ -95,18 +96,14 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     if (!message.trim() || !user || !groupId) return;
     
     try {
-      await ChatService.sendMessage({
-        conversation_id: groupId,
-        sender_id: user.id,
-        content: message,
-        message_type: 'text'
-      });
+      await ChatService.sendMessage(groupId, message.trim());
       
       setMessage('');
       await loadMessages(); // Reload messages to show the new one
     } catch (err) {
       console.error('Error sending message:', err);
-      setError('Failed to send message. Please try again.');
+      // For now, just show error. In a real app, you might want to create the conversation first
+      setError('Failed to send message. The conversation may not exist yet.');
     }
   };
 
@@ -156,14 +153,14 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
               </div>
             ) : (
               displayMessages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.userId === '1' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] ${msg.userId === '1' ? 'order-2' : 'order-1'}`}>
+              <div key={msg.id} className={`flex ${msg.userId === user?.id ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] ${msg.userId === user?.id ? 'order-2' : 'order-1'}`}>
                   <div className={`px-3 py-2 rounded-lg ${
-                    msg.userId === '1' 
+                    msg.userId === user?.id 
                       ? 'bg-blue-500 text-white' 
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                   }`}>
-                    {msg.userId !== '1' && (
+                    {msg.userId !== user?.id && (
                       <div className="flex items-center space-x-1 mb-1">
                         <span className="text-xs">{msg.avatar}</span>
                         <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{msg.userName}</p>
@@ -171,13 +168,13 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
                     )}
                     <p className="text-sm">{msg.message}</p>
                     <p className={`text-xs mt-1 ${
-                      msg.userId === '1' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                      msg.userId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {msg.timestamp}
                     </p>
                   </div>
                 </div>
-                {msg.userId !== '1' && (
+                {msg.userId !== user?.id && (
                   <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0">
                     {msg.avatar}
                   </div>

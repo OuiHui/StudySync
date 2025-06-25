@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2 } from 'lucide-react';
+import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,7 @@ export const Notes = () => {
     try {
       setLoading(true);
       setError(null);
-      const userNotes = await NotesService.getUserNotes(user.id);
+      const userNotes = await NotesService.getNotes();
       setNotes(userNotes);
     } catch (err) {
       console.error('Error loading notes:', err);
@@ -115,7 +115,22 @@ export const Notes = () => {
   ];
 
   // Use the fetched notes or fallback to mock data if no real data
-  const displayNotes = notes.length > 0 ? notes : mockNotes;
+  const displayNotes = notes.length > 0 ? notes.map(note => ({
+    id: note.id,
+    title: note.title || 'Untitled',
+    subject: note.subject || 'General',
+    author: 'You', // Since these are user's own notes
+    sharedBy: 'me',
+    date: new Date(note.created_at).toLocaleDateString(),
+    downloads: 0, // Not tracked in current schema
+    category: 'notes', // Default to notes since category isn't in schema
+    group: 'Personal',
+    preview: note.content ? note.content.substring(0, 100) + '...' : 'No content preview',
+    isPrivate: note.permission_level === 'private',
+    isMine: true, // These are all user's notes
+    user_id: note.created_by,
+    created_by: note.created_by
+  })) : mockNotes;
   const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
   
   const categories = [
@@ -128,8 +143,8 @@ export const Notes = () => {
 
   const ownershipOptions = [
     { id: 'all', label: 'All Notes', count: displayNotes.length },
-    { id: 'mine', label: 'My Notes', count: displayNotes.filter(n => n.user_id === user?.id).length },
-    { id: 'public', label: 'Public Notes', count: displayNotes.filter(n => n.user_id !== user?.id).length },
+    { id: 'mine', label: 'My Notes', count: displayNotes.filter(n => n.isMine).length },
+    { id: 'public', label: 'Public Notes', count: displayNotes.filter(n => !n.isMine).length },
   ];
 
   const filteredNotes = displayNotes.filter(note => {
@@ -138,11 +153,24 @@ export const Notes = () => {
     const matchesCategory = selectedCategory === 'all' || note.category === selectedCategory;
     const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
     const matchesOwnership = selectedOwnership === 'all' || 
-                           (selectedOwnership === 'mine' && note.user_id === user?.id) ||
-                           (selectedOwnership === 'public' && note.user_id !== user?.id);
+                           (selectedOwnership === 'mine' && note.isMine) ||
                            (selectedOwnership === 'public' && !note.isMine);
     return matchesSearch && matchesCategory && matchesSubject && matchesOwnership;
   });
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note?')) {
+      return;
+    }
+
+    try {
+      await NotesService.deleteNote(noteId);
+      loadNotes(); // Refresh the notes list
+    } catch (err) {
+      console.error('Error deleting note:', err);
+      setError('Failed to delete note. Please try again.');
+    }
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -369,6 +397,16 @@ export const Notes = () => {
                       <Share size={14} className="mr-1" />
                       Share
                     </Button>
+                    {note.isMine && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -390,6 +428,10 @@ export const Notes = () => {
       <UploadMaterialPopup 
         isOpen={isUploadPopupOpen}
         onClose={() => setIsUploadPopupOpen(false)}
+        onUploadSuccess={() => {
+          loadNotes(); // Refresh the notes list
+          setIsUploadPopupOpen(false);
+        }}
       />
     </div>
   );

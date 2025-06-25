@@ -1,24 +1,29 @@
 
 import { useState } from 'react';
-import { Upload, X, File } from 'lucide-react';
+import { Upload, X, File, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { NotesService } from '@/services/database';
 
 interface UploadMaterialPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  onUploadSuccess?: () => void;
 }
 
-export const UploadMaterialPopup = ({ isOpen, onClose }: UploadMaterialPopupProps) => {
+export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: UploadMaterialPopupProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
   const [category, setCategory] = useState('notes');
   const [isPrivate, setIsPrivate] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Literature', 'Computer Science'];
   const categories = ['notes', 'flashcards', 'documents', 'study-guide'];
@@ -29,26 +34,50 @@ export const UploadMaterialPopup = ({ isOpen, onClose }: UploadMaterialPopupProp
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would handle the file upload
-    console.log({
-      title,
-      description,
-      subject,
-      category,
-      isPrivate,
-      file
-    });
     
-    // Reset form and close
-    setTitle('');
-    setDescription('');
-    setSubject('');
-    setCategory('notes');
-    setIsPrivate(false);
-    setFile(null);
-    onClose();
+    if (!title.trim()) {
+      setError('Title is required');
+      return;
+    }
+
+    if (!subject) {
+      setError('Subject is required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Create note with the form data
+      await NotesService.createNote({
+        title: title.trim(),
+        content: description || '',
+        subject: subject,
+        permission_level: isPrivate ? 'private' : 'public'
+      });
+
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setSubject('');
+      setCategory('notes');
+      setIsPrivate(false);
+      setFile(null);
+      
+      // Call success callback and close
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
+      onClose();
+    } catch (err) {
+      console.error('Error creating note:', err);
+      setError('Failed to create note. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,6 +91,13 @@ export const UploadMaterialPopup = ({ isOpen, onClose }: UploadMaterialPopupProp
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
           {/* File Upload */}
           <div>
             <Label htmlFor="file">File</Label>
@@ -157,11 +193,18 @@ export const UploadMaterialPopup = ({ isOpen, onClose }: UploadMaterialPopupProp
 
           {/* Actions */}
           <div className="flex space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600">
-              Upload
+            <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Note'
+              )}
             </Button>
           </div>
         </form>

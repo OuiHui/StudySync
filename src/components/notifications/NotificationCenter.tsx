@@ -42,7 +42,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     try {
       setLoading(true);
       setError(null);
-      const userNotifications = await NotificationsService.getNotifications();
+      const userNotifications = await NotificationsService.getUserNotifications();
       setNotifications(userNotifications);
     } catch (err) {
       console.error('Error loading notifications:', err);

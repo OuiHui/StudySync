@@ -32,7 +32,7 @@ export const FriendsList = () => {
     try {
       setLoading(true);
       setError(null);
-      const userFriends = await FriendsService.getFriends();
+      const userFriends = await FriendsService.getUserFriends();
       setFriends(userFriends);
     } catch (err) {
       console.error('Error loading friends:', err);

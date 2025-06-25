@@ -24,7 +24,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [error, setError] = useState<string | null>(null);
 
   // Mock current user ID - in a real app, this would come from auth context
-  const currentUserId = 'current-user-id';
+  // const currentUserId = 'current-user-id';
 
   useEffect(() => {
     loadUserGroups();
@@ -34,7 +34,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await StudyGroupsService.getUserGroups(currentUserId);
+      const data = await StudyGroupsService.getUserGroups();
       
       // Transform the data to match our component structure
       const transformedGroups = data.map((membership: any) => {
@@ -86,7 +86,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   const handleJoinGroup = async (groupId: string) => {
     try {
-      await StudyGroupsService.joinGroup(groupId, currentUserId);
+      await StudyGroupsService.joinGroup(groupId);
       loadUserGroups(); // Reload groups after joining
     } catch (err) {
       console.error('Error joining group:', err);
@@ -95,7 +95,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   const handleLeaveGroup = async (groupId: string) => {
     try {
-      await StudyGroupsService.leaveGroup(groupId, currentUserId);
+      await StudyGroupsService.leaveGroup(groupId);
       loadUserGroups(); // Reload groups after leaving
     } catch (err) {
       console.error('Error leaving group:', err);
