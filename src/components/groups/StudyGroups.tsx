@@ -1,12 +1,11 @@
-
 import { useState } from 'react';
-import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus } from 'lucide-react';
+import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus, TrendingUp, Clock, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 import { ChatPopup } from '@/components/chat/ChatPopup';
-import { GroupManagement } from '@/components/groups/GroupManagement';
 import { GroupDetails } from '@/components/groups/GroupDetails';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 
@@ -15,7 +14,6 @@ interface StudyGroupsProps {
 }
 
 export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [selectedGroupDetails, setSelectedGroupDetails] = useState<any | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
@@ -95,212 +93,323 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Study Groups</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Collaborate and learn together</p>
-        </div>
-        <CreateGroupDialog onGroupCreated={() => window.location.reload()} />
-      </div>
-
-      {/* Search Bar */}
-      <div className="relative">
-        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-        <Input
-          placeholder="Search groups by name, subject, or description..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Calendar Section - spans 2 columns */}
-        <div className="lg:col-span-2">
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-800 dark:text-white">
-                <Calendar size={20} className="mr-2 text-blue-600" />
-                Group Study Schedule
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <StudyCalendar compact={true} />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Upcoming Events - spans 1 column */}
-        <div className="lg:col-span-1">
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-gray-800 dark:text-white">Upcoming Events</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white">Advanced Mathematics</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Today, 2:00 PM</p>
-                </div>
-                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white">Physics Study Circle</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Tomorrow, 4:30 PM</p>
-                </div>
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white">Chemistry Lab Prep</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Wednesday, 7:00 PM</p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header Section with Stats */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Users size={24} className="text-white" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Study Groups
+                </h1>
+                <p className="text-gray-600 dark:text-gray-300 text-lg">Collaborate and learn together with your peers</p>
+              </div>
+            </div>
+            
+            {/* Quick Stats */}
+            <div className="flex items-center gap-6 mt-4">
+              <div className="flex items-center gap-2 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-gray-600 dark:text-gray-300">{studyGroups.length} Groups Joined</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <TrendingUp size={14} className="text-blue-500" />
+                <span className="text-gray-600 dark:text-gray-300">85% Weekly Activity</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Star size={14} className="text-yellow-500" />
+                <span className="text-gray-600 dark:text-gray-300">4.8 Avg Rating</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <CreateGroupDialog onGroupCreated={() => window.location.reload()} />
+          </div>
         </div>
 
-        {/* Recent Group Activity and Stats - spans 1 column */}
-        <div className="lg:col-span-1 space-y-6">
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader>
-              <CardTitle className="text-gray-800 dark:text-white">Recent Group Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Users size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">New member joined Advanced Mathematics</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <Calendar size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">Study session scheduled in Physics Study Circle</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">4 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                    <BookOpen size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">Notes shared in Chemistry Lab Prep</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">6 hours ago</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Enhanced Search Bar */}
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+          <CardContent className="p-6">
+            <div className="relative">
+              <Search size={20} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search groups by name, subject, or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 text-lg border-0 bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 transition-colors"
+              />
+            </div>
+            
+            {/* Filter Tags */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Badge variant="secondary" className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900">
+                Mathematics
+              </Badge>
+              <Badge variant="secondary" className="cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900">
+                Physics
+              </Badge>
+              <Badge variant="secondary" className="cursor-pointer hover:bg-green-100 dark:hover:bg-green-900">
+                Chemistry
+              </Badge>
+              <Badge variant="secondary" className="cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900">
+                Computer Science
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Quick Stats */}
-          <div className="space-y-4">
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">3</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Active Groups</div>
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Calendar Section - spans 8 columns */}
+          <div className="lg:col-span-8">
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 h-full">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-gray-800 dark:text-white text-xl">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                    <Calendar size={18} className="text-white" />
+                  </div>
+                  Group Study Schedule
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <StudyCalendar compact={true} />
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">35</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Total Members</div>
+          </div>
+
+          {/* Right Sidebar - spans 4 columns */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Upcoming Events */}
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+              <CardHeader>
+                <CardTitle className="flex items-center text-gray-800 dark:text-white">
+                  <Clock size={18} className="mr-2 text-green-500" />
+                  Upcoming Events
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="relative p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-800 dark:text-white">Advanced Mathematics</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1">
+                          <Clock size={12} className="mr-1" />
+                          Today, 2:00 PM
+                        </p>
+                      </div>
+                      <Badge className="bg-blue-500 text-white">Today</Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="relative p-4 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-xl border-l-4 border-purple-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-800 dark:text-white">Physics Study Circle</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1">
+                          <Clock size={12} className="mr-1" />
+                          Tomorrow, 4:30 PM
+                        </p>
+                      </div>
+                      <Badge variant="secondary">Tomorrow</Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="relative p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-xl border-l-4 border-green-500">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-800 dark:text-white">Chemistry Lab Prep</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1">
+                          <Clock size={12} className="mr-1" />
+                          Wednesday, 7:00 PM
+                        </p>
+                      </div>
+                      <Badge variant="outline">Wed</Badge>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">12</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Sessions This Week</div>
+
+            {/* Recent Activity */}
+            <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+              <CardHeader>
+                <CardTitle className="flex items-center text-gray-800 dark:text-white">
+                  <TrendingUp size={18} className="mr-2 text-orange-500" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                      <Users size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white">New member joined Advanced Mathematics</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3 p-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                      <Calendar size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white">Study session scheduled in Physics Study Circle</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">4 hours ago</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                      <BookOpen size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white">Notes shared in Chemistry Lab Prep</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">6 hours ago</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
 
-      {/* Study Groups Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredGroups.map((group) => (
-          <Card 
-            key={group.id} 
-            className="border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer dark:bg-gray-800"
-            onClick={() => openGroupPage(group.id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center mb-3`}>
-                  <Users size={24} className="text-white" />
-                </div>
-                <div className="flex items-center space-x-2">
-                  {group.role === 'admin' && (
-                    <Crown size={16} className="text-yellow-500" />
-                  )}
-                  <Settings size={16} className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100" />
-                </div>
-              </div>
-              <CardTitle className="text-lg text-gray-800 dark:text-white">{group.name}</CardTitle>
-              <p className="text-sm text-gray-600 dark:text-gray-300">{group.subject}</p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">{group.description}</p>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">Members</span>
-                  <span className="font-medium text-gray-800 dark:text-white">{group.members}</span>
-                </div>
-                
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                  <Calendar size={14} className="mr-2" />
-                  <span>Next: Jan 15, 2:00 PM</span>
-                </div>
-                
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                  <div className="flex items-start">
-                    <MessageSquare size={14} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
-                    <p className="text-xs text-gray-600 dark:text-gray-300">{group.recentActivity}</p>
+        {/* Study Groups Grid */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">My Study Groups</h2>
+            <p className="text-gray-600 dark:text-gray-300">{filteredGroups.length} groups found</p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredGroups.map((group) => (
+              <Card 
+                key={group.id} 
+                className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:scale-105 overflow-hidden"
+                onClick={() => openGroupPage(group.id)}
+              >
+                {/* Card Header with Gradient */}
+                <div className={`h-24 bg-gradient-to-br ${group.color} to-opacity-80 relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-black/10"></div>
+                  <div className="absolute top-4 right-4 flex items-center space-x-2">
+                    {group.role === 'admin' && (
+                      <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg">
+                        <Crown size={14} className="text-yellow-800" />
+                      </div>
+                    )}
+                    <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors">
+                      <Settings size={14} className="text-white" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 left-4">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+                      <Users size={20} className="text-white" />
+                    </div>
                   </div>
                 </div>
+
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {/* Title and Subject */}
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {group.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{group.subject}</p>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                      {group.description}
+                    </p>
+                    
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4 py-3">
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="text-lg font-bold text-gray-800 dark:text-white">{group.members}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300">Members</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="text-lg font-bold text-green-600 dark:text-green-400">Active</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-300">Status</div>
+                      </div>
+                    </div>
+                    
+                    {/* Next Session */}
+                    <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <Calendar size={16} className="text-blue-500 mr-2 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800 dark:text-white">Next Session</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-300">Jan 15, 2:00 PM</p>
+                      </div>
+                    </div>
+                    
+                    {/* Recent Activity */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border-l-3 border-blue-500">
+                      <div className="flex items-start">
+                        <MessageSquare size={14} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                        <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{group.recentActivity}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="mt-6 flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openChat(group.name);
+                      }}
+                    >
+                      <MessageSquare size={14} className="mr-1" />
+                      Chat
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="sm" 
+                      className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLeaveGroup(group.id);
+                      }}
+                    >
+                      <UserMinus size={14} className="mr-1" />
+                      Leave
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Show message when no groups match search */}
+        {filteredGroups.length === 0 && searchTerm && (
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+            <CardContent className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search size={24} className="text-gray-400" />
               </div>
-              
-              <div className="mt-4 flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openChat(group.name);
-                  }}
-                >
-                  <MessageSquare size={14} className="mr-1" />
-                  Chat
-                </Button>
-                <Button 
-                  variant="outline"
-                  size="sm" 
-                  className="text-red-600 border-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-900/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleLeaveGroup(group.id);
-                  }}
-                >
-                  <UserMinus size={14} className="mr-1" />
-                  Leave
-                </Button>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">No groups found</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                No groups found matching "{searchTerm}". Try adjusting your search terms.
+              </p>
+              <Button variant="outline" onClick={() => setSearchTerm('')}>
+                Clear Search
+              </Button>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {/* Show message when no groups match search */}
-      {filteredGroups.length === 0 && searchTerm && (
-        <div className="text-center py-8">
-          <p className="text-gray-500 dark:text-gray-400">No groups found matching "{searchTerm}"</p>
-        </div>
-      )}
+        )}
 
       {selectedGroupDetails && (
         <GroupDetails
@@ -311,14 +420,12 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             setSelectedGroupDetails(null);
           }}
         />
-      )}
-
-
-      <ChatPopup
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        groupName={selectedGroupName}
-      />
+      )}        <ChatPopup
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          groupName={selectedGroupName}
+        />
+      </div>
     </div>
   );
 };
