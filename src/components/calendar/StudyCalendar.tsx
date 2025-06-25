@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, BookOpen, FileText, Users } from 'lucide-react';
+import { Plus, BookOpen, FileText, Users, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { StudyEventsService } from '@/services/database';
 
 interface StudyEvent {
   id: string;
@@ -14,6 +15,12 @@ interface StudyEvent {
   time: string;
   subject?: string;
   participants?: number;
+  status?: string;
+  group?: {
+    id: string;
+    name: string;
+    subject: string | null;
+  };
 }
 
 interface StudyCalendarProps {
@@ -23,43 +30,44 @@ interface StudyCalendarProps {
 
 export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
-  // Mock events data
-  const [events] = useState<StudyEvent[]>([
-    {
-      id: '1',
-      title: 'Math Study Session',
-      type: 'study-session',
-      date: new Date(2024, 0, 15),
-      time: '14:00',
-      subject: 'Calculus'
-    },
-    {
-      id: '2',
-      title: 'Physics Test',
-      type: 'test',
-      date: new Date(2024, 0, 18),
-      time: '10:00',
-      subject: 'Quantum Mechanics'
-    },
-    {
-      id: '3',
-      title: 'Chemistry Group Study',
-      type: 'group-session',
-      date: new Date(2024, 0, 20),
-      time: '16:30',
-      subject: 'Organic Chemistry',
-      participants: 8
-    },
-    {
-      id: '4',
-      title: 'History Review',
-      type: 'study-session',
-      date: new Date(2024, 0, 22),
-      time: '19:00',
-      subject: 'World War II'
+  const [events, setEvents] = useState<StudyEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await StudyEventsService.getEvents();
+      
+      // Transform the data to match our StudyEvent interface
+      const transformedEvents: StudyEvent[] = data.map(session => ({
+        id: session.id,
+        title: session.title,
+        type: session.group_id ? 'group-session' : 'study-session',
+        date: new Date(session.scheduled_start),
+        time: format(new Date(session.scheduled_start), 'HH:mm'),
+        subject: session.study_groups?.subject || 'General',
+        status: session.status,
+        group: session.study_groups ? {
+          id: session.study_groups.id,
+          name: session.study_groups.name,
+          subject: session.study_groups.subject
+        } : undefined
+      }));
+      
+      setEvents(transformedEvents);
+    } catch (err) {
+      console.error('Error loading events:', err);
+      setError('Failed to load calendar events');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const getEventsForDate = (date: Date) => {
     return events.filter(event => 
@@ -113,21 +121,35 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
           )}
         </CardHeader>
         <CardContent>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
-            modifiers={{
-              hasEvent: (date) => hasEvents(date)
-            }}
-            modifiersStyles={{
-              hasEvent: {
-                backgroundColor: '#dbeafe',
-                fontWeight: 'bold'
-              }
-            }}
-          />
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading calendar...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 dark:text-red-400">{error}</p>
+              <Button onClick={loadEvents} variant="outline" size="sm" className="mt-2">
+                Try Again
+              </Button>
+            </div>
+          ) : (
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
+              modifiers={{
+                hasEvent: (date) => hasEvents(date)
+              }}
+              modifiersStyles={{
+                hasEvent: {
+                  backgroundColor: '#dbeafe',
+                  fontWeight: 'bold'
+                }
+              }}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -140,7 +162,11 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {selectedDateEvents.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : selectedDateEvents.length > 0 ? (
               <div className="space-y-3">
                 {selectedDateEvents.map((event) => (
                   <div key={event.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -151,8 +177,13 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
                           <h4 className="font-medium text-gray-800 dark:text-white">{event.title}</h4>
                           <p className="text-sm text-gray-600 dark:text-gray-300">{event.subject}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">{event.time}</p>
-                          {event.participants && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{event.participants} participants</p>
+                          {event.group && (
+                            <p className="text-xs text-blue-600 dark:text-blue-400">Group: {event.group.name}</p>
+                          )}
+                          {event.status && (
+                            <Badge variant="outline" className="text-xs mt-1">
+                              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -173,20 +204,29 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
       ) : (
         <div>
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Upcoming Events</h3>
-          <div className="space-y-2">
-            {events.slice(0, 3).map((event) => (
-              <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                {getEventIcon(event.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{format(event.date, 'MMM d')} at {event.time}</p>
+          {loading ? (
+            <div className="flex justify-center items-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {events.slice(0, 3).map((event) => (
+                <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  {getEventIcon(event.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{format(event.date, 'MMM d')} at {event.time}</p>
+                  </div>
+                  <Badge className={`${getEventColor(event.type)} text-xs`}>
+                    {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
+                  </Badge>
                 </div>
-                <Badge className={`${getEventColor(event.type)} text-xs`}>
-                  {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
-                </Badge>
-              </div>
-            ))}
-          </div>
+              ))}
+              {events.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

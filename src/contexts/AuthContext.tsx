@@ -37,12 +37,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Get initial session and auto-sign in anonymously if needed
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        // No session found, try to sign in anonymously for development
+        console.log('No existing session, attempting anonymous sign-in...');
+        try {
+          const { data, error } = await supabase.auth.signInAnonymously();
+          if (error) {
+            console.error('Anonymous sign-in failed:', error);
+          } else {
+            console.log('Anonymous sign-in successful');
+            setSession(data.session);
+            setUser(data.user);
+          }
+        } catch (err) {
+          console.error('Anonymous sign-in error:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

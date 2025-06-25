@@ -1,19 +1,47 @@
 
-import { useState } from 'react';
-import { BookOpen, Plus, Share, Download, Search, Filter, Upload } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
+import { NotesService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Notes = () => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
   const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
+  const [notes, setNotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const notes = [
+  useEffect(() => {
+    loadNotes();
+  }, [user]);
+
+  const loadNotes = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const userNotes = await NotesService.getUserNotes(user.id);
+      setNotes(userNotes);
+    } catch (err) {
+      console.error('Error loading notes:', err);
+      setError('Failed to load notes. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback for when there's no real data
+  const mockNotes = [
     {
       id: '1',
       title: 'Calculus Integration Techniques',
@@ -86,29 +114,32 @@ export const Notes = () => {
     }
   ];
 
-  const subjects = ['all', ...Array.from(new Set(notes.map(note => note.subject)))];
+  // Use the fetched notes or fallback to mock data if no real data
+  const displayNotes = notes.length > 0 ? notes : mockNotes;
+  const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
   
   const categories = [
-    { id: 'all', label: 'All Materials', count: notes.length },
-    { id: 'notes', label: 'Notes', count: notes.filter(n => n.category === 'notes').length },
-    { id: 'flashcards', label: 'Flashcards', count: notes.filter(n => n.category === 'flashcards').length },
-    { id: 'documents', label: 'Documents', count: notes.filter(n => n.category === 'documents').length },
-    { id: 'study-guide', label: 'Study Guides', count: notes.filter(n => n.category === 'study-guide').length },
+    { id: 'all', label: 'All Materials', count: displayNotes.length },
+    { id: 'notes', label: 'Notes', count: displayNotes.filter(n => n.category === 'notes').length },
+    { id: 'flashcards', label: 'Flashcards', count: displayNotes.filter(n => n.category === 'flashcards').length },
+    { id: 'documents', label: 'Documents', count: displayNotes.filter(n => n.category === 'documents').length },
+    { id: 'study-guide', label: 'Study Guides', count: displayNotes.filter(n => n.category === 'study-guide').length },
   ];
 
   const ownershipOptions = [
-    { id: 'all', label: 'All Notes', count: notes.length },
-    { id: 'mine', label: 'My Notes', count: notes.filter(n => n.isMine).length },
-    { id: 'public', label: 'Public Notes', count: notes.filter(n => !n.isMine).length },
+    { id: 'all', label: 'All Notes', count: displayNotes.length },
+    { id: 'mine', label: 'My Notes', count: displayNotes.filter(n => n.user_id === user?.id).length },
+    { id: 'public', label: 'Public Notes', count: displayNotes.filter(n => n.user_id !== user?.id).length },
   ];
 
-  const filteredNotes = notes.filter(note => {
-    const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         note.subject.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredNotes = displayNotes.filter(note => {
+    const matchesSearch = (note.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (note.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || note.category === selectedCategory;
     const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
     const matchesOwnership = selectedOwnership === 'all' || 
-                           (selectedOwnership === 'mine' && note.isMine) ||
+                           (selectedOwnership === 'mine' && note.user_id === user?.id) ||
+                           (selectedOwnership === 'public' && note.user_id !== user?.id);
                            (selectedOwnership === 'public' && !note.isMine);
     return matchesSearch && matchesCategory && matchesSubject && matchesOwnership;
   });
@@ -159,33 +190,48 @@ export const Notes = () => {
         </Button>
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Search notes, flashcards, documents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <AlertDescription className="text-red-800 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-2 text-gray-600 dark:text-gray-300">Loading your notes...</span>
         </div>
-        <div className="flex items-center space-x-2">
-          <Filter size={16} className="text-gray-400" />
-          <span className="text-sm text-gray-600 dark:text-gray-300">Filter:</span>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="px-3 py-1 border rounded text-sm bg-white dark:bg-gray-700 dark:text-gray-200"
-          >
-            {subjects.map(subject => (
-              <option key={subject} value={subject}>
-                {subject === 'all' ? 'All Subjects' : subject}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      ) : (
+        <>
+          {/* Search and Filter */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search notes, flashcards, documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter size={16} className="text-gray-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-300">Filter:</span>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="px-3 py-1 border rounded text-sm bg-white dark:bg-gray-700 dark:text-gray-200"
+              >
+                {subjects.map(subject => (
+                  <option key={subject} value={subject}>
+                    {subject === 'all' ? 'All Subjects' : subject}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Categories Sidebar */}
@@ -338,6 +384,8 @@ export const Notes = () => {
           )}
         </div>
       </div>
+        </>
+      )}
 
       <UploadMaterialPopup 
         isOpen={isUploadPopupOpen}

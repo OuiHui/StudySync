@@ -1,9 +1,12 @@
 
-import { useState } from 'react';
-import { X, Send, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Send, Users, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChatService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ChatMessage {
   id: string;
@@ -18,11 +21,40 @@ interface ChatPopupProps {
   isOpen: boolean;
   onClose: () => void;
   groupName: string;
+  groupId?: string;
 }
 
-export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
+export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProps) => {
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && groupId) {
+      loadMessages();
+    }
+  }, [isOpen, groupId]);
+
+  const loadMessages = async () => {
+    if (!groupId) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const groupMessages = await ChatService.getMessages(groupId);
+      setMessages(groupMessages);
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      setError('Failed to load messages. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback
+  const mockMessages: ChatMessage[] = [
     {
       id: '1',
       userId: '2',
@@ -47,20 +79,34 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
       timestamp: '14:35',
       avatar: '👤'
     }
-  ]);
+  ];
 
-  const sendMessage = () => {
-    if (message.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        userId: '1',
-        userName: 'You',
-        message: message,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        avatar: '👤'
-      };
-      setMessages(prev => [...prev, newMessage]);
+  // Use fetched messages or fallback to mock data
+  const displayMessages = messages.length > 0 ? messages.map(msg => ({
+    id: msg.id,
+    userId: msg.sender_id,
+    userName: msg.profiles?.display_name || 'Unknown User',
+    message: msg.content,
+    timestamp: new Date(msg.created_at).toLocaleTimeString(),
+    avatar: msg.profiles?.avatar_url || '👤'
+  })) : mockMessages;
+
+  const sendMessage = async () => {
+    if (!message.trim() || !user || !groupId) return;
+    
+    try {
+      await ChatService.sendMessage({
+        conversation_id: groupId,
+        sender_id: user.id,
+        content: message,
+        message_type: 'text'
+      });
+      
       setMessage('');
+      await loadMessages(); // Reload messages to show the new one
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('Failed to send message. Please try again.');
     }
   };
 
@@ -86,10 +132,30 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
           </Button>
         </CardHeader>
         
+        {error && (
+          <div className="px-4 pt-2">
+            <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <AlertDescription className="text-red-800 dark:text-red-200">
+                {error}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
         <CardContent className="flex flex-col h-[400px] p-0">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg) => (
+            {loading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                <span className="ml-2 text-gray-600 dark:text-gray-300">Loading messages...</span>
+              </div>
+            ) : displayMessages.length === 0 ? (
+              <div className="flex justify-center items-center h-full">
+                <p className="text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              displayMessages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.userId === '1' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] ${msg.userId === '1' ? 'order-2' : 'order-1'}`}>
                   <div className={`px-3 py-2 rounded-lg ${
@@ -117,7 +183,8 @@ export const ChatPopup = ({ isOpen, onClose, groupName }: ChatPopupProps) => {
                   </div>
                 )}
               </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Message Input */}

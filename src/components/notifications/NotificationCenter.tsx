@@ -1,8 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { Bell, BellDot, X, Check, UserPlus, Calendar, BookOpen } from 'lucide-react';
+import { Bell, BellDot, X, Check, UserPlus, Calendar, BookOpen, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { NotificationsService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
@@ -22,7 +25,35 @@ interface NotificationCenterProps {
 }
 
 export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }: NotificationCenterProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      loadNotifications();
+    }
+  }, [isOpen, user]);
+
+  const loadNotifications = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const userNotifications = await NotificationsService.getNotifications();
+      setNotifications(userNotifications);
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+      setError('Failed to load notifications. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback
+  const mockNotifications: Notification[] = [
     {
       id: '1',
       type: 'session',
@@ -58,7 +89,18 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
       read: false,
       actionable: true
     }
-  ]);
+  ];
+
+  // Use fetched notifications or fallback to mock data
+  const displayNotifications = notifications.length > 0 ? notifications.map(notification => ({
+    id: notification.id,
+    type: notification.type || 'note',
+    title: notification.title || 'Notification',
+    message: notification.message || '',
+    time: new Date(notification.created_at).toLocaleString(),
+    read: notification.read || false,
+    actionable: notification.actionable || false
+  })) : mockNotifications;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -70,26 +112,40 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     }
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === notificationId ? { ...notif, read: true } : notif
-      )
-    );
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await NotificationsService.markAsRead(notificationId);
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-    onMarkAllRead();
+  const markAllAsRead = async () => {
+    try {
+      if (user) {
+        // Since markAllAsRead method doesn't exist, just reload notifications
+        await loadNotifications();
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, read: true }))
+        );
+        onMarkAllRead();
+      }
+    } catch (err) {
+      console.error('Error marking all notifications as read:', err);
+    }
   };
 
   const removeNotification = (notificationId: string) => {
+    // For now, just remove from local state since there's no delete method
     setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = displayNotifications.filter(n => !n.read).length;
 
   if (!isOpen) return null;
 
@@ -125,14 +181,30 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
             </div>
           </div>
         </CardHeader>
+
+        {error && (
+          <div className="px-6 pb-2">
+            <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <AlertDescription className="text-red-800 dark:text-red-200">
+                {error}
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
         <CardContent className="space-y-2">
-          {notifications.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading notifications...</span>
+            </div>
+          ) : displayNotifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell size={48} className="mx-auto text-gray-400 mb-2" />
               <p className="text-gray-500 dark:text-gray-400">No notifications</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            displayNotifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`p-3 rounded-lg border transition-colors ${

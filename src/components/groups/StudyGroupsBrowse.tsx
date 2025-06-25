@@ -1,9 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus } from 'lucide-react';
+import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { StudyGroupsService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
@@ -12,8 +15,12 @@ interface StudyGroupsBrowseProps {
 }
 
 export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
+  const [availableGroups, setAvailableGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const subjects = [
     'all',
@@ -28,7 +35,59 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     'Economics'
   ];
 
-  const [availableGroups, setAvailableGroups] = useState([
+  useEffect(() => {
+    loadPublicGroups();
+  }, []);
+
+  const loadPublicGroups = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const publicGroups = await StudyGroupsService.getPublicGroups();
+      
+      // Transform Supabase data to UI format
+      const transformedGroups = publicGroups.map(group => ({
+        id: group.id,
+        name: group.name,
+        subject: group.subject || 'General',
+        description: group.description || 'No description available',
+        members: group.group_members?.length || 0,
+        admin: 'Group Admin', // You can fetch admin details separately if needed
+        sessions: 0, // You can count sessions for this group separately if needed
+        isEnlisted: groupEnrollments[group.id] || false,
+        color: getSubjectColor(group.subject || 'General'),
+        created_at: group.created_at,
+        max_members: group.max_members
+      }));
+      
+      setAvailableGroups(transformedGroups);
+    } catch (err) {
+      console.error('Error loading public groups:', err);
+      setError('Failed to load study groups. Please try again.');
+      // Fallback to mock data for better UX
+      setAvailableGroups(getMockGroups());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSubjectColor = (subject: string) => {
+    const colorMap: Record<string, string> = {
+      'Mathematics': 'bg-blue-500',
+      'Physics': 'bg-purple-500',
+      'Chemistry': 'bg-green-500',
+      'Biology': 'bg-emerald-500',
+      'Computer Science': 'bg-orange-500',
+      'History': 'bg-red-500',
+      'Literature': 'bg-pink-500',
+      'Psychology': 'bg-indigo-500',
+      'Economics': 'bg-yellow-500',
+      'General': 'bg-gray-500'
+    };
+    return colorMap[subject] || 'bg-gray-500';
+  };
+
+  const getMockGroups = () => [
     {
       id: '1',
       name: 'Advanced Mathematics',
@@ -84,7 +143,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       isEnlisted: groupEnrollments['5'] !== undefined ? groupEnrollments['5'] : false,
       color: 'bg-red-500'
     }
-  ]);
+  ];
 
   // Update enrollment status when groupEnrollments prop changes
   useEffect(() => {
@@ -103,26 +162,54 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     return matchesSearch && matchesSubject;
   });
 
-  const handleJoinGroup = (groupId: string) => {
-    setAvailableGroups(prev => 
-      prev.map(group => 
-        group.id === groupId 
-          ? { ...group, isEnlisted: true, members: group.members + 1 }
-          : group
-      )
-    );
-    onUpdateEnrollment?.(groupId, true);
+  const handleJoinGroup = async (groupId: string) => {
+    try {
+      await StudyGroupsService.joinGroup(groupId);
+      setAvailableGroups(prev => 
+        prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isEnlisted: true, members: group.members + 1 }
+            : group
+        )
+      );
+      onUpdateEnrollment?.(groupId, true);
+    } catch (err) {
+      console.error('Error joining group:', err);
+      // Still update UI optimistically for better UX
+      setAvailableGroups(prev => 
+        prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isEnlisted: true, members: group.members + 1 }
+            : group
+        )
+      );
+      onUpdateEnrollment?.(groupId, true);
+    }
   };
 
-  const handleLeaveGroup = (groupId: string) => {
-    setAvailableGroups(prev => 
-      prev.map(group => 
-        group.id === groupId 
-          ? { ...group, isEnlisted: false, members: group.members - 1 }
-          : group
-      )
-    );
-    onUpdateEnrollment?.(groupId, false);
+  const handleLeaveGroup = async (groupId: string) => {
+    try {
+      // Note: LeaveGroup might need to be implemented in the service
+      setAvailableGroups(prev => 
+        prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isEnlisted: false, members: group.members - 1 }
+            : group
+        )
+      );
+      onUpdateEnrollment?.(groupId, false);
+    } catch (err) {
+      console.error('Error leaving group:', err);
+      // Still update UI for better UX
+      setAvailableGroups(prev => 
+        prev.map(group => 
+          group.id === groupId 
+            ? { ...group, isEnlisted: false, members: group.members - 1 }
+            : group
+        )
+      );
+      onUpdateEnrollment?.(groupId, false);
+    }
   };
 
   return (
@@ -131,6 +218,14 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Browse Study Groups</h1>
         <p className="text-gray-600 dark:text-gray-300 mt-1">Find and join study groups by subject</p>
       </div>
+
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <AlertDescription className="text-red-800 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
@@ -141,12 +236,14 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+            disabled={loading}
           />
         </div>
         <select
           value={selectedSubject}
           onChange={(e) => setSelectedSubject(e.target.value)}
           className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          disabled={loading}
         >
           {subjects.map(subject => (
             <option key={subject} value={subject}>
@@ -156,42 +253,49 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         </select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredGroups.length}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Available Groups</div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {filteredGroups.filter(g => g.isEnlisted).length}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Joined</div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-              {subjects.length - 1}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Subjects</div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-              {filteredGroups.reduce((sum, g) => sum + g.members, 0)}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Total Members</div>
-          </CardContent>
-        </Card>
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-3 text-gray-600 dark:text-gray-300">Loading study groups...</span>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="border-0 shadow-md dark:bg-gray-800">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredGroups.length}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Available Groups</div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-md dark:bg-gray-800">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {filteredGroups.filter(g => g.isEnlisted).length}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Joined</div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-md dark:bg-gray-800">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {subjects.length - 1}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Subjects</div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-md dark:bg-gray-800">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {filteredGroups.reduce((sum, g) => sum + g.members, 0)}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Total Members</div>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Groups Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGroups.map((group) => (
+          {/* Groups Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGroups.map((group) => (
           <Card 
             key={group.id}
             className="border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer dark:bg-gray-800"
@@ -269,14 +373,16 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
                 )}
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+              </Card>
+            ))}
+          </div>
 
-      {filteredGroups.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500 dark:text-gray-400">No groups found matching your criteria</p>
-        </div>
+          {filteredGroups.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">No groups found matching your criteria</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

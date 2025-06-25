@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus, TrendingUp, Clock, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus, TrendingUp, Clock, Star, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { GroupDetails } from '@/components/groups/GroupDetails';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
+import { StudyGroupsService } from '@/services/database';
 
 interface StudyGroupsProps {
   onSelectGroup?: (groupId: string) => void;
@@ -18,45 +19,49 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [studyGroups, setStudyGroups] = useState([
-    {
-      id: '1',
-      name: 'Advanced Mathematics',
-      subject: 'Calculus & Linear Algebra',
-      members: 12,
-      role: 'admin',
-      nextSession: '2024-01-15 14:00',
-      description: 'A comprehensive study group focused on advanced mathematical concepts including multivariable calculus, linear algebra, and differential equations. We meet twice weekly to work through problem sets and discuss challenging concepts.',
-      fullDescription: 'This study group is designed for students taking advanced mathematics courses. We cover topics such as integration techniques, series convergence, vector spaces, eigenvalues, and linear transformations. Our sessions include collaborative problem-solving, concept discussions, and exam preparation. Members are expected to come prepared with questions and to actively participate in discussions.',
-      color: 'bg-blue-500',
-      recentActivity: 'Sarah shared new calculus notes 2 hours ago',
-      meetingSchedule: 'Tuesdays & Thursdays, 2:00 PM - 4:00 PM',
-      requirements: 'Calculus I & II prerequisites',
-      studyMaterials: ['Stewart Calculus 8th Edition', 'Linear Algebra by Lay', 'Khan Academy videos']
-    },
-    {
-      id: '2',
-      name: 'Physics Study Circle',
-      subject: 'Quantum Mechanics',
-      members: 8,
-      role: 'member',
-      nextSession: '2024-01-16 16:30',
-      description: 'Deep dive into quantum physics principles and applications',
-      color: 'bg-purple-500',
-      recentActivity: 'New session scheduled for tomorrow'
-    },
-    {
-      id: '3',
-      name: 'Chemistry Lab Prep',
-      subject: 'Organic Chemistry',
-      members: 15,
-      role: 'moderator',
-      nextSession: '2024-01-17 19:00',
-      description: 'Preparation for upcoming laboratory experiments',
-      color: 'bg-green-500',
-      recentActivity: 'John uploaded lab procedure notes'
+  const [studyGroups, setStudyGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Mock current user ID - in a real app, this would come from auth context
+  const currentUserId = 'current-user-id';
+
+  useEffect(() => {
+    loadUserGroups();
+  }, []);
+
+  const loadUserGroups = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await StudyGroupsService.getUserGroups(currentUserId);
+      
+      // Transform the data to match our component structure
+      const transformedGroups = data.map((membership: any) => {
+        const group = membership.study_groups || membership;
+        return {
+          id: group.id,
+          name: group.name,
+          subject: group.subject || 'General',
+          members: 0, // We'll need to count this from group_members
+          role: membership.role || 'member', // This comes from the membership relationship
+          nextSession: null, // This would come from study_sessions
+          description: group.description || '',
+          color: 'bg-blue-500', // Default color
+          recentActivity: 'No recent activity',
+          created_at: group.created_at,
+          is_public: group.is_public
+        };
+      });
+      
+      setStudyGroups(transformedGroups);
+    } catch (err) {
+      console.error('Error loading groups:', err);
+      setError('Failed to load study groups');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const filteredGroups = studyGroups.filter(group =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,17 +84,26 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
     setChatOpen(true);
   };
 
-  const handleCreateGroup = (newGroup: any) => {
-    setStudyGroups(prev => [...prev, newGroup]);
+  const handleJoinGroup = async (groupId: string) => {
+    try {
+      await StudyGroupsService.joinGroup(groupId, currentUserId);
+      loadUserGroups(); // Reload groups after joining
+    } catch (err) {
+      console.error('Error joining group:', err);
+    }
   };
 
-  const handleJoinGroup = (groupId: string) => {
-    console.log('Joining group:', groupId);
-    // In a real app, this would make an API call
+  const handleLeaveGroup = async (groupId: string) => {
+    try {
+      await StudyGroupsService.leaveGroup(groupId, currentUserId);
+      loadUserGroups(); // Reload groups after leaving
+    } catch (err) {
+      console.error('Error leaving group:', err);
+    }
   };
 
-  const handleLeaveGroup = (groupId: string) => {
-    setStudyGroups(prev => prev.filter(group => group.id !== groupId));
+  const handleCreateGroup = () => {
+    loadUserGroups(); // Reload groups after creating
   };
 
   return (
@@ -285,112 +299,152 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white">My Study Groups</h2>
-            <p className="text-gray-600 dark:text-gray-300">{filteredGroups.length} groups found</p>
+            <p className="text-gray-600 dark:text-gray-300">
+              {loading ? 'Loading...' : `${filteredGroups.length} groups found`}
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredGroups.map((group) => (
-              <Card 
-                key={group.id} 
-                className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:scale-105 overflow-hidden"
-                onClick={() => openGroupPage(group.id)}
-              >
-                {/* Card Header with Gradient */}
-                <div className={`h-24 bg-gradient-to-br ${group.color} to-opacity-80 relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/10"></div>
-                  <div className="absolute top-4 right-4 flex items-center space-x-2">
-                    {group.role === 'admin' && (
-                      <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg">
-                        <Crown size={14} className="text-yellow-800" />
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading study groups...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-20">
+              <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
+              <Button onClick={loadUserGroups} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          ) : filteredGroups.length === 0 ? (
+            <div className="text-center py-20">
+              <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                {searchTerm ? 'No groups match your search' : 'No study groups yet'}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                {searchTerm 
+                  ? 'Try adjusting your search terms' 
+                  : 'Join or create a study group to get started'
+                }
+              </p>
+              {!searchTerm && (
+                <CreateGroupDialog onGroupCreated={handleCreateGroup} />
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredGroups.map((group) => (
+                <Card 
+                  key={group.id} 
+                  className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:scale-105 overflow-hidden"
+                  onClick={() => openGroupPage(group.id)}
+                >
+                  {/* Card Header with Gradient */}
+                  <div className={`h-24 bg-gradient-to-br ${group.color} to-opacity-80 relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="absolute top-4 right-4 flex items-center space-x-2">
+                      {group.role === 'admin' && (
+                        <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg">
+                          <Crown size={14} className="text-yellow-800" />
+                        </div>
+                      )}
+                      <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors">
+                        <Settings size={14} className="text-white" />
                       </div>
-                    )}
-                    <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors">
-                      <Settings size={14} className="text-white" />
+                    </div>
+                    <div className="absolute bottom-4 left-4">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+                        <Users size={20} className="text-white" />
+                      </div>
                     </div>
                   </div>
-                  <div className="absolute bottom-4 left-4">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
-                      <Users size={20} className="text-white" />
-                    </div>
-                  </div>
-                </div>
 
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {/* Title and Subject */}
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {group.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{group.subject}</p>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
-                      {group.description}
-                    </p>
-                    
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4 py-3">
-                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div className="text-lg font-bold text-gray-800 dark:text-white">{group.members}</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-300">Members</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div className="text-lg font-bold text-green-600 dark:text-green-400">Active</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-300">Status</div>
-                      </div>
-                    </div>
-                    
-                    {/* Next Session */}
-                    <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <Calendar size={16} className="text-blue-500 mr-2 flex-shrink-0" />
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {/* Title and Subject */}
                       <div>
-                        <p className="text-sm font-medium text-gray-800 dark:text-white">Next Session</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-300">Jan 15, 2:00 PM</p>
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {group.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{group.subject}</p>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                        {group.description || 'No description available'}
+                      </p>
+                      
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-4 py-3">
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-800 dark:text-white">{group.members}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-300">Members</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <div className="text-lg font-bold text-gray-800 dark:text-white">
+                            {group.is_public ? 'Public' : 'Private'}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-300">Visibility</div>
+                        </div>
+                      </div>
+                      
+                      {/* Next Session */}
+                      {group.nextSession && (
+                        <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <Calendar size={16} className="text-blue-500 mr-2 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-800 dark:text-white">Next Session</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-300">
+                              {new Date(group.nextSession).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Recent Activity */}
+                      <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border-l-3 border-blue-500">
+                        <div className="flex items-start">
+                          <MessageSquare size={14} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
+                          <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                            {group.recentActivity}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     
-                    {/* Recent Activity */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border-l-3 border-blue-500">
-                      <div className="flex items-start">
-                        <MessageSquare size={14} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
-                        <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{group.recentActivity}</p>
-                      </div>
+                    {/* Action Buttons */}
+                    <div className="mt-6 flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openChat(group.name);
+                        }}
+                      >
+                        <MessageSquare size={14} className="mr-1" />
+                        Chat
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        size="sm" 
+                        className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLeaveGroup(group.id);
+                        }}
+                      >
+                        <UserMinus size={14} className="mr-1" />
+                        Leave
+                      </Button>
                     </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="mt-6 flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openChat(group.name);
-                      }}
-                    >
-                      <MessageSquare size={14} className="mr-1" />
-                      Chat
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      size="sm" 
-                      className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLeaveGroup(group.id);
-                      }}
-                    >
-                      <UserMinus size={14} className="mr-1" />
-                      Leave
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Show message when no groups match search */}

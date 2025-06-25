@@ -1,10 +1,13 @@
 
-import { useState } from 'react';
-import { Users, Calendar, Clock, Play, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Calendar, Clock, Play, Eye, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateSessionDialog } from '@/components/study/CreateSessionDialog';
 import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
+import { StudySessionsService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StudySession {
   id: string;
@@ -22,8 +25,34 @@ interface AvailableSessionsListProps {
 }
 
 export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListProps) => {
+  const { user } = useAuth();
   const [selectedSession, setSelectedSession] = useState<StudySession | null>(null);
-  const [sessions] = useState<StudySession[]>([
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadSessions();
+  }, [user]);
+
+  const loadSessions = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const availableSessions = await StudySessionsService.getAvailableSessions();
+      setSessions(availableSessions);
+    } catch (err) {
+      console.error('Error loading sessions:', err);
+      setError('Failed to load study sessions. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock data fallback
+  const mockSessions: StudySession[] = [
     {
       id: '1',
       groupName: 'Advanced Mathematics',
@@ -64,10 +93,22 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
       type: 'active',
       description: 'Analyzing contemporary poetic techniques'
     }
-  ]);
+  ];
 
-  const activeSessions = sessions.filter(s => s.type === 'active');
-  const plannedSessions = sessions.filter(s => s.type === 'planned');
+  // Use fetched sessions or fallback to mock data
+  const displaySessions = sessions.length > 0 ? sessions.map(session => ({
+    id: session.id,
+    groupName: session.study_groups?.name || 'Unknown Group',
+    subject: session.study_groups?.subject || 'General Study',
+    participants: session.participant_count || 0,
+    startTime: new Date(session.scheduled_start).toLocaleTimeString(),
+    duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
+    type: session.status === 'active' ? 'active' as const : 'planned' as const,
+    description: session.description || 'Study session'
+  })) : mockSessions;
+
+  const activeSessions = displaySessions.filter(s => s.type === 'active');
+  const plannedSessions = displaySessions.filter(s => s.type === 'planned');
 
   const handleJoinSession = (sessionId: string) => {
     console.log('Joining session:', sessionId);
@@ -81,18 +122,40 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
           <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Study Sessions</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Join or create collaborative study sessions</p>
         </div>
-        <CreateSessionDialog onSessionCreated={() => window.location.reload()} />
+        <CreateSessionDialog onSessionCreated={loadSessions} />
       </div>
 
-      <Card className="border-0 shadow-lg dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle className="flex items-center text-green-600 dark:text-green-400">
-            <Play size={20} className="mr-2" />
-            Live Sessions ({activeSessions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <AlertDescription className="text-red-800 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-2 text-gray-600 dark:text-gray-300">Loading study sessions...</span>
+        </div>
+      ) : (
+        <>
+          <Card className="border-0 shadow-lg dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center text-green-600 dark:text-green-400">
+                <Play size={20} className="mr-2" />
+                Live Sessions ({activeSessions.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activeSessions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Play size={48} className="mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">No Live Sessions</h3>
+                  <p className="text-gray-600 dark:text-gray-300">No active study sessions at the moment</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {activeSessions.map((session) => (
               <Card key={session.id} className="border border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
                 <CardContent className="p-4">
@@ -127,19 +190,27 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      <Card className="border-0 shadow-lg dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
-            <Calendar size={20} className="mr-2" />
-            Upcoming Sessions ({plannedSessions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="border-0 shadow-lg dark:bg-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
+                <Calendar size={20} className="mr-2" />
+                Upcoming Sessions ({plannedSessions.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {plannedSessions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">No Upcoming Sessions</h3>
+                  <p className="text-gray-600 dark:text-gray-300">No scheduled study sessions</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {plannedSessions.map((session) => (
               <Card key={session.id} className="border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                 <CardContent className="p-4">
@@ -185,9 +256,12 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Session Details Popup */}
       {selectedSession && (
