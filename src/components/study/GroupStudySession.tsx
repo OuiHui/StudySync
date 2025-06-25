@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChatPopup } from '@/components/chat/ChatPopup';
 import { StudyTimer } from './components/StudyTimer';
 import { ParticipantsList } from './components/ParticipantsList';
 import { SessionStats } from './components/SessionStats';
@@ -18,10 +16,7 @@ interface GroupStudySessionProps {
 }
 
 export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange, currentTheme }: GroupStudySessionProps) => {
-  const [chatOpen, setChatOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [privateChatOpen, setPrivateChatOpen] = useState(false);
-  const [privateChatParticipant, setPrivateChatParticipant] = useState<any>(null);
 
   const participants = [
     { id: '1', name: 'Sarah Johnson', status: 'Active', avatar: 'bg-blue-500' },
@@ -98,38 +93,9 @@ export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange
 
           <StudyGoals goals={goals} />
 
-          {/* Quick Actions Panel - moved Group Chat button here */}
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => setChatOpen(true)}
-                  size="sm"
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  <MessageSquare size={16} className="mr-1" />
-                  Group Chat
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
-      <ChatPopup
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        groupName="Advanced Mathematics"
-      />
-
-      <ChatPopup
-        isOpen={privateChatOpen}
-        onClose={() => setPrivateChatOpen(false)}
-        groupName={privateChatParticipant?.name || "Private Chat"}
-      />
 
       <SessionNotes
         isOpen={notesOpen}
