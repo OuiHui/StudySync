@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { StudyTimer } from './components/StudyTimer';
 import { ParticipantsList } from './components/ParticipantsList';
@@ -6,7 +6,7 @@ import { SessionStats } from './components/SessionStats';
 import { SessionNotes } from './components/SessionNotes';
 import { StudyGoals } from './components/StudyGoals';
 import { ColorCustomizer } from '@/components/settings/ColorCustomizer';
-import { ArrowLeft, MessageSquare, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 
 interface GroupStudySessionProps {
   onLeaveSession: () => void;
@@ -17,6 +17,8 @@ interface GroupStudySessionProps {
 
 export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange, currentTheme }: GroupStudySessionProps) => {
   const [notesOpen, setNotesOpen] = useState(false);
+  const [privateChatOpen, setPrivateChatOpen] = useState(false);
+  const [privateChatParticipant, setPrivateChatParticipant] = useState<any>(null);
 
   const participants = [
     { id: '1', name: 'Sarah Johnson', status: 'Active', avatar: 'bg-blue-500' },

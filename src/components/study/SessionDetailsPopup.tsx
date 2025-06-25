@@ -1,4 +1,4 @@
-import { Users, Calendar, Clock, MapPin, BookOpen, User } from 'lucide-react';
+import { Users, Calendar, Clock, } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
