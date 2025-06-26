@@ -47,6 +47,25 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
     return iconMap[iconName] || Users;
   };
 
+  // Helper function to get icon component by name or render custom image
+  const renderGroupIcon = (iconValue: string, size: number = 20, className: string = "text-white drop-shadow-sm") => {
+    // Check if it's a custom image (data URI or URL)
+    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+      return (
+        <img 
+          src={iconValue} 
+          alt="Group icon" 
+          className="object-cover rounded"
+          style={{ width: `${size}px`, height: `${size}px` }}
+        />
+      );
+    }
+    
+    // Otherwise, use icon from library
+    const IconComponent = getIconComponent(iconValue);
+    return <IconComponent size={size} className={className} />;
+  };
+
   // Helper function to convert old color format to gradient format
   const normalizeColor = (color: string) => {
     if (!color) return 'from-blue-500 to-blue-600';
@@ -271,10 +290,6 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
               <div className="flex items-center gap-2 text-sm">
                 <TrendingUp size={14} className="text-blue-500" />
                 <span className="text-gray-600 dark:text-gray-300">85% Weekly Activity</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Star size={14} className="text-yellow-500" />
-                <span className="text-gray-600 dark:text-gray-300">4.8 Avg Rating</span>
               </div>
             </div>
           </div>
@@ -556,10 +571,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                     </div>
                     <div className="absolute bottom-4 left-4 z-10">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg border border-white/20">
-                        {(() => {
-                          const IconComponent = getIconComponent(group.icon || 'Users');
-                          return <IconComponent size={20} className="text-white drop-shadow-sm" />;
-                        })()}
+                        {renderGroupIcon(group.icon || 'Users', 20, "text-white drop-shadow-sm")}
                       </div>
                     </div>
                   </div>

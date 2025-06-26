@@ -19,7 +19,9 @@ import {
   Heart,
   Star,
   Zap,
-  Crown
+  Crown,
+  Upload,
+  Image
 } from 'lucide-react';
 import {
   Dialog,
@@ -68,6 +70,8 @@ export const GroupSettingsDialog = ({
   const [loading, setLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [useCustomImage, setUseCustomImage] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -120,6 +124,15 @@ export const GroupSettingsDialog = ({
         color: group.color || 'from-blue-500 to-blue-600',
         icon: group.icon || 'Users'
       });
+      
+      // Check if the icon is a custom image (starts with data: or http)
+      if (group.icon && (group.icon.startsWith('data:') || group.icon.startsWith('http'))) {
+        setUploadedImage(group.icon);
+        setUseCustomImage(true);
+      } else {
+        setUploadedImage(null);
+        setUseCustomImage(false);
+      }
     }
     setDeleteConfirm('');
     setShowDeleteConfirm(false);
@@ -147,7 +160,7 @@ export const GroupSettingsDialog = ({
         is_public: formData.is_public,
         max_members: formData.max_members,
         // Include icon and color - the service will handle if these columns don't exist
-        icon: formData.icon,
+        icon: useCustomImage ? uploadedImage : formData.icon,
         color: formData.color
       } as any);
 
@@ -155,7 +168,7 @@ export const GroupSettingsDialog = ({
       const groupWithUIUpdates = {
         ...updatedGroup,
         color: formData.color,
-        icon: formData.icon
+        icon: useCustomImage ? uploadedImage : formData.icon
       };
 
       toast({
@@ -174,6 +187,39 @@ export const GroupSettingsDialog = ({
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setUploadedImage(result);
+        setUseCustomImage(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -207,8 +253,8 @@ export const GroupSettingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
             Group Settings
@@ -219,7 +265,69 @@ export const GroupSettingsDialog = ({
         </DialogHeader>
 
         {group && (
-          <div className="space-y-6">
+          <>
+            {/* Delete Confirmation Modal Overlay */}
+            {showDeleteConfirm && (
+              <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <Card className="border-red-200 bg-red-50 dark:bg-red-900 dark:border-red-800 max-w-md w-full shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      Delete Group
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-red-700 dark:text-red-300">
+                      This action cannot be undone. This will permanently delete the group and all associated data including:
+                    </p>
+                    <ul className="list-disc list-inside text-red-700 dark:text-red-300 space-y-1">
+                      <li>All group sessions and study materials</li>
+                      <li>All member data and progress</li>
+                      <li>Group chat history</li>
+                      <li>Group notes and documents</li>
+                    </ul>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
+                        Type the group name <strong>{group.name}</strong> to confirm:
+                      </Label>
+                      <Input
+                        id="deleteConfirm"
+                        value={deleteConfirm}
+                        onChange={(e) => setDeleteConfirm(e.target.value)}
+                        placeholder={group.name}
+                        disabled={loading}
+                        className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleDeleteGroup}
+                        disabled={loading || !canDelete}
+                        variant="destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {loading ? 'Deleting...' : 'Delete Group Permanently'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteConfirm('');
+                        }}
+                        disabled={loading}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            
+            <div className="flex-1 overflow-y-auto space-y-6 pr-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -274,31 +382,97 @@ export const GroupSettingsDialog = ({
                 {/* Icon Selection */}
                 <div className="space-y-3">
                   <Label>Group Icon</Label>
-                  <div className="grid grid-cols-6 gap-3">
-                    {availableIcons.map((iconOption) => {
-                      const IconComponent = iconOption.icon;
-                      const isSelected = formData.icon === iconOption.name;
-                      return (
-                        <button
-                          key={iconOption.name}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
-                          className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
-                            isSelected 
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' 
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                          }`}
-                          disabled={loading}
-                          title={iconOption.label}
-                        >
-                          <IconComponent 
-                            size={20} 
-                            className={isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'} 
-                          />
-                        </button>
-                      );
-                    })}
+                  
+                  {/* Icon Type Toggle */}
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      type="button"
+                      variant={!useCustomImage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setUseCustomImage(false);
+                        setUploadedImage(null);
+                      }}
+                      disabled={loading}
+                    >
+                      <Users size={16} className="mr-2" />
+                      Icon Library
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={useCustomImage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setUseCustomImage(true)}
+                      disabled={loading}
+                    >
+                      <Image size={16} className="mr-2" />
+                      Custom Image
+                    </Button>
                   </div>
+                  
+                  {!useCustomImage ? (
+                    /* Icon Library */
+                    <div className="grid grid-cols-6 gap-3">
+                      {availableIcons.map((iconOption) => {
+                        const IconComponent = iconOption.icon;
+                        const isSelected = formData.icon === iconOption.name;
+                        return (
+                          <button
+                            key={iconOption.name}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
+                            className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                              isSelected 
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            }`}
+                            disabled={loading}
+                            title={iconOption.label}
+                          >
+                            <IconComponent 
+                              size={20} 
+                              className={isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'} 
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    /* Custom Image Upload */
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="icon-upload"
+                            disabled={loading}
+                          />
+                          <label
+                            htmlFor="icon-upload"
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Upload size={16} />
+                            Choose Image
+                          </label>
+                        </div>
+                        {uploadedImage && (
+                          <div className="w-12 h-12 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <img 
+                              src={uploadedImage} 
+                              alt="Group icon preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Upload an image (max 5MB). Recommended size: 64x64 pixels.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Color Selection */}
@@ -333,11 +507,19 @@ export const GroupSettingsDialog = ({
                     <div className="absolute inset-0 bg-black/10"></div>
                     <div className="absolute bottom-3 left-3">
                       <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                        {(() => {
-                          const selectedIcon = availableIcons.find(i => i.name === formData.icon);
-                          const IconComponent = selectedIcon?.icon || Users;
-                          return <IconComponent size={18} className="text-white" />;
-                        })()}
+                        {useCustomImage && uploadedImage ? (
+                          <img 
+                            src={uploadedImage} 
+                            alt="Group icon" 
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          (() => {
+                            const selectedIcon = availableIcons.find(i => i.name === formData.icon);
+                            const IconComponent = selectedIcon?.icon || Users;
+                            return <IconComponent size={18} className="text-white" />;
+                          })()
+                        )}
                       </div>
                     </div>
                     <div className="absolute top-3 right-3">
@@ -421,69 +603,8 @@ export const GroupSettingsDialog = ({
                 Delete Group
               </Button>
             </div>
-
-            {/* Delete Confirmation */}
-            {showDeleteConfirm && (
-              <>
-                <Separator />
-                <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-                  <CardHeader>
-                    <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5" />
-                      Delete Group
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-red-700 dark:text-red-300">
-                      This action cannot be undone. This will permanently delete the group and all associated data including:
-                    </p>
-                    <ul className="list-disc list-inside text-red-700 dark:text-red-300 space-y-1">
-                      <li>All group sessions and study materials</li>
-                      <li>All member data and progress</li>
-                      <li>Group chat history</li>
-                      <li>Group notes and documents</li>
-                    </ul>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
-                        Type the group name <strong>{group.name}</strong> to confirm:
-                      </Label>
-                      <Input
-                        id="deleteConfirm"
-                        value={deleteConfirm}
-                        onChange={(e) => setDeleteConfirm(e.target.value)}
-                        placeholder={group.name}
-                        disabled={loading}
-                        className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleDeleteGroup}
-                        disabled={loading || !canDelete}
-                        variant="destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {loading ? 'Deleting...' : 'Delete Group Permanently'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setShowDeleteConfirm(false);
-                          setDeleteConfirm('');
-                        }}
-                        disabled={loading}
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Cancel
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

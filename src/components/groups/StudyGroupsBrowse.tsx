@@ -40,6 +40,25 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     return iconMap[iconName] || BookOpen;
   };
 
+  // Helper function to render icon (library icon or custom image)
+  const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
+    // Check if it's a custom image (data URI or URL)
+    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+      return (
+        <img 
+          src={iconValue} 
+          alt="Group icon" 
+          className="object-cover rounded"
+          style={{ width: `${size}px`, height: `${size}px` }}
+        />
+      );
+    }
+    
+    // Otherwise, use icon from library
+    const IconComponent = getIconComponent(iconValue);
+    return <IconComponent size={size} className={className} />;
+  };
+
   const subjects = [
     'all',
     'Mathematics',
@@ -73,7 +92,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         admin: group.creator_profile?.display_name || 'Group Admin',
         sessions: 0, // You can count sessions for this group separately if needed
         isEnlisted: groupEnrollments[group.id] || false,
-        color: getSubjectColor(group.subject || 'General'),
+        color: normalizeColor((group as any).color) || getSubjectColor(group.subject || 'General'),
         icon: (group as any).icon || 'BookOpen', // Use icon from database or default to BookOpen
         created_at: group.created_at,
         max_members: group.max_members
@@ -204,6 +223,32 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     }
   };
 
+  // Helper function to convert old color format to gradient format
+  const normalizeColor = (color: string) => {
+    if (!color) return null;
+    
+    // If it's already a gradient, return as is
+    if (color.includes('from-') && color.includes('to-')) {
+      return `bg-gradient-to-br ${color}`;
+    }
+    
+    // Convert old single color format to gradient
+    const colorMap: { [key: string]: string } = {
+      'bg-blue-500': 'bg-gradient-to-br from-blue-500 to-blue-600',
+      'bg-purple-500': 'bg-gradient-to-br from-purple-500 to-purple-600',
+      'bg-green-500': 'bg-gradient-to-br from-green-500 to-green-600',
+      'bg-red-500': 'bg-gradient-to-br from-red-500 to-red-600',
+      'bg-orange-500': 'bg-gradient-to-br from-orange-500 to-orange-600',
+      'bg-pink-500': 'bg-gradient-to-br from-pink-500 to-pink-600',
+      'bg-indigo-500': 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      'bg-teal-500': 'bg-gradient-to-br from-teal-500 to-teal-600',
+      'bg-yellow-500': 'bg-gradient-to-br from-yellow-500 to-yellow-600',
+      'bg-cyan-500': 'bg-gradient-to-br from-cyan-500 to-cyan-600'
+    };
+    
+    return colorMap[color] || `bg-gradient-to-br ${color}`;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -309,11 +354,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
           >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center mb-3`}>
-                  {(() => {
-                    const IconComponent = getIconComponent(group.icon);
-                    return <IconComponent size={24} className="text-white" />;
-                  })()}
+                <div className={`w-12 h-12 ${group.color.includes('bg-gradient') ? group.color : group.color} rounded-lg flex items-center justify-center mb-3`}>
+                  {renderGroupIcon(group.icon, 24, "text-white")}
                 </div>
                 {group.isEnlisted && (
                   <span className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full">

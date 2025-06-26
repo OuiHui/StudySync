@@ -1,5 +1,5 @@
 
-import { Users, BookOpen, MessageSquare, Calendar } from 'lucide-react';
+import { Users, BookOpen, MessageSquare, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -10,6 +10,43 @@ interface GroupDetailsProps {
 }
 
 export const GroupDetails = ({ group, onClose, onOpenChat }: GroupDetailsProps) => {
+  // Helper function to get icon component by name
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      Users,
+      BookOpen,
+      Calculator,
+      Atom,
+      Code,
+      Globe,
+      Music,
+      Camera,
+      Heart,
+      Star,
+      Zap
+    };
+    return iconMap[iconName] || Users;
+  };
+
+  // Helper function to render icon (library icon or custom image)
+  const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
+    // Check if it's a custom image (data URI or URL)
+    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+      return (
+        <img 
+          src={iconValue} 
+          alt="Group icon" 
+          className="object-cover rounded"
+          style={{ width: `${size}px`, height: `${size}px` }}
+        />
+      );
+    }
+    
+    // Otherwise, use icon from library
+    const IconComponent = getIconComponent(iconValue);
+    return <IconComponent size={size} className={className} />;
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <Card className="w-full max-w-2xl mx-4 border-0 shadow-xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
@@ -17,7 +54,7 @@ export const GroupDetails = ({ group, onClose, onOpenChat }: GroupDetailsProps) 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center`}>
-                <Users size={24} className="text-white" />
+                {renderGroupIcon(group.icon || 'Users', 24, "text-white")}
               </div>
               <div>
                 <CardTitle className="text-xl text-gray-800 dark:text-white">{group.name}</CardTitle>

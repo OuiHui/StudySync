@@ -37,6 +37,25 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     return iconMap[iconName] || Users;
   };
 
+  // Helper function to render icon (library icon or custom image)
+  const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
+    // Check if it's a custom image (data URI or URL)
+    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+      return (
+        <img 
+          src={iconValue} 
+          alt="Group icon" 
+          className="object-cover rounded"
+          style={{ width: `${size}px`, height: `${size}px` }}
+        />
+      );
+    }
+    
+    // Otherwise, use icon from library
+    const IconComponent = getIconComponent(iconValue);
+    return <IconComponent size={size} className={className} />;
+  };
+
   // Mock data - in real app this would come from props or API
   const group = {
     id: groupId,
@@ -171,10 +190,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
             Back
           </Button>
           <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center`}>
-            {(() => {
-              const IconComponent = getIconComponent(group.icon || 'Users');
-              return <IconComponent size={24} className="text-white" />;
-            })()}
+            {renderGroupIcon(group.icon || 'Users', 24, "text-white")}
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{group.name}</h1>
