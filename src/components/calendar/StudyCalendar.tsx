@@ -3,8 +3,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, BookOpen, FileText, Users, Loader2, Edit } from 'lucide-react';
-import { format, isAfter } from 'date-fns';
+import { Plus, BookOpen, FileText, Users, Loader2, Edit, X } from 'lucide-react';
+import { format, isAfter, isToday } from 'date-fns';
 import { StudyEventsService } from '@/services/database';
 import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 
@@ -33,9 +33,10 @@ interface StudyEvent {
 interface StudyCalendarProps {
   showAddButton?: boolean;
   compact?: boolean;
+  onDateClick?: (date: Date, events: StudyEvent[]) => void;
 }
 
-export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCalendarProps) => {
+export const StudyCalendar = ({ showAddButton = true, compact = false, onDateClick }: StudyCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<StudyEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,6 +128,20 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
     return getEventsForDate(date).length > 0;
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    setSelectedDate(date);
+    const dayEvents = getEventsForDate(date);
+    
+    // If there's an onDateClick prop, call it
+    if (onDateClick) {
+      onDateClick(date, dayEvents);
+    }
+    
+    // Don't show popup anymore - events will display on the right side
+  };
+
   return (
     <div className={`${compact ? 'space-y-4' : 'grid grid-cols-1 lg:grid-cols-2 gap-6'}`}>
       {/* Calendar */}
@@ -158,22 +173,30 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={setSelectedDate}
+                onSelect={handleDateSelect}
                 className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
                 modifiers={{
-                  hasEvent: (date) => hasEvents(date)
+                  hasEvent: (date) => hasEvents(date),
+                  today: (date) => isToday(date)
                 }}
                 modifiersClassNames={{
-                  hasEvent: 'relative'
+                  hasEvent: 'relative bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold',
+                  today: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 font-bold ring-2 ring-orange-500'
                 }}
                 formatters={{
                   formatDay: (date, options) => {
                     const dayNumber = date.getDate().toString();
                     const hasEvent = hasEvents(date);
+                    const today = isToday(date);
                     
-                    return hasEvent 
-                      ? `${dayNumber}●` // Add a bullet point for events
-                      : dayNumber;
+                    if (today && hasEvent) {
+                      return `${dayNumber}●`;
+                    } else if (hasEvent) {
+                      return `${dayNumber}●`;
+                    } else if (today) {
+                      return dayNumber;
+                    }
+                    return dayNumber;
                   }
                 }}
               />
@@ -182,22 +205,21 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
         </CardContent>
       </Card>
 
-      {/* Events for Selected Date or Upcoming Events in compact mode */}
-      {!compact ? (
-        <Card className="border-0 shadow-md dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-gray-800 dark:text-white">
-              {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : selectedDateEvents.length > 0 ? (
-              <div className="space-y-3">
-                {selectedDateEvents.map((event) => (
+      {/* Events for Selected Date - Always show this panel */}
+      <Card className="border-0 shadow-md dark:bg-gray-800">
+        <CardHeader>
+          <CardTitle className={`${compact ? 'text-base' : 'text-lg'} text-gray-800 dark:text-white`}>
+            {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : selectedDateEvents.length > 0 ? (
+            <div className="space-y-3">
+              {selectedDateEvents.map((event) => (
                   <div key={event.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-2 flex-1">
@@ -253,34 +275,36 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
             )}
           </CardContent>
         </Card>
-      ) : (
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Upcoming Events</h3>
-          {loading ? (
-            <div className="flex justify-center items-center py-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {getUpcomingEvents().slice(0, 3).map((event) => (
-                <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                  {getEventIcon(event.type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{format(event.date, 'MMM d')} at {event.time}</p>
+        
+        {/* Compact mode upcoming events */}
+        {compact && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Upcoming Events</h3>
+            {loading ? (
+              <div className="flex justify-center items-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {getUpcomingEvents().slice(0, 3).map((event) => (
+                  <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    {getEventIcon(event.type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{format(event.date, 'MMM d')} at {event.time}</p>
+                    </div>
+                    <Badge className={`${getEventColor(event.type)} text-xs`}>
+                      {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
+                    </Badge>
                   </div>
-                  <Badge className={`${getEventColor(event.type)} text-xs`}>
-                    {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
-                  </Badge>
-                </div>
-              ))}
-              {getUpcomingEvents().length === 0 && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                ))}
+                {getUpcomingEvents().length === 0 && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 };

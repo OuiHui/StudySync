@@ -70,7 +70,21 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
       'bg-cyan-500': 'from-cyan-500 to-cyan-600'
     };
     
-    return colorMap[color] || 'from-blue-500 to-blue-600';
+    // Handle direct color names without 'bg-' prefix
+    const directColorMap: { [key: string]: string } = {
+      'blue': 'from-blue-500 to-blue-600',
+      'purple': 'from-purple-500 to-purple-600',
+      'green': 'from-green-500 to-green-600',
+      'red': 'from-red-500 to-red-600',
+      'orange': 'from-orange-500 to-orange-600',
+      'pink': 'from-pink-500 to-pink-600',
+      'indigo': 'from-indigo-500 to-indigo-600',
+      'teal': 'from-teal-500 to-teal-600',
+      'yellow': 'from-yellow-500 to-yellow-600',
+      'cyan': 'from-cyan-500 to-cyan-600'
+    };
+    
+    return colorMap[color] || directColorMap[color] || 'from-blue-500 to-blue-600';
   };
 
   // Helper function to check if user is anonymous
@@ -83,7 +97,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   useEffect(() => {
     loadUserGroups();
-  }, []);
+  }, [user]); // Also reload when user changes
 
   const loadUserGroups = async () => {
     try {
@@ -108,8 +122,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             role: 'visitor', // Anonymous users are visitors
             nextSession: null,
             description: group.description || '',
-            color: group.color || 'bg-blue-500', // Default color
-            icon: group.icon || 'Users', // Default icon
+            color: group.color || 'from-blue-500 to-blue-600', // Use database value or default
+            icon: group.icon || 'Users', // Use database value or default
             recentActivity: 'Public group',
             created_at: group.created_at,
             is_public: group.is_public,
@@ -130,13 +144,14 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
           name: group.name,
           subject: group.subject || 'General',
           members: 0, // We'll need to count this from group_members separately
-          role: group.user_role || 'member', // This now comes from the service
+          user_role: group.user_role || 'member', // Keep as user_role for consistency
           nextSession: null, // This would come from study_sessions
           description: group.description || '',
-          color: group.color || 'bg-blue-500', // Default color
-          icon: group.icon || 'Users', // Default icon
+          color: group.color || 'from-blue-500 to-blue-600', // Use database value or default
+          icon: group.icon || 'Users', // Use database value or default
           recentActivity: 'No recent activity',
           created_at: group.created_at,
+          created_by: group.created_by, // Include created_by for admin check
           is_public: group.is_public
         };
       });
@@ -208,10 +223,16 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   };
 
   const handleGroupUpdated = (updatedGroup: any) => {
+    console.log('Updating group in UI:', updatedGroup);
     setStudyGroups(prevGroups => 
       prevGroups.map(group => 
         group.id === updatedGroup.id 
-          ? { ...group, ...updatedGroup }
+          ? { 
+              ...group, 
+              ...updatedGroup,
+              color: updatedGroup.color || group.color || 'from-blue-500 to-blue-600',
+              icon: updatedGroup.icon || group.icon || 'Users'
+            }
           : group
       )
     );
@@ -234,7 +255,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                 <Users size={24} className="text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-400">
                   Study Groups
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300 text-lg">Collaborate and learn together with your peers</p>
@@ -492,7 +513,15 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredGroups.map((group) => {
-                const isAdmin = group.user_role === 'admin' || group.created_by === user?.id;
+                // More robust admin checking
+                const currentUserId = user?.id;
+                const groupCreatorId = group.created_by;
+                const userRole = group.user_role;
+                
+                // Check multiple conditions for admin status
+                const isCreator = currentUserId && groupCreatorId && currentUserId === groupCreatorId;
+                const isAdminRole = userRole === 'admin';
+                const isAdmin = isCreator || isAdminRole;
                 
                 return (
                 <Card 
@@ -503,30 +532,33 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                   {/* Card Header with Gradient */}
                   <div className={`h-24 bg-gradient-to-br ${normalizeColor(group.color)} to-opacity-80 relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-black/10"></div>
-                    <div className="absolute top-4 right-4 flex items-center space-x-2">
+                    <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
+                      {/* Admin Crown Icon */}
                       {isAdmin && (
-                        <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg">
+                        <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg z-20 border-2 border-yellow-300">
                           <Crown size={14} className="text-yellow-800" />
                         </div>
                       )}
+                      
+                      {/* Settings Button for Admins */}
                       {isAdmin && (
                         <button
-                          className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors"
+                          className="bg-white/30 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/50 transition-all duration-200 z-20 border border-white/20 shadow-lg"
                           onClick={(e) => {
                             e.stopPropagation();
                             openGroupSettings(group);
                           }}
                           title="Group Settings"
                         >
-                          <Settings size={14} className="text-white" />
+                          <Settings size={14} className="text-white drop-shadow-sm" />
                         </button>
                       )}
                     </div>
-                    <div className="absolute bottom-4 left-4">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
+                    <div className="absolute bottom-4 left-4 z-10">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg border border-white/20">
                         {(() => {
                           const IconComponent = getIconComponent(group.icon || 'Users');
-                          return <IconComponent size={20} className="text-white" />;
+                          return <IconComponent size={20} className="text-white drop-shadow-sm" />;
                         })()}
                       </div>
                     </div>
