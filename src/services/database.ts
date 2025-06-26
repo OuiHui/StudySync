@@ -3,12 +3,48 @@ import { Database } from '@/integrations/supabase/types';
 
 // Helper function to check authentication
 const checkAuth = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) {
-    console.error('Auth check error:', error);
+  try {
+    // First try to get the current session
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Auth check error:', error);
+      return null;
+    }
+
+    // If no session, return null
+    if (!session) {
+      return null;
+    }
+
+    // Check if the token is expired (with some buffer time)
+    const now = Math.floor(Date.now() / 1000);
+    const tokenExp = session.expires_at || 0;
+    
+    // If token is expired or about to expire (within 60 seconds), try to refresh
+    if (tokenExp - now < 60) {
+      console.log('Token expired or expiring soon, attempting refresh...');
+      
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (refreshError) {
+        console.error('Failed to refresh session:', refreshError);
+        // Clear the session and redirect to login
+        await supabase.auth.signOut();
+        return null;
+      }
+      
+      if (refreshData?.session) {
+        console.log('Session refreshed successfully');
+        return refreshData.session;
+      }
+    }
+
+    return session;
+  } catch (error) {
+    console.error('Unexpected error in checkAuth:', error);
     return null;
   }
-  return session;
 };
 
 // Helper function to handle database errors
@@ -18,9 +54,15 @@ const handleDbError = (error: any, operation: string) => {
   if (error.code === 'PGRST116') {
     throw new Error(`No data found for ${operation}`);
   } else if (error.code === 'PGRST301') {
+    // Check if it's a JWT expiration
+    if (error.message?.includes('JWT expired') || error.message?.includes('JWT')) {
+      throw new Error(`Session expired. Please log in again.`);
+    }
     throw new Error(`Authentication required for ${operation}`);
   } else if (error.message?.includes('RLS')) {
     throw new Error(`Access denied for ${operation}. Please ensure you're logged in.`);
+  } else if (error.message?.includes('JWT expired')) {
+    throw new Error(`Session expired. Please log in again.`);
   } else {
     throw new Error(`Failed to ${operation}: ${error.message || 'Unknown error'}`);
   }
@@ -41,7 +83,8 @@ type Conversation = Database['public']['Tables']['conversations']['Row'];
 class StudyEventsService {
   static async getEvents() {
     try {
-      const { data, error } = await supabase
+      // First get the sessions with group info
+      const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select(`
           *,
@@ -49,23 +92,46 @@ class StudyEventsService {
             id,
             name,
             subject
-          ),
-          session_participants (
-            user_id,
-            profiles (
-              id,
-              display_name,
-              avatar_url
-            )
           )
         `)
-        .order('start_time', { ascending: true });
+        .order('scheduled_start', { ascending: true });
 
       if (error) {
         handleDbError(error, 'fetch study events');
       }
 
-      return data || [];
+      if (!sessions) return [];
+
+      // Get participants for each session separately
+      const sessionsWithParticipants = await Promise.all(
+        sessions.map(async (session) => {
+          const { data: participants } = await supabase
+            .from('session_participants')
+            .select('user_id')
+            .eq('session_id', session.id);
+
+          // Get profile info for participants
+          let participantProfiles = [];
+          if (participants && participants.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url')
+              .in('user_id', participants.map(p => p.user_id));
+            
+            participantProfiles = profiles || [];
+          }
+
+          return {
+            ...session,
+            session_participants: participantProfiles.map(profile => ({
+              user_id: profile.user_id,
+              profiles: profile
+            }))
+          };
+        })
+      );
+
+      return sessionsWithParticipants;
     } catch (error) {
       console.error('Error fetching study events:', error);
       return [];
@@ -163,50 +229,151 @@ class StudyGroupsService {
     try {
       const session = await checkAuth();
       if (!session) {
+        console.log('No session found, returning empty groups');
         return [];
       }
 
-      const { data, error } = await supabase
+      const userId = session.user.id;
+      console.log('Fetching user groups for user:', userId);
+
+      // Check if this is an anonymous user
+      // Anonymous users typically don't have confirmed email addresses
+      // and have limited metadata
+      const isAnonymous = !session.user.email || 
+                         session.user.is_anonymous === true ||
+                         session.user.aud === 'anonymous';
+      
+      if (isAnonymous) {
+        console.log('Anonymous user detected, returning empty groups');
+        return [];
+      }
+
+      // Get user's group memberships with role information
+      const { data: memberships, error } = await supabase
         .from('group_members')
         .select(`
-          study_groups (
-            *,
-            profiles!study_groups_created_by_fkey (
-              id,
-              display_name,
-              avatar_url
-            )
-          )
+          role,
+          joined_at,
+          study_groups (*)
         `)
-        .eq('user_id', session.user.id);
+        .eq('user_id', userId);
 
       if (error) {
-        console.error('Error fetching user groups:', error);
+        console.error('Detailed error fetching user groups:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
+        // If it's a 500 error or server error, try a simpler query
+        if (error.code?.includes('5') || error.message?.includes('500')) {
+          console.log('Server error detected, trying simpler query...');
+          
+          // Try just getting group memberships without the join
+          const { data: simpleMemberships, error: simpleError } = await supabase
+            .from('group_members')
+            .select('group_id, role, joined_at')
+            .eq('user_id', session.user.id);
+            
+          if (simpleError) {
+            console.error('Simple query also failed:', simpleError);
+            return [];
+          }
+          
+          if (!simpleMemberships || simpleMemberships.length === 0) {
+            console.log('No group memberships found');
+            return [];
+          }
+          
+          // Get group details separately
+          const groupIds = simpleMemberships.map(m => m.group_id);
+          const { data: groups } = await supabase
+            .from('study_groups')
+            .select('*')
+            .in('id', groupIds);
+            
+          // Combine membership and group data
+          const combinedData = simpleMemberships.map(membership => {
+            const group = groups?.find(g => g.id === membership.group_id);
+            return {
+              ...membership,
+              study_groups: group
+            };
+          }).filter(item => item.study_groups);
+          
+          console.log('Successfully fetched groups with fallback method:', combinedData.length);
+          
+          // Continue with the rest of the processing...
+          const groupsWithCreators = await Promise.all(
+            combinedData.map(async (membership) => {
+              const group = membership.study_groups;
+              if (!group) return null;
+
+              const { data: creator } = await supabase
+                .from('profiles')
+                .select('id, display_name, avatar_url')
+                .eq('user_id', group.created_by)
+                .single();
+
+              return {
+                ...group,
+                creator_profile: creator,
+                user_role: membership.role,
+                joined_at: membership.joined_at
+              };
+            })
+          );
+
+          return groupsWithCreators.filter(Boolean);
+        }
+        
         return [];
       }
 
-      return data?.map(item => item.study_groups).filter(Boolean) || [];
+      if (!memberships) {
+        console.log('No memberships data returned');
+        return [];
+      }
+
+      console.log('Found memberships:', memberships.length);
+
+      // Get creator profiles for each group separately
+      const groupsWithCreators = await Promise.all(
+        memberships.map(async (membership) => {
+          const group = membership.study_groups;
+          if (!group) return null;
+
+          const { data: creator } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .eq('user_id', group.created_by)
+            .single();
+
+          return {
+            ...group,
+            creator_profile: creator,
+            user_role: membership.role,
+            joined_at: membership.joined_at
+          };
+        })
+      );
+
+      const result = groupsWithCreators.filter(Boolean);
+      console.log('Successfully processed groups:', result.length);
+      return result;
     } catch (error) {
-      console.error('Error fetching user groups:', error);
+      console.error('Unexpected error fetching user groups:', error);
       return [];
     }
   }
 
   static async getPublicGroups() {
     try {
-      const { data, error } = await supabase
+      // Get public groups first (without the problematic join)
+      const { data: groups, error } = await supabase
         .from('study_groups')
-        .select(`
-          *,
-          profiles!study_groups_created_by_fkey (
-            id,
-            display_name,
-            avatar_url
-          ),
-          group_members (
-            id
-          )
-        `)
+        .select('*')
         .eq('is_public', true)
         .order('created_at', { ascending: false });
 
@@ -215,7 +382,33 @@ class StudyGroupsService {
         return [];
       }
 
-      return data || [];
+      if (!groups) return [];
+
+      // Get creator profiles and member counts for each group separately
+      const groupsWithCreators = await Promise.all(
+        groups.map(async (group) => {
+          // Get creator profile
+          const { data: creator } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .eq('user_id', group.created_by)
+            .single();
+
+          // Get member count separately to avoid RLS recursion
+          const { count: memberCount } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', group.id);
+
+          return {
+            ...group,
+            creator_profile: creator,
+            member_count: memberCount || 0
+          };
+        })
+      );
+
+      return groupsWithCreators;
     } catch (error) {
       console.error('Error fetching public groups:', error);
       return [];
@@ -224,27 +417,10 @@ class StudyGroupsService {
 
   static async getGroupById(id: string) {
     try {
-      const { data, error } = await supabase
+      // Get group info first
+      const { data: group, error } = await supabase
         .from('study_groups')
-        .select(`
-          *,
-          profiles!study_groups_created_by_fkey (
-            id,
-            display_name,
-            avatar_url
-          ),
-          group_members (
-            id,
-            user_id,
-            role,
-            joined_at,
-            profiles (
-              id,
-              display_name,
-              avatar_url
-            )
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
@@ -252,7 +428,39 @@ class StudyGroupsService {
         handleDbError(error, 'fetch group details');
       }
 
-      return data;
+      if (!group) return null;
+
+      // Get creator profile
+      const { data: creator } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .eq('user_id', group.created_by)
+        .single();
+
+      // Get group members with their profiles
+      const { data: members } = await supabase
+        .from('group_members')
+        .select('id, user_id, role, joined_at')
+        .eq('group_id', id);
+
+      let membersWithProfiles = [];
+      if (members && members.length > 0) {
+        const { data: memberProfiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, user_id')
+          .in('user_id', members.map(m => m.user_id));
+
+        membersWithProfiles = members.map(member => ({
+          ...member,
+          profile: memberProfiles?.find(p => p.user_id === member.user_id)
+        }));
+      }
+
+      return {
+        ...group,
+        creator_profile: creator,
+        group_members: membersWithProfiles
+      };
     } catch (error) {
       console.error('Error fetching group:', error);
       throw error;
@@ -417,7 +625,8 @@ class StudySessionsService {
         return [];
       }
 
-      const { data, error } = await supabase
+      // First get sessions with group info
+      const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select(`
           *,
@@ -425,17 +634,9 @@ class StudySessionsService {
             id,
             name,
             subject
-          ),
-          session_participants (
-            user_id,
-            profiles (
-              id,
-              display_name,
-              avatar_url
-            )
           )
         `)
-        .or(`created_by.eq.${session.user.id},session_participants.user_id.eq.${session.user.id}`)
+        .or(`created_by.eq.${session.user.id}`)
         .order('scheduled_start', { ascending: true });
 
       if (error) {
@@ -443,7 +644,38 @@ class StudySessionsService {
         return [];
       }
 
-      return data || [];
+      if (!sessions) return [];
+
+      // Get participants for each session separately
+      const sessionsWithParticipants = await Promise.all(
+        sessions.map(async (studySession) => {
+          const { data: participants } = await supabase
+            .from('session_participants')
+            .select('user_id')
+            .eq('session_id', studySession.id);
+
+          // Get profile info for participants
+          let participantProfiles = [];
+          if (participants && participants.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url, user_id')
+              .in('user_id', participants.map(p => p.user_id));
+            
+            participantProfiles = profiles || [];
+          }
+
+          return {
+            ...studySession,
+            session_participants: participantProfiles.map(profile => ({
+              user_id: profile.user_id,
+              profiles: profile
+            }))
+          };
+        })
+      );
+
+      return sessionsWithParticipants;
     } catch (error) {
       console.error('Error fetching sessions:', error);
       return [];
@@ -454,7 +686,8 @@ class StudySessionsService {
     try {
       const now = new Date().toISOString();
       
-      const { data, error } = await supabase
+      // First get available sessions with group info
+      const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select(`
           *,
@@ -462,14 +695,6 @@ class StudySessionsService {
             id,
             name,
             subject
-          ),
-          session_participants (
-            user_id,
-            profiles (
-              id,
-              display_name,
-              avatar_url
-            )
           )
         `)
         .gte('scheduled_start', now)
@@ -481,7 +706,38 @@ class StudySessionsService {
         return [];
       }
 
-      return data || [];
+      if (!sessions) return [];
+
+      // Get participants for each session separately
+      const sessionsWithParticipants = await Promise.all(
+        sessions.map(async (studySession) => {
+          const { data: participants } = await supabase
+            .from('session_participants')
+            .select('user_id')
+            .eq('session_id', studySession.id);
+
+          // Get profile info for participants
+          let participantProfiles = [];
+          if (participants && participants.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url, user_id')
+              .in('user_id', participants.map(p => p.user_id));
+            
+            participantProfiles = profiles || [];
+          }
+
+          return {
+            ...studySession,
+            session_participants: participantProfiles.map(profile => ({
+              user_id: profile.user_id,
+              profiles: profile
+            }))
+          };
+        })
+      );
+
+      return sessionsWithParticipants;
     } catch (error) {
       console.error('Error fetching available sessions:', error);
       return [];
@@ -762,21 +1018,10 @@ class FriendsService {
         return [];
       }
 
-      const { data, error } = await supabase
+      // Get accepted friendships
+      const { data: friendships, error } = await supabase
         .from('friendships')
-        .select(`
-          *,
-          requester:profiles!friendships_requester_id_fkey (
-            id,
-            display_name,
-            avatar_url
-          ),
-          addressee:profiles!friendships_addressee_id_fkey (
-            id,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .or(`requester_id.eq.${session.user.id},addressee_id.eq.${session.user.id}`)
         .eq('status', 'accepted');
 
@@ -785,16 +1030,34 @@ class FriendsService {
         return [];
       }
 
-      // Transform the data to show the friend (not the current user)
-      return data?.map(friendship => {
-        const friend = friendship.requester_id === session.user.id 
-          ? friendship.addressee 
-          : friendship.requester;
+      if (!friendships || friendships.length === 0) return [];
+
+      // Get friend user IDs
+      const friendUserIds = friendships.map(friendship => 
+        friendship.requester_id === session.user.id 
+          ? friendship.addressee_id 
+          : friendship.requester_id
+      );
+
+      // Get friend profiles
+      const { data: friendProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', friendUserIds);
+
+      // Combine friendship data with profiles
+      return friendships.map(friendship => {
+        const friendUserId = friendship.requester_id === session.user.id 
+          ? friendship.addressee_id 
+          : friendship.requester_id;
+        
+        const friendProfile = friendProfiles?.find(p => p.user_id === friendUserId);
+        
         return {
           ...friendship,
-          friend
+          friend: friendProfile
         };
-      }) || [];
+      }).filter(f => f.friend);
     } catch (error) {
       console.error('Error fetching friends:', error);
       return [];
@@ -808,16 +1071,10 @@ class FriendsService {
         return [];
       }
 
-      const { data, error } = await supabase
+      // Get pending friend requests where current user is the addressee
+      const { data: requests, error } = await supabase
         .from('friendships')
-        .select(`
-          *,
-          requester:profiles!friendships_requester_id_fkey (
-            id,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('addressee_id', session.user.id)
         .eq('status', 'pending');
 
@@ -826,7 +1083,20 @@ class FriendsService {
         return [];
       }
 
-      return data || [];
+      if (!requests || requests.length === 0) return [];
+
+      // Get requester profiles
+      const requesterIds = requests.map(r => r.requester_id);
+      const { data: requesterProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', requesterIds);
+
+      // Combine request data with requester profiles
+      return requests.map(request => ({
+        ...request,
+        requester: requesterProfiles?.find(p => p.user_id === request.requester_id)
+      })).filter(r => r.requester);
     } catch (error) {
       console.error('Error fetching friend requests:', error);
       return [];
@@ -974,23 +1244,12 @@ class ChatService {
         return [];
       }
 
-      const { data, error } = await supabase
+      // Get user's conversation participations
+      const { data: participations, error } = await supabase
         .from('conversation_participants')
         .select(`
           *,
-          conversations (
-            *,
-            messages (
-              id,
-              content,
-              created_at,
-              sender:profiles!messages_sender_id_fkey (
-                id,
-                display_name,
-                avatar_url
-              )
-            )
-          )
+          conversations (*)
         `)
         .eq('user_id', session.user.id)
         .eq('is_active', true);
@@ -1000,7 +1259,48 @@ class ChatService {
         return [];
       }
 
-      return data || [];
+      if (!participations) return [];
+
+      // Get latest message for each conversation
+      const conversationsWithMessages = await Promise.all(
+        participations.map(async (participation) => {
+          const conversation = participation.conversations;
+          if (!conversation) return null;
+
+          // Get latest message
+          const { data: latestMessage } = await supabase
+            .from('messages')
+            .select('id, content, created_at, sender_id')
+            .eq('conversation_id', conversation.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          // Get sender profile if message exists
+          let senderProfile = null;
+          if (latestMessage) {
+            const { data: sender } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url')
+              .eq('user_id', latestMessage.sender_id)
+              .single();
+            senderProfile = sender;
+          }
+
+          return {
+            ...participation,
+            conversations: {
+              ...conversation,
+              latest_message: latestMessage ? {
+                ...latestMessage,
+                sender: senderProfile
+              } : null
+            }
+          };
+        })
+      );
+
+      return conversationsWithMessages.filter(Boolean);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       return [];
@@ -1009,16 +1309,10 @@ class ChatService {
 
   static async getMessages(conversationId: string) {
     try {
-      const { data, error } = await supabase
+      // Get messages
+      const { data: messages, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey (
-            id,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -1027,7 +1321,20 @@ class ChatService {
         return [];
       }
 
-      return data || [];
+      if (!messages || messages.length === 0) return [];
+
+      // Get sender profiles for all messages
+      const senderIds = [...new Set(messages.map(m => m.sender_id))];
+      const { data: senderProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', senderIds);
+
+      // Combine messages with sender profiles
+      return messages.map(message => ({
+        ...message,
+        sender: senderProfiles?.find(p => p.user_id === message.sender_id)
+      }));
     } catch (error) {
       console.error('Error fetching messages:', error);
       return [];
@@ -1041,28 +1348,32 @@ class ChatService {
         throw new Error('Authentication required to send messages');
       }
 
-      const { data, error } = await supabase
+      // Insert the message first
+      const { data: message, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           sender_id: session.user.id,
           content
         })
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey (
-            id,
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .single();
 
       if (error) {
         handleDbError(error, 'send message');
       }
 
-      return data;
+      // Get sender profile separately
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .eq('user_id', session.user.id)
+        .single();
+
+      return {
+        ...message,
+        sender: senderProfile
+      };
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;

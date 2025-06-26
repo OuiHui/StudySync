@@ -9,12 +9,14 @@ import { ChatPopup } from '@/components/chat/ChatPopup';
 import { GroupDetails } from '@/components/groups/GroupDetails';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { StudyGroupsService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StudyGroupsProps {
   onSelectGroup?: (groupId: string) => void;
 }
 
 export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
+  const { user, session } = useAuth();
   const [selectedGroupDetails, setSelectedGroupDetails] = useState<any | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
@@ -22,6 +24,11 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [studyGroups, setStudyGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper function to check if user is anonymous
+  const isAnonymousUser = () => {
+    return !user || !user.email || user.is_anonymous === true || user.aud === 'anonymous';
+  };
 
   // Mock current user ID - in a real app, this would come from auth context
   // const currentUserId = 'current-user-id';
@@ -34,17 +41,47 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Check if user is authenticated and not anonymous
+      const isAnonymous = isAnonymousUser();
+      
+      if (isAnonymous) {
+        console.log('Anonymous user, showing public groups instead');
+        // For anonymous users, show public groups
+        const publicGroups = await StudyGroupsService.getPublicGroups();
+        
+        // Transform public groups to match our component structure
+        const transformedGroups = publicGroups.map((group: any) => {
+          return {
+            id: group.id,
+            name: group.name,
+            subject: group.subject || 'General',
+            members: group.member_count || 0,
+            role: 'visitor', // Anonymous users are visitors
+            nextSession: null,
+            description: group.description || '',
+            color: 'bg-blue-500', // Default color
+            recentActivity: 'Public group',
+            created_at: group.created_at,
+            is_public: group.is_public,
+            creator_profile: group.creator_profile
+          };
+        });
+        
+        setStudyGroups(transformedGroups);
+        return;
+      }
+      
       const data = await StudyGroupsService.getUserGroups();
       
       // Transform the data to match our component structure
-      const transformedGroups = data.map((membership: any) => {
-        const group = membership.study_groups || membership;
+      const transformedGroups = data.map((group: any) => {
         return {
           id: group.id,
           name: group.name,
           subject: group.subject || 'General',
-          members: 0, // We'll need to count this from group_members
-          role: membership.role || 'member', // This comes from the membership relationship
+          members: 0, // We'll need to count this from group_members separately
+          role: group.user_role || 'member', // This now comes from the service
           nextSession: null, // This would come from study_sessions
           description: group.description || '',
           color: 'bg-blue-500', // Default color
@@ -86,6 +123,15 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   const handleJoinGroup = async (groupId: string) => {
     try {
+      // Check if user is anonymous
+      const isAnonymous = isAnonymousUser();
+      
+      if (isAnonymous) {
+        // Redirect to auth page for anonymous users
+        window.location.href = '/auth';
+        return;
+      }
+      
       await StudyGroupsService.joinGroup(groupId);
       loadUserGroups(); // Reload groups after joining
     } catch (err) {
@@ -298,7 +344,9 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
         {/* Study Groups Grid */}
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">My Study Groups</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+              {isAnonymousUser() ? 'Public Study Groups' : 'My Study Groups'}
+            </h2>
             <p className="text-gray-600 dark:text-gray-300">
               {loading ? 'Loading...' : `${filteredGroups.length} groups found`}
             </p>
@@ -320,16 +368,33 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             <div className="text-center py-20">
               <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
-                {searchTerm ? 'No groups match your search' : 'No study groups yet'}
+                {searchTerm 
+                  ? 'No groups match your search' 
+                  : isAnonymousUser()
+                    ? 'No public groups available'
+                    : 'No study groups yet'
+                }
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
                 {searchTerm 
                   ? 'Try adjusting your search terms' 
-                  : 'Join or create a study group to get started'
+                  : isAnonymousUser()
+                    ? 'Sign up or log in to create and join study groups with other students'
+                    : 'Join or create a study group to get started'
                 }
               </p>
-              {!searchTerm && (
+              {!searchTerm && !isAnonymousUser() && (
                 <CreateGroupDialog onGroupCreated={handleCreateGroup} />
+              )}
+              {isAnonymousUser() && (
+                <div className="space-x-3">
+                  <Button onClick={() => window.location.href = '/auth'} className="bg-blue-600 hover:bg-blue-700">
+                    Sign Up
+                  </Button>
+                  <Button variant="outline" onClick={() => window.location.href = '/auth'}>
+                    Log In
+                  </Button>
+                </div>
               )}
             </div>
           ) : (
@@ -415,30 +480,63 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                     
                     {/* Action Buttons */}
                     <div className="mt-6 flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openChat(group.name);
-                        }}
-                      >
-                        <MessageSquare size={14} className="mr-1" />
-                        Chat
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        size="sm" 
-                        className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLeaveGroup(group.id);
-                        }}
-                      >
-                        <UserMinus size={14} className="mr-1" />
-                        Leave
-                      </Button>
+                      {group.role === 'visitor' ? (
+                        // Anonymous user viewing public groups
+                        <>
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleJoinGroup(group.id);
+                            }}
+                          >
+                            <Users size={14} className="mr-1" />
+                            Join Group
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openGroupDetails(group);
+                            }}
+                          >
+                            <BookOpen size={14} className="mr-1" />
+                            View
+                          </Button>
+                        </>
+                      ) : (
+                        // Authenticated user's groups
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openChat(group.name);
+                            }}
+                          >
+                            <MessageSquare size={14} className="mr-1" />
+                            Chat
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            size="sm" 
+                            className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLeaveGroup(group.id);
+                            }}
+                          >
+                            <UserMinus size={14} className="mr-1" />
+                            Leave
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
