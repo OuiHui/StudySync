@@ -20,7 +20,11 @@ The application has been updated to handle this gracefully:
 
 1. **Error Detection**: The service layer detects RLS recursion errors and logs detailed information
 2. **Graceful Fallback**: Instead of crashing, the app returns empty arrays and shows user-friendly messages
-3. **Temporary Solution**: For user groups, only groups created by the user are shown (bypassing the problematic `group_members` query)
+3. **Temporary Solution**: 
+   - For user groups, only groups created by the user are shown (bypassing the problematic `group_members` query)
+   - For public groups, member counts are disabled and default to 0
+   - Group member lists are disabled for individual group details
+4. **Join/Leave Operations**: Enhanced error handling for RLS recursion in join/leave group operations
 
 ## How to Fix the RLS Policies
 
@@ -104,4 +108,7 @@ To prevent this in the future:
 ## Current Status
 ✅ Application is stable and handles errors gracefully
 ⚠️ Users can only see groups they created (not groups they joined)
-🔧 RLS policies need to be fixed in Supabase dashboard
+⚠️ Member counts are disabled for all groups (shows 0)
+⚠️ Group member lists are disabled for group details
+✅ Clear error handling and user feedback
+✅ Detailed logging for debugging

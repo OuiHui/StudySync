@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { StudyGroupsService } from '@/services/database';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreateGroupDialogProps {
-  onGroupCreated?: () => void;
+  onGroupCreated?: (newGroup?: any) => void;
 }
 
 export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) => {
@@ -34,32 +34,14 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
 
     setLoading(true);
     try {
-      // Create the study group
-      const { data: group, error: groupError } = await supabase
-        .from('study_groups')
-        .insert({
-          name: formData.name.trim(),
-          subject: formData.subject.trim() || null,
-          description: formData.description.trim() || null,
-          is_public: formData.isPublic,
-          max_members: formData.maxMembers,
-          created_by: user.id
-        })
-        .select()
-        .single();
-
-      if (groupError) throw groupError;
-
-      // Add creator as admin member
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          role: 'admin'
-        });
-
-      if (memberError) throw memberError;
+      // Use the service layer to create the group
+      const group = await StudyGroupsService.createGroup({
+        name: formData.name.trim(),
+        subject: formData.subject.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        is_public: formData.isPublic,
+        max_members: formData.maxMembers
+      });
 
       toast({
         title: "Success",
@@ -75,8 +57,9 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
       });
       
       setOpen(false);
-      onGroupCreated?.();
+      onGroupCreated?.(group);
     } catch (error: any) {
+      console.error('Error creating group:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create study group",

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StudyGroupsService } from '@/services/database';
+import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface StudyGroupsBrowseProps {
@@ -153,6 +153,38 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     }
   };
 
+  const handleCreateGroup = (newGroup: any) => {
+    console.log('New group created:', newGroup);
+    
+    // Add the new group to the available groups list if it's public
+    if (newGroup && newGroup.is_public) {
+      const transformedGroup = {
+        id: newGroup.id,
+        name: newGroup.name,
+        subject: newGroup.subject || 'General',
+        description: newGroup.description || 'No description available',
+        members: 1, // Creator is the first member
+        admin: user?.email || user?.user_metadata?.display_name || 'You',
+        sessions: 0,
+        isEnlisted: true, // User is automatically enrolled as creator
+        color: getSubjectColor(newGroup.subject || 'General'),
+        created_at: newGroup.created_at,
+        max_members: newGroup.max_members
+      };
+      
+      // Add to the beginning of the list so it's visible immediately
+      setAvailableGroups(prev => [transformedGroup, ...prev]);
+      
+      // Update enrollment status
+      onUpdateEnrollment?.(newGroup.id, true);
+      
+      console.log('Group added to list:', transformedGroup);
+    } else if (newGroup && !newGroup.is_public) {
+      // If the group is private, optionally show a message
+      console.log('Private group created - not adding to public browse list');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -167,6 +199,15 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Information about current limitations */}
+      <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+        <AlertDescription className="text-blue-800 dark:text-blue-200">
+          <strong>Note:</strong> Member counts and group member lists are currently unavailable due to database configuration. 
+          Join/leave functionality may also be limited until database policies are updated.
+          {user && <><br /><strong>Tip:</strong> You can create new study groups using the "Create Group" button above!</>}
+        </AlertDescription>
+      </Alert>
 
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
@@ -192,6 +233,11 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             </option>
           ))}
         </select>
+        
+        {/* Add Create Group Button */}
+        {user && (
+          <CreateGroupDialog onGroupCreated={handleCreateGroup} />
+        )}
       </div>
 
       {loading ? (

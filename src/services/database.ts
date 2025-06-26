@@ -338,7 +338,7 @@ class StudyGroupsService {
 
       if (!groups) return [];
 
-      // Get creator profiles and member counts for each group separately
+      // Get creator profiles for each group (skip member counts due to RLS issues)
       const groupsWithCreators = await Promise.all(
         groups.map(async (group) => {
           // Get creator profile
@@ -348,44 +348,17 @@ class StudyGroupsService {
             .eq('user_id', group.created_by)
             .single();
 
-          // Get member count separately to avoid RLS recursion
-          let memberCount = 0;
-          try {
-            const { count, error: countError } = await supabase
-              .from('group_members')
-              .select('*', { count: 'exact', head: true })
-              .eq('group_id', group.id);
-              
-            if (countError) {
-              console.warn(`Error fetching member count for group ${group.id}:`, {
-                code: countError.code,
-                message: countError.message
-              });
-              
-              // Handle RLS recursion or permission errors gracefully
-              if (countError.code === '42P17' || countError.message?.includes('infinite recursion') ||
-                  countError.code === '42501' || countError.message?.includes('permission denied')) {
-                memberCount = 0; // Default to 0 if we can't fetch due to RLS
-              } else {
-                memberCount = 0; // Default to 0 for any other error
-              }
-            } else {
-              memberCount = count || 0;
-            }
-          } catch (memberCountError) {
-            console.warn('Exception fetching member count for group', group.id, memberCountError);
-            // If we can't get member count due to RLS issues, default to 0
-            memberCount = 0;
-          }
-
+          // SKIP member count queries due to RLS recursion issues
+          // Member counts will default to 0 until RLS policies are fixed
           return {
             ...group,
             creator_profile: creator,
-            member_count: memberCount
+            member_count: 0 // Default to 0 to avoid RLS recursion errors
           };
         })
       );
 
+      console.log(`Successfully fetched ${groupsWithCreators.length} public groups (member counts disabled due to RLS)`);
       return groupsWithCreators;
     } catch (error) {
       console.error('Error fetching public groups:', error);
@@ -415,15 +388,27 @@ class StudyGroupsService {
         .eq('user_id', group.created_by)
         .single();
 
-      // Get group members with their profiles
+      // Get group members with their profiles (skip if RLS recursion occurs)
       let membersWithProfiles = [];
       try {
-        const { data: members } = await supabase
+        const { data: members, error: membersError } = await supabase
           .from('group_members')
           .select('id, user_id, role, joined_at')
           .eq('group_id', id);
 
-        if (members && members.length > 0) {
+        if (membersError) {
+          console.warn('Could not fetch group members due to RLS policy:', {
+            code: membersError.code,
+            message: membersError.message
+          });
+          
+          // Handle RLS recursion specifically
+          if (membersError.code === '42P17' || membersError.message?.includes('infinite recursion')) {
+            console.log('RLS recursion detected for group members - returning empty members list');
+          }
+          
+          membersWithProfiles = [];
+        } else if (members && members.length > 0) {
           const { data: memberProfiles } = await supabase
             .from('profiles')
             .select('id, display_name, avatar_url, user_id')
@@ -435,7 +420,7 @@ class StudyGroupsService {
           }));
         }
       } catch (membersError) {
-        console.warn('Could not fetch group members due to RLS policy:', membersError);
+        console.warn('Exception fetching group members:', membersError);
         // If we can't get members due to RLS issues, return empty array
         membersWithProfiles = [];
       }
@@ -515,7 +500,13 @@ class StudyGroupsService {
         .single();
 
       if (error) {
-        handleDbError(error, 'join group');
+        // Handle RLS recursion specifically for join operations
+        if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          console.error('RLS recursion detected when joining group:', error);
+          throw new Error('Unable to join group due to database configuration. Please try again later.');
+        } else {
+          handleDbError(error, 'join group');
+        }
       }
 
       return data;
@@ -539,7 +530,13 @@ class StudyGroupsService {
         .eq('user_id', session.user.id);
 
       if (error) {
-        handleDbError(error, 'leave group');
+        // Handle RLS recursion specifically for leave operations
+        if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          console.error('RLS recursion detected when leaving group:', error);
+          throw new Error('Unable to leave group due to database configuration. Please try again later.');
+        } else {
+          handleDbError(error, 'leave group');
+        }
       }
 
       return true;
