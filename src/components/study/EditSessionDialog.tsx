@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { StudyGroupsService } from '@/services/database';
+import { StudySessionsService, StudyGroupsService } from '@/services/database';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,15 +8,26 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Plus } from 'lucide-react';
+import { Edit, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-interface CreateSessionDialogProps {
-  onSessionCreated?: () => void;
+interface EditSessionDialogProps {
+  session: {
+    id: string;
+    title: string;
+    description?: string;
+    scheduled_start: string;
+    scheduled_end: string;
+    max_participants?: number;
+    group_id?: string;
+    status?: string;
+  };
+  onSessionUpdated?: () => void;
+  trigger?: React.ReactNode;
 }
 
-export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogProps) => {
+export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSessionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<any[]>([]);
@@ -28,21 +38,34 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     scheduledStart: '',
     scheduledEnd: '',
     maxParticipants: 20,
-    isPublic: false
+    status: 'scheduled'
   });
   
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Initialize form data when session prop changes
+  useEffect(() => {
+    if (session) {
+      setFormData({
+        title: session.title || '',
+        description: session.description || '',
+        groupId: session.group_id || 'none',
+        scheduledStart: format(new Date(session.scheduled_start), "yyyy-MM-dd'T'HH:mm"),
+        scheduledEnd: format(new Date(session.scheduled_end), "yyyy-MM-dd'T'HH:mm"),
+        maxParticipants: session.max_participants || 20,
+        status: session.status || 'scheduled'
+      });
+    }
+  }, [session]);
 
   // Load user's groups when dialog opens
   const loadGroups = async () => {
     if (!user) return;
     
     try {
-      // Use the service layer instead of direct Supabase query to avoid RLS recursion
       const userGroups = await StudyGroupsService.getUserGroups();
       
-      // Transform the data to the format expected by the dialog
       const transformedGroups = userGroups.map(group => ({
         id: group.id,
         name: group.name,
@@ -52,7 +75,6 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
       setGroups(transformedGroups);
     } catch (error) {
       console.error('Error loading groups:', error);
-      // Set empty array on error to prevent UI issues
       setGroups([]);
     }
   };
@@ -70,54 +92,54 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
 
     setLoading(true);
     try {
-      const { data: session, error } = await supabase
-        .from('study_sessions')
-        .insert({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          group_id: formData.groupId === 'none' ? null : formData.groupId || null,
-          scheduled_start: formData.scheduledStart,
-          scheduled_end: formData.scheduledEnd,
-          max_participants: formData.maxParticipants,
-          is_public: formData.isPublic,
-          created_by: user.id,
-          status: 'scheduled'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Add creator as participant
-      await supabase
-        .from('session_participants')
-        .insert({
-          session_id: session.id,
-          user_id: user.id,
-          is_attending: true
-        });
+      await StudySessionsService.updateSession(session.id, {
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        group_id: formData.groupId === 'none' ? null : formData.groupId || null,
+        scheduled_start: formData.scheduledStart,
+        scheduled_end: formData.scheduledEnd,
+        max_participants: formData.maxParticipants,
+        status: formData.status as any
+      });
 
       toast({
         title: "Success",
-        description: "Study session created successfully!",
-      });
-
-      setFormData({
-        title: '',
-        description: '',
-        groupId: '',
-        scheduledStart: '',
-        scheduledEnd: '',
-        maxParticipants: 20,
-        isPublic: false
+        description: "Study session updated successfully!",
       });
       
       setOpen(false);
-      onSessionCreated?.();
+      onSessionUpdated?.();
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create study session",
+        description: error.message || "Failed to update study session",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this session? This action cannot be undone.')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await StudySessionsService.deleteSession(session.id);
+
+      toast({
+        title: "Success",
+        description: "Study session deleted successfully!",
+      });
+      
+      setOpen(false);
+      onSessionUpdated?.();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete study session",
         variant: "destructive",
       });
     } finally {
@@ -132,16 +154,18 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="bg-green-500 hover:bg-green-600 text-white">
-          <Plus size={16} className="mr-1" />
-          Create Session
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="sm">
+            <Edit size={14} className="mr-1" />
+            Edit
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Calendar size={20} className="mr-2" />
-            Create Study Session
+            Edit Study Session
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -225,31 +249,51 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
             />
           </div>
           
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isPublic"
-              checked={formData.isPublic}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
-            />
-            <Label htmlFor="isPublic">Public session (visible to everyone)</Label>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-between pt-4">
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
+              variant="destructive"
+              onClick={handleDelete}
               disabled={loading}
             >
-              Cancel
+              Delete Session
             </Button>
-            <Button
-              type="submit"
-              disabled={loading || !formData.title.trim() || !formData.scheduledStart || !formData.scheduledEnd}
-              className="bg-green-500 hover:bg-green-600"
-            >
-              {loading ? 'Creating...' : 'Create Session'}
-            </Button>
+            
+            <div className="flex space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !formData.title.trim() || !formData.scheduledStart || !formData.scheduledEnd}
+                className="bg-green-500 hover:bg-green-600"
+              >
+                {loading ? 'Updating...' : 'Update Session'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

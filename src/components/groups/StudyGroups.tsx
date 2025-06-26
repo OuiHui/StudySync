@@ -8,6 +8,7 @@ import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { GroupDetails } from '@/components/groups/GroupDetails';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
+import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,6 +25,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [studyGroups, setStudyGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<any | null>(null);
 
   // Helper function to check if user is anonymous
   const isAnonymousUser = () => {
@@ -150,6 +153,27 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   const handleCreateGroup = () => {
     loadUserGroups(); // Reload groups after creating
+  };
+
+  const openGroupSettings = (group: any) => {
+    setSelectedGroupForSettings(group);
+    setSettingsOpen(true);
+  };
+
+  const handleGroupUpdated = (updatedGroup: any) => {
+    setStudyGroups(prevGroups => 
+      prevGroups.map(group => 
+        group.id === updatedGroup.id 
+          ? { ...group, ...updatedGroup }
+          : group
+      )
+    );
+  };
+
+  const handleGroupDeleted = (groupId: string) => {
+    setStudyGroups(prevGroups => 
+      prevGroups.filter(group => group.id !== groupId)
+    );
   };
 
   return (
@@ -435,9 +459,18 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                           <Crown size={14} className="text-yellow-800" />
                         </div>
                       )}
-                      <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors">
-                        <Settings size={14} className="text-white" />
-                      </div>
+                      {group.role === 'admin' && (
+                        <button
+                          className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openGroupSettings(group);
+                          }}
+                          title="Group Settings"
+                        >
+                          <Settings size={14} className="text-white" />
+                        </button>
+                      )}
                     </div>
                     <div className="absolute bottom-4 left-4">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
@@ -544,18 +577,33 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                             <MessageSquare size={14} className="mr-1" />
                             Chat
                           </Button>
-                          <Button 
-                            variant="outline"
-                            size="sm" 
-                            className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLeaveGroup(group.id);
-                            }}
-                          >
-                            <UserMinus size={14} className="mr-1" />
-                            Leave
-                          </Button>
+                          {group.role === 'admin' ? (
+                            <Button 
+                              variant="outline"
+                              size="sm" 
+                              className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/30"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openGroupSettings(group);
+                              }}
+                            >
+                              <Settings size={14} className="mr-1" />
+                              Settings
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="outline"
+                              size="sm" 
+                              className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLeaveGroup(group.id);
+                              }}
+                            >
+                              <UserMinus size={14} className="mr-1" />
+                              Leave
+                            </Button>
+                          )}
                         </>
                       )}
                     </div>
@@ -593,11 +641,21 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             setSelectedGroupDetails(null);
           }}
         />
-      )}        <ChatPopup
-          isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
-          groupName={selectedGroupName}
-        />
+      )}
+
+      <GroupSettingsDialog
+        group={selectedGroupForSettings}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        onGroupUpdated={handleGroupUpdated}
+        onGroupDeleted={handleGroupDeleted}
+      />
+
+      <ChatPopup
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        groupName={selectedGroupName}
+      />
       </div>
     </div>
   );

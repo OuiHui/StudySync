@@ -77,6 +77,26 @@ If you need more complex access control, consider:
 2. **Simplifying Policies**: Make policies more specific to avoid circular references
 3. **Using Views**: Create database views that pre-compute relationships
 
+## SQL Fixes for Study Sessions
+
+If RLS policies on `study_sessions` are causing recursion, try these simplified policies:
+
+```sql
+-- FIXED: Simple study sessions policies without circular references
+DROP POLICY IF EXISTS "users_can_crud_sessions" ON study_sessions;
+DROP POLICY IF EXISTS "users_can_view_group_sessions" ON study_sessions;
+
+-- Simple policy: Users can CRUD their own sessions
+CREATE POLICY "users_can_crud_own_sessions" ON study_sessions
+FOR ALL USING (created_by = auth.uid());
+
+-- Simple policy: Users can view public sessions
+CREATE POLICY "users_can_view_public_sessions" ON study_sessions
+FOR SELECT USING (is_public = true OR created_by = auth.uid());
+
+-- Avoid policies that reference group_members table
+```
+
 ## Testing the Fix
 
 Once you update the RLS policies:
@@ -112,3 +132,27 @@ To prevent this in the future:
 ⚠️ Group member lists are disabled for group details
 ✅ Clear error handling and user feedback
 ✅ Detailed logging for debugging
+
+## Current Issues Affected
+
+### 1. Group Members Table (`group_members`)
+- ❌ **DISABLED**: Querying group memberships via joins
+- ❌ **DISABLED**: Member count queries for public groups
+- ❌ **DISABLED**: Group member lists in group details
+- ✅ **WORKAROUND**: Only show groups created by current user
+
+### 2. Study Groups Table (`study_groups`)
+- ✅ **WORKING**: Creating groups
+- ✅ **WORKING**: Viewing public groups (without member counts)
+- ✅ **WORKING**: Joining/leaving groups (with enhanced error handling)
+
+### 3. Study Sessions Table (`study_sessions`)
+- ❌ **AFFECTED**: Updating study sessions can trigger RLS recursion
+- ❌ **AFFECTED**: Deleting study sessions can trigger RLS recursion
+- ✅ **WORKAROUND**: Enhanced error handling with fallback update/delete methods
+- ✅ **WORKING**: Creating sessions
+- ✅ **WORKING**: Viewing sessions
+
+### 4. Other Services
+- ✅ **WORKING**: Notes, Profile, Chat services (unaffected)
+- ✅ **WORKING**: Authentication and session management

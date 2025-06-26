@@ -3,9 +3,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, BookOpen, FileText, Users, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, BookOpen, FileText, Users, Loader2, Edit } from 'lucide-react';
+import { format, isAfter } from 'date-fns';
 import { StudyEventsService } from '@/services/database';
+import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 
 interface StudyEvent {
   id: string;
@@ -16,6 +17,12 @@ interface StudyEvent {
   subject?: string;
   participants?: number;
   status?: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  description?: string;
+  max_participants?: number;
+  created_by?: string;
+  group_id?: string;
   group?: {
     id: string;
     name: string;
@@ -53,6 +60,12 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
         time: format(new Date(session.scheduled_start), 'HH:mm'),
         subject: session.study_groups?.subject || 'General',
         status: session.status,
+        scheduled_start: session.scheduled_start,
+        scheduled_end: session.scheduled_end,
+        description: session.description,
+        max_participants: session.max_participants,
+        created_by: session.created_by,
+        group_id: session.group_id,
         group: session.study_groups ? {
           id: session.study_groups.id,
           name: session.study_groups.name,
@@ -72,6 +85,13 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
   const getEventsForDate = (date: Date) => {
     return events.filter(event => 
       event.date.toDateString() === date.toDateString()
+    );
+  };
+
+  const getUpcomingEvents = () => {
+    const now = new Date();
+    return events.filter(event => 
+      isAfter(event.date, now) || event.date.toDateString() === now.toDateString()
     );
   };
 
@@ -134,21 +154,30 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
               </Button>
             </div>
           ) : (
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
-              modifiers={{
-                hasEvent: (date) => hasEvents(date)
-              }}
-              modifiersStyles={{
-                hasEvent: {
-                  backgroundColor: '#dbeafe',
-                  fontWeight: 'bold'
-                }
-              }}
-            />
+            <div className="relative">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
+                modifiers={{
+                  hasEvent: (date) => hasEvents(date)
+                }}
+                modifiersClassNames={{
+                  hasEvent: 'relative'
+                }}
+                formatters={{
+                  formatDay: (date, options) => {
+                    const dayNumber = date.getDate().toString();
+                    const hasEvent = hasEvents(date);
+                    
+                    return hasEvent 
+                      ? `${dayNumber}●` // Add a bullet point for events
+                      : dayNumber;
+                  }
+                }}
+              />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -171,14 +200,17 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
                 {selectedDateEvents.map((event) => (
                   <div key={event.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 flex-1">
                         {getEventIcon(event.type)}
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-medium text-gray-800 dark:text-white">{event.title}</h4>
                           <p className="text-sm text-gray-600 dark:text-gray-300">{event.subject}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">{event.time}</p>
                           {event.group && (
                             <p className="text-xs text-blue-600 dark:text-blue-400">Group: {event.group.name}</p>
+                          )}
+                          {event.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{event.description}</p>
                           )}
                           {event.status && (
                             <Badge variant="outline" className="text-xs mt-1">
@@ -187,9 +219,29 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
                           )}
                         </div>
                       </div>
-                      <Badge className={getEventColor(event.type)}>
-                        {event.type.replace('-', ' ')}
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getEventColor(event.type)}>
+                          {event.type.replace('-', ' ')}
+                        </Badge>
+                        <EditSessionDialog 
+                          session={{
+                            id: event.id,
+                            title: event.title,
+                            description: event.description,
+                            scheduled_start: event.scheduled_start,
+                            scheduled_end: event.scheduled_end,
+                            max_participants: event.max_participants,
+                            group_id: event.group_id,
+                            status: event.status
+                          }}
+                          onSessionUpdated={loadEvents}
+                          trigger={
+                            <Button variant="outline" size="sm">
+                              <Edit size={12} />
+                            </Button>
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -210,7 +262,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
             </div>
           ) : (
             <div className="space-y-2">
-              {events.slice(0, 3).map((event) => (
+              {getUpcomingEvents().slice(0, 3).map((event) => (
                 <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
                   {getEventIcon(event.type)}
                   <div className="flex-1 min-w-0">
@@ -222,7 +274,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false }: StudyCa
                   </Badge>
                 </div>
               ))}
-              {events.length === 0 && (
+              {getUpcomingEvents().length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No upcoming events</p>
               )}
             </div>

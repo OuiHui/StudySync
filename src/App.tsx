@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Auth } from "@/pages/Auth";
 import Index from "./pages/Index.tsx";
+import GroupSettingsDemo from "./components/groups/GroupSettingsDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
                   <Index />
                 </ProtectedRoute>
               } />
+              <Route path="/demo/group-settings" element={<GroupSettingsDemo />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

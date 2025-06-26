@@ -3,6 +3,7 @@ import { Users, Calendar, BookOpen, MessageSquare, ArrowLeft, Settings, Crown, U
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChatPopup } from '@/components/chat/ChatPopup';
+import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 
 interface GroupPageProps {
   groupId: string;
@@ -16,6 +17,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   const [activeTab, setActiveTab] = useState('sessions');
   const [enrolled, setEnrolled] = useState(isEnlisted);
   const [attendingSessions, setAttendingSessions] = useState<string[]>(['1']); // Initially attending session 1
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Mock data - in real app this would come from props or API
   const group = {
@@ -25,7 +27,12 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     description: 'A comprehensive study group focused on advanced mathematical concepts including multivariable calculus, linear algebra, and differential equations.',
     admin: 'Sarah Johnson',
     members: 12,
-    color: 'bg-blue-500'
+    color: 'bg-blue-500',
+    is_public: true,
+    max_members: 20,
+    member_count: 12,
+    created_at: '2024-01-10T00:00:00Z',
+    user_role: 'admin' // Current user is admin of this group
   };
 
   const sessions = [
@@ -118,6 +125,18 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     }));
   };
 
+  const handleGroupUpdated = (updatedGroup: any) => {
+    console.log('Group updated:', updatedGroup);
+    // In a real app, you would update the group data
+    // For now, just close the settings dialog
+  };
+
+  const handleGroupDeleted = (groupId: string) => {
+    console.log('Group deleted:', groupId);
+    // Navigate back to groups list since this group no longer exists
+    onBack();
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -153,6 +172,16 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
             <MessageSquare size={16} className="mr-1" />
             Group Chat
           </Button>
+          {group.user_role === 'admin' && (
+            <Button
+              onClick={() => setSettingsOpen(true)}
+              variant="outline"
+              className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/30"
+            >
+              <Settings size={16} className="mr-1" />
+              Group Settings
+            </Button>
+          )}
           {enrolled ? (
             <Button
               onClick={handleLeaveGroup}
@@ -319,6 +348,15 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
         groupName={group.name}
+      />
+
+      {/* Group Settings Dialog */}
+      <GroupSettingsDialog
+        group={group}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        onGroupUpdated={handleGroupUpdated}
+        onGroupDeleted={handleGroupDeleted}
       />
     </div>
   );

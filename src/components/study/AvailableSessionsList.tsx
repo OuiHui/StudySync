@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { Users, Calendar, Clock, Play, Eye, Loader2 } from 'lucide-react';
+import { Users, Calendar, Clock, Play, Eye, Loader2, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateSessionDialog } from '@/components/study/CreateSessionDialog';
+import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
 import { StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,8 +54,9 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
 
   // Use fetched sessions
   const displaySessions = sessions.map(session => ({
+    ...session, // Preserve all original session data
     id: session.id,
-    groupName: session.study_groups?.name || 'Unknown Group',
+    groupName: session.study_groups?.name || session.title || 'Unknown Group',
     subject: session.study_groups?.subject || 'General Study',
     participants: session.participant_count || 0,
     startTime: new Date(session.scheduled_start).toLocaleTimeString(),
@@ -201,13 +203,35 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                       <Eye size={14} className="mr-1" />
                       Details
                     </Button>
-                    <Button 
-                      onClick={() => handleJoinSession(session.id)}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                      size="sm"
-                    >
-                      Schedule
-                    </Button>
+                    {session.created_by === user?.id ? (
+                      <EditSessionDialog 
+                        session={{
+                          id: session.id,
+                          title: session.title || session.groupName,
+                          description: session.description,
+                          scheduled_start: session.scheduled_start,
+                          scheduled_end: session.scheduled_end,
+                          max_participants: session.max_participants,
+                          group_id: session.group_id,
+                          status: session.status
+                        }}
+                        onSessionUpdated={loadSessions}
+                        trigger={
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Edit size={14} className="mr-1" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                    ) : (
+                      <Button 
+                        onClick={() => handleJoinSession(session.id)}
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                        size="sm"
+                      >
+                        Schedule
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
