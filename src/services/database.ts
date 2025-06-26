@@ -237,8 +237,6 @@ class StudyGroupsService {
       console.log('Fetching user groups for user:', userId);
 
       // Check if this is an anonymous user
-      // Anonymous users typically don't have confirmed email addresses
-      // and have limited metadata
       const isAnonymous = !session.user.email || 
                          session.user.is_anonymous === true ||
                          session.user.aud === 'anonymous';
@@ -248,122 +246,78 @@ class StudyGroupsService {
         return [];
       }
 
-      // Get user's group memberships with role information
+      // TEMPORARY WORKAROUND: Skip group_members query due to RLS recursion
+      // Instead, try to get groups created by the user directly
+      console.log('Using temporary workaround - fetching groups created by user only');
+      
+      try {
+        const { data: createdGroups, error: createdError } = await supabase
+          .from('study_groups')
+          .select('*')
+          .eq('created_by', userId);
+
+        if (createdError) {
+          console.error('Error fetching user-created groups:', createdError);
+          return [];
+        }
+
+        if (!createdGroups || createdGroups.length === 0) {
+          console.log('No groups created by user found');
+          return [];
+        }
+
+        // Transform to match expected format
+        const groupsWithDetails = createdGroups.map(group => ({
+          ...group,
+          creator_profile: null, // We could fetch this separately if needed
+          user_role: 'admin', // User created the group, so they're admin
+          joined_at: group.created_at
+        }));
+
+        console.log('Successfully fetched user-created groups:', groupsWithDetails.length);
+        return groupsWithDetails;
+        
+      } catch (directError) {
+        console.error('Error with direct group fetch:', directError);
+        return [];
+      }
+
+    } catch (error) {
+      console.error('Unexpected error fetching user groups:', error);
+      return [];
+    }
+  }
+
+  // DISABLED: This method causes RLS recursion - re-enable when policies are fixed
+  static async getUserGroupsViaMembers() {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const userId = session.user.id;
+
+      // This query causes RLS recursion - commenting out for now
+      /*
       const { data: memberships, error } = await supabase
         .from('group_members')
-        .select(`
-          role,
-          joined_at,
-          study_groups (*)
-        `)
+        .select('group_id, role, joined_at')
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Detailed error fetching user groups:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-        
-        // If it's a 500 error or server error, try a simpler query
-        if (error.code?.includes('5') || error.message?.includes('500')) {
-          console.log('Server error detected, trying simpler query...');
-          
-          // Try just getting group memberships without the join
-          const { data: simpleMemberships, error: simpleError } = await supabase
-            .from('group_members')
-            .select('group_id, role, joined_at')
-            .eq('user_id', session.user.id);
-            
-          if (simpleError) {
-            console.error('Simple query also failed:', simpleError);
-            return [];
-          }
-          
-          if (!simpleMemberships || simpleMemberships.length === 0) {
-            console.log('No group memberships found');
-            return [];
-          }
-          
-          // Get group details separately
-          const groupIds = simpleMemberships.map(m => m.group_id);
-          const { data: groups } = await supabase
-            .from('study_groups')
-            .select('*')
-            .in('id', groupIds);
-            
-          // Combine membership and group data
-          const combinedData = simpleMemberships.map(membership => {
-            const group = groups?.find(g => g.id === membership.group_id);
-            return {
-              ...membership,
-              study_groups: group
-            };
-          }).filter(item => item.study_groups);
-          
-          console.log('Successfully fetched groups with fallback method:', combinedData.length);
-          
-          // Continue with the rest of the processing...
-          const groupsWithCreators = await Promise.all(
-            combinedData.map(async (membership) => {
-              const group = membership.study_groups;
-              if (!group) return null;
-
-              const { data: creator } = await supabase
-                .from('profiles')
-                .select('id, display_name, avatar_url')
-                .eq('user_id', group.created_by)
-                .single();
-
-              return {
-                ...group,
-                creator_profile: creator,
-                user_role: membership.role,
-                joined_at: membership.joined_at
-              };
-            })
-          );
-
-          return groupsWithCreators.filter(Boolean);
-        }
-        
+        console.error('Error fetching memberships:', error);
         return [];
       }
 
-      if (!memberships) {
-        console.log('No memberships data returned');
-        return [];
-      }
-
-      console.log('Found memberships:', memberships.length);
-
-      // Get creator profiles for each group separately
-      const groupsWithCreators = await Promise.all(
-        memberships.map(async (membership) => {
-          const group = membership.study_groups;
-          if (!group) return null;
-
-          const { data: creator } = await supabase
-            .from('profiles')
-            .select('id, display_name, avatar_url')
-            .eq('user_id', group.created_by)
-            .single();
-
-          return {
-            ...group,
-            creator_profile: creator,
-            user_role: membership.role,
-            joined_at: membership.joined_at
-          };
-        })
-      );
-
-      const result = groupsWithCreators.filter(Boolean);
-      console.log('Successfully processed groups:', result.length);
-      return result;
+      // Get group details...
+      */
+      
+      console.log('getUserGroupsViaMembers is disabled due to RLS recursion');
+      return [];
+      
     } catch (error) {
-      console.error('Unexpected error fetching user groups:', error);
+      console.error('Error in getUserGroupsViaMembers:', error);
       return [];
     }
   }
@@ -395,15 +349,39 @@ class StudyGroupsService {
             .single();
 
           // Get member count separately to avoid RLS recursion
-          const { count: memberCount } = await supabase
-            .from('group_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('group_id', group.id);
+          let memberCount = 0;
+          try {
+            const { count, error: countError } = await supabase
+              .from('group_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('group_id', group.id);
+              
+            if (countError) {
+              console.warn(`Error fetching member count for group ${group.id}:`, {
+                code: countError.code,
+                message: countError.message
+              });
+              
+              // Handle RLS recursion or permission errors gracefully
+              if (countError.code === '42P17' || countError.message?.includes('infinite recursion') ||
+                  countError.code === '42501' || countError.message?.includes('permission denied')) {
+                memberCount = 0; // Default to 0 if we can't fetch due to RLS
+              } else {
+                memberCount = 0; // Default to 0 for any other error
+              }
+            } else {
+              memberCount = count || 0;
+            }
+          } catch (memberCountError) {
+            console.warn('Exception fetching member count for group', group.id, memberCountError);
+            // If we can't get member count due to RLS issues, default to 0
+            memberCount = 0;
+          }
 
           return {
             ...group,
             creator_profile: creator,
-            member_count: memberCount || 0
+            member_count: memberCount
           };
         })
       );
@@ -438,22 +416,28 @@ class StudyGroupsService {
         .single();
 
       // Get group members with their profiles
-      const { data: members } = await supabase
-        .from('group_members')
-        .select('id, user_id, role, joined_at')
-        .eq('group_id', id);
-
       let membersWithProfiles = [];
-      if (members && members.length > 0) {
-        const { data: memberProfiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, user_id')
-          .in('user_id', members.map(m => m.user_id));
+      try {
+        const { data: members } = await supabase
+          .from('group_members')
+          .select('id, user_id, role, joined_at')
+          .eq('group_id', id);
 
-        membersWithProfiles = members.map(member => ({
-          ...member,
-          profile: memberProfiles?.find(p => p.user_id === member.user_id)
-        }));
+        if (members && members.length > 0) {
+          const { data: memberProfiles } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url, user_id')
+            .in('user_id', members.map(m => m.user_id));
+
+          membersWithProfiles = members.map(member => ({
+            ...member,
+            profile: memberProfiles?.find(p => p.user_id === member.user_id)
+          }));
+        }
+      } catch (membersError) {
+        console.warn('Could not fetch group members due to RLS policy:', membersError);
+        // If we can't get members due to RLS issues, return empty array
+        membersWithProfiles = [];
       }
 
       return {
@@ -1423,6 +1407,58 @@ class ChatService {
   }
 }
 
+// Utility function to test RLS policies (for debugging)
+const testRLSPolicies = async () => {
+  const session = await checkAuth();
+  if (!session) {
+    console.log('❌ No authenticated session');
+    return;
+  }
+
+  console.log('🔍 Testing RLS policies...');
+  console.log('👤 User ID:', session.user.id);
+  
+  // Test study_groups access
+  try {
+    const { data: groups, error: groupsError } = await supabase
+      .from('study_groups')
+      .select('id, name, created_by, is_public')
+      .limit(5);
+    
+    console.log(groupsError ? '❌ study_groups error:' : '✅ study_groups access:', 
+                groupsError || `${groups?.length || 0} groups found`);
+  } catch (e) {
+    console.log('❌ study_groups exception:', e);
+  }
+
+  // Test group_members access (this will likely fail due to RLS recursion)
+  try {
+    const { data: members, error: membersError } = await supabase
+      .from('group_members')
+      .select('id, group_id, user_id, role')
+      .limit(5);
+    
+    console.log(membersError ? '❌ group_members error:' : '✅ group_members access:', 
+                membersError || `${members?.length || 0} memberships found`);
+  } catch (e) {
+    console.log('❌ group_members exception:', e);
+  }
+
+  // Test profiles access
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, display_name, user_id')
+      .eq('user_id', session.user.id)
+      .single();
+    
+    console.log(profileError ? '❌ profiles error:' : '✅ profiles access:', 
+                profileError || 'Profile found');
+  } catch (e) {
+    console.log('❌ profiles exception:', e);
+  }
+};
+
 // Export all services
 export {
   StudyEventsService,
@@ -1432,5 +1468,6 @@ export {
   NotificationsService,
   FriendsService,
   ProfileService,
-  ChatService
+  ChatService,
+  testRLSPolicies
 };

@@ -51,8 +51,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         name: group.name,
         subject: group.subject || 'General',
         description: group.description || 'No description available',
-        members: group.group_members?.length || 0,
-        admin: 'Group Admin', // You can fetch admin details separately if needed
+        members: group.member_count || 0, // Use member_count from the service
+        admin: group.creator_profile?.display_name || 'Group Admin',
         sessions: 0, // You can count sessions for this group separately if needed
         isEnlisted: groupEnrollments[group.id] || false,
         color: getSubjectColor(group.subject || 'General'),
@@ -63,9 +63,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       setAvailableGroups(transformedGroups);
     } catch (err) {
       console.error('Error loading public groups:', err);
-      setError('Failed to load study groups. Please try again.');
-      // Fallback to mock data for better UX
-      setAvailableGroups(getMockGroups());
+      setError('Unable to load study groups. Please check your internet connection or try again later.');
+      setAvailableGroups([]); // Show empty state instead of mock data
     } finally {
       setLoading(false);
     }
@@ -86,64 +85,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     };
     return colorMap[subject] || 'bg-gray-500';
   };
-
-  const getMockGroups = () => [
-    {
-      id: '1',
-      name: 'Advanced Mathematics',
-      subject: 'Mathematics',
-      description: 'Deep dive into calculus and linear algebra',
-      members: 12,
-      admin: 'Sarah Johnson',
-      sessions: 8,
-      isEnlisted: groupEnrollments['1'] !== undefined ? groupEnrollments['1'] : true,
-      color: 'bg-blue-500'
-    },
-    {
-      id: '2',
-      name: 'Quantum Physics Study',
-      subject: 'Physics',
-      description: 'Exploring quantum mechanics principles',
-      members: 8,
-      admin: 'Dr. Smith',
-      sessions: 5,
-      isEnlisted: groupEnrollments['2'] !== undefined ? groupEnrollments['2'] : false,
-      color: 'bg-purple-500'
-    },
-    {
-      id: '3',
-      name: 'Organic Chemistry Lab',
-      subject: 'Chemistry',
-      description: 'Hands-on chemistry experiments and theory',
-      members: 15,
-      admin: 'Prof. Wilson',
-      sessions: 12,
-      isEnlisted: groupEnrollments['3'] !== undefined ? groupEnrollments['3'] : false,
-      color: 'bg-green-500'
-    },
-    {
-      id: '4',
-      name: 'Data Structures & Algorithms',
-      subject: 'Computer Science',
-      description: 'Master programming fundamentals',
-      members: 20,
-      admin: 'Alex Chen',
-      sessions: 10,
-      isEnlisted: groupEnrollments['4'] !== undefined ? groupEnrollments['4'] : true,
-      color: 'bg-orange-500'
-    },
-    {
-      id: '5',
-      name: 'World History Discussion',
-      subject: 'History',
-      description: 'Analyzing historical events and patterns',
-      members: 7,
-      admin: 'Maria Garcia',
-      sessions: 6,
-      isEnlisted: groupEnrollments['5'] !== undefined ? groupEnrollments['5'] : false,
-      color: 'bg-red-500'
-    }
-  ];
 
   // Update enrollment status when groupEnrollments prop changes
   useEffect(() => {
@@ -189,22 +130,22 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
 
   const handleLeaveGroup = async (groupId: string) => {
     try {
-      // Note: LeaveGroup might need to be implemented in the service
+      await StudyGroupsService.leaveGroup(groupId);
       setAvailableGroups(prev => 
         prev.map(group => 
           group.id === groupId 
-            ? { ...group, isEnlisted: false, members: group.members - 1 }
+            ? { ...group, isEnlisted: false, members: Math.max(0, group.members - 1) }
             : group
         )
       );
       onUpdateEnrollment?.(groupId, false);
     } catch (err) {
       console.error('Error leaving group:', err);
-      // Still update UI for better UX
+      // Still update UI optimistically for better UX
       setAvailableGroups(prev => 
         prev.map(group => 
           group.id === groupId 
-            ? { ...group, isEnlisted: false, members: group.members - 1 }
+            ? { ...group, isEnlisted: false, members: Math.max(0, group.members - 1) }
             : group
         )
       );
@@ -377,9 +318,20 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             ))}
           </div>
 
-          {filteredGroups.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">No groups found matching your criteria</p>
+          {filteredGroups.length === 0 && !loading && (
+            <div className="text-center py-12">
+              <Users size={48} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">
+                {error ? 'Unable to load groups' : searchTerm || selectedSubject !== 'all' ? 'No groups match your search' : 'No public groups available'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                {error ? 'Please try again later or check your connection' : searchTerm || selectedSubject !== 'all' ? 'Try adjusting your search criteria' : 'Check back later for new study groups'}
+              </p>
+              {error && (
+                <Button onClick={loadPublicGroups} variant="outline" className="mt-4">
+                  Try Again
+                </Button>
+              )}
             </div>
           )}
         </>

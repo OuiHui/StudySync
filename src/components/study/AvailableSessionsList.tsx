@@ -45,58 +45,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
       setSessions(availableSessions);
     } catch (err) {
       console.error('Error loading sessions:', err);
-      setError('Failed to load study sessions. Please try again.');
+      setError('Unable to load study sessions. Please check your internet connection or try again later.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Mock data fallback
-  const mockSessions: StudySession[] = [
-    {
-      id: '1',
-      groupName: 'Advanced Mathematics',
-      subject: 'Calculus & Linear Algebra',
-      participants: 12,
-      startTime: '2:00 PM',
-      duration: '2 hours',
-      type: 'active',
-      description: 'Deep dive into integration techniques and vector spaces'
-    },
-    {
-      id: '2',
-      groupName: 'Physics Study Circle',
-      subject: 'Quantum Mechanics',
-      participants: 8,
-      startTime: '4:30 PM',
-      duration: '1.5 hours',
-      type: 'planned',
-      description: 'Exploring wave functions and quantum states'
-    },
-    {
-      id: '3',
-      groupName: 'Chemistry Lab Prep',
-      subject: 'Organic Chemistry',
-      participants: 15,
-      startTime: '7:00 PM',
-      duration: '3 hours',
-      type: 'planned',
-      description: 'Laboratory safety and experimental procedures'
-    },
-    {
-      id: '4',
-      groupName: 'Literature Discussion',
-      subject: 'Modern Poetry',
-      participants: 6,
-      startTime: '6:00 PM',
-      duration: '1 hour',
-      type: 'active',
-      description: 'Analyzing contemporary poetic techniques'
-    }
-  ];
-
-  // Use fetched sessions or fallback to mock data
-  const displaySessions = sessions.length > 0 ? sessions.map(session => ({
+  // Use fetched sessions
+  const displaySessions = sessions.map(session => ({
     id: session.id,
     groupName: session.study_groups?.name || 'Unknown Group',
     subject: session.study_groups?.subject || 'General Study',
@@ -105,7 +61,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
     duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
     type: session.status === 'active' ? 'active' as const : 'planned' as const,
     description: session.description || 'Study session'
-  })) : mockSessions;
+  }));
 
   const activeSessions = displaySessions.filter(s => s.type === 'active');
   const plannedSessions = displaySessions.filter(s => s.type === 'planned');
