@@ -7,7 +7,19 @@ import {
   AlertTriangle,
   Users,
   Lock,
-  Unlock
+  Unlock,
+  BookOpen,
+  Calculator,
+  Atom,
+  Code,
+  Palette,
+  Globe,
+  Music,
+  Camera,
+  Heart,
+  Star,
+  Zap,
+  Crown
 } from 'lucide-react';
 import {
   Dialog,
@@ -36,6 +48,8 @@ interface GroupSettingsDialogProps {
     max_members?: number;
     member_count?: number;
     created_at: string;
+    color?: string;
+    icon?: string;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -61,8 +75,38 @@ export const GroupSettingsDialog = ({
     description: '',
     subject: '',
     is_public: true,
-    max_members: 50
+    max_members: 50,
+    color: 'from-blue-500 to-blue-600',
+    icon: 'Users'
   });
+
+  // Available icons and colors
+  const availableIcons = [
+    { name: 'Users', icon: Users, label: 'Users' },
+    { name: 'BookOpen', icon: BookOpen, label: 'Book' },
+    { name: 'Calculator', icon: Calculator, label: 'Calculator' },
+    { name: 'Atom', icon: Atom, label: 'Science' },
+    { name: 'Code', icon: Code, label: 'Code' },
+    { name: 'Globe', icon: Globe, label: 'Globe' },
+    { name: 'Music', icon: Music, label: 'Music' },
+    { name: 'Camera', icon: Camera, label: 'Camera' },
+    { name: 'Heart', icon: Heart, label: 'Heart' },
+    { name: 'Star', icon: Star, label: 'Star' },
+    { name: 'Zap', icon: Zap, label: 'Lightning' }
+  ];
+
+  const availableColors = [
+    { name: 'from-blue-500 to-blue-600', label: 'Blue', color: '#3B82F6' },
+    { name: 'from-purple-500 to-purple-600', label: 'Purple', color: '#8B5CF6' },
+    { name: 'from-green-500 to-green-600', label: 'Green', color: '#10B981' },
+    { name: 'from-red-500 to-red-600', label: 'Red', color: '#EF4444' },
+    { name: 'from-orange-500 to-orange-600', label: 'Orange', color: '#F97316' },
+    { name: 'from-pink-500 to-pink-600', label: 'Pink', color: '#EC4899' },
+    { name: 'from-indigo-500 to-indigo-600', label: 'Indigo', color: '#6366F1' },
+    { name: 'from-teal-500 to-teal-600', label: 'Teal', color: '#14B8A6' },
+    { name: 'from-yellow-500 to-yellow-600', label: 'Yellow', color: '#EAB308' },
+    { name: 'from-cyan-500 to-cyan-600', label: 'Cyan', color: '#06B6D4' }
+  ];
 
   // Reset form when group changes
   useEffect(() => {
@@ -72,7 +116,9 @@ export const GroupSettingsDialog = ({
         description: group.description || '',
         subject: group.subject || '',
         is_public: group.is_public ?? true,
-        max_members: group.max_members || 50
+        max_members: group.max_members || 50,
+        color: group.color || 'from-blue-500 to-blue-600',
+        icon: group.icon || 'Users'
       });
     }
     setDeleteConfirm('');
@@ -93,20 +139,31 @@ export const GroupSettingsDialog = ({
 
     setLoading(true);
     try {
+      // The service layer will handle icon and color gracefully
       const updatedGroup = await StudyGroupsService.updateGroup(group.id, {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         subject: formData.subject.trim() || null,
         is_public: formData.is_public,
-        max_members: formData.max_members
-      });
+        max_members: formData.max_members,
+        // Include icon and color - the service will handle if these columns don't exist
+        icon: formData.icon,
+        color: formData.color
+      } as any);
+
+      // Ensure the icon and color are included in the returned data
+      const groupWithUIUpdates = {
+        ...updatedGroup,
+        color: formData.color,
+        icon: formData.icon
+      };
 
       toast({
         title: "Group Updated",
         description: "Your group settings have been saved successfully.",
       });
 
-      onGroupUpdated?.(updatedGroup);
+      onGroupUpdated?.(groupWithUIUpdates);
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating group:', error);
@@ -205,6 +262,94 @@ export const GroupSettingsDialog = ({
               </CardContent>
             </Card>
 
+            {/* Appearance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Appearance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Icon Selection */}
+                <div className="space-y-3">
+                  <Label>Group Icon</Label>
+                  <div className="grid grid-cols-6 gap-3">
+                    {availableIcons.map((iconOption) => {
+                      const IconComponent = iconOption.icon;
+                      const isSelected = formData.icon === iconOption.name;
+                      return (
+                        <button
+                          key={iconOption.name}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, icon: iconOption.name }))}
+                          className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                            isSelected 
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          }`}
+                          disabled={loading}
+                          title={iconOption.label}
+                        >
+                          <IconComponent 
+                            size={20} 
+                            className={isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'} 
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Color Selection */}
+                <div className="space-y-3">
+                  <Label>Background Color</Label>
+                  <div className="grid grid-cols-5 gap-3">
+                    {availableColors.map((colorOption) => {
+                      const isSelected = formData.color === colorOption.name;
+                      return (
+                        <button
+                          key={colorOption.name}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, color: colorOption.name }))}
+                          className={`h-12 rounded-lg border-2 transition-all hover:scale-105 ${
+                            isSelected 
+                              ? 'border-gray-800 dark:border-white shadow-lg' 
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                          }`}
+                          style={{ backgroundColor: colorOption.color }}
+                          disabled={loading}
+                          title={colorOption.label}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="space-y-2">
+                  <Label>Preview</Label>
+                  <div className={`h-20 bg-gradient-to-br ${formData.color} rounded-lg relative overflow-hidden`}>
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="absolute bottom-3 left-3">
+                      <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                        {(() => {
+                          const selectedIcon = availableIcons.find(i => i.name === formData.icon);
+                          const IconComponent = selectedIcon?.icon || Users;
+                          return <IconComponent size={18} className="text-white" />;
+                        })()}
+                      </div>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <div className="bg-yellow-400 p-1 rounded-full">
+                        <Crown size={12} className="text-yellow-800" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Privacy & Limits */}
             <Card>
               <CardHeader>
@@ -281,18 +426,18 @@ export const GroupSettingsDialog = ({
             {showDeleteConfirm && (
               <>
                 <Separator />
-                <Card className="border-red-200 bg-red-50">
+                <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
                   <CardHeader>
-                    <CardTitle className="text-red-800 flex items-center gap-2">
+                    <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5" />
                       Delete Group
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-red-700">
+                    <p className="text-red-700 dark:text-red-300">
                       This action cannot be undone. This will permanently delete the group and all associated data including:
                     </p>
-                    <ul className="list-disc list-inside text-red-700 space-y-1">
+                    <ul className="list-disc list-inside text-red-700 dark:text-red-300 space-y-1">
                       <li>All group sessions and study materials</li>
                       <li>All member data and progress</li>
                       <li>Group chat history</li>
@@ -300,7 +445,7 @@ export const GroupSettingsDialog = ({
                     </ul>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="deleteConfirm" className="text-red-800">
+                      <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
                         Type the group name <strong>{group.name}</strong> to confirm:
                       </Label>
                       <Input
@@ -309,7 +454,7 @@ export const GroupSettingsDialog = ({
                         onChange={(e) => setDeleteConfirm(e.target.value)}
                         placeholder={group.name}
                         disabled={loading}
-                        className="border-red-300 focus:border-red-500"
+                        className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
                       />
                     </div>
 

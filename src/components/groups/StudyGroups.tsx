@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus, TrendingUp, Clock, Star, Loader2 } from 'lucide-react';
+import { Users, Crown, Calendar, MessageSquare, Settings, BookOpen, Search, UserMinus, TrendingUp, Clock, Star, Loader2, Calculator, Atom, Code, Globe, Music, Camera, Heart, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ interface StudyGroupsProps {
 
 export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const { user, session } = useAuth();
+  
   const [selectedGroupDetails, setSelectedGroupDetails] = useState<any | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
@@ -27,6 +28,50 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<any | null>(null);
+
+  // Helper function to get icon component by name
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      Users,
+      BookOpen,
+      Calculator,
+      Atom,
+      Code,
+      Globe,
+      Music,
+      Camera,
+      Heart,
+      Star,
+      Zap
+    };
+    return iconMap[iconName] || Users;
+  };
+
+  // Helper function to convert old color format to gradient format
+  const normalizeColor = (color: string) => {
+    if (!color) return 'from-blue-500 to-blue-600';
+    
+    // If it's already a gradient, return as is
+    if (color.includes('from-') && color.includes('to-')) {
+      return color;
+    }
+    
+    // Convert old single color format to gradient
+    const colorMap: { [key: string]: string } = {
+      'bg-blue-500': 'from-blue-500 to-blue-600',
+      'bg-purple-500': 'from-purple-500 to-purple-600',
+      'bg-green-500': 'from-green-500 to-green-600',
+      'bg-red-500': 'from-red-500 to-red-600',
+      'bg-orange-500': 'from-orange-500 to-orange-600',
+      'bg-pink-500': 'from-pink-500 to-pink-600',
+      'bg-indigo-500': 'from-indigo-500 to-indigo-600',
+      'bg-teal-500': 'from-teal-500 to-teal-600',
+      'bg-yellow-500': 'from-yellow-500 to-yellow-600',
+      'bg-cyan-500': 'from-cyan-500 to-cyan-600'
+    };
+    
+    return colorMap[color] || 'from-blue-500 to-blue-600';
+  };
 
   // Helper function to check if user is anonymous
   const isAnonymousUser = () => {
@@ -63,7 +108,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             role: 'visitor', // Anonymous users are visitors
             nextSession: null,
             description: group.description || '',
-            color: 'bg-blue-500', // Default color
+            color: group.color || 'bg-blue-500', // Default color
+            icon: group.icon || 'Users', // Default icon
             recentActivity: 'Public group',
             created_at: group.created_at,
             is_public: group.is_public,
@@ -87,7 +133,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
           role: group.user_role || 'member', // This now comes from the service
           nextSession: null, // This would come from study_sessions
           description: group.description || '',
-          color: 'bg-blue-500', // Default color
+          color: group.color || 'bg-blue-500', // Default color
+          icon: group.icon || 'Users', // Default icon
           recentActivity: 'No recent activity',
           created_at: group.created_at,
           is_public: group.is_public
@@ -444,22 +491,25 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredGroups.map((group) => (
+              {filteredGroups.map((group) => {
+                const isAdmin = group.user_role === 'admin' || group.created_by === user?.id;
+                
+                return (
                 <Card 
                   key={group.id} 
                   className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:scale-105 overflow-hidden"
                   onClick={() => openGroupPage(group.id)}
                 >
                   {/* Card Header with Gradient */}
-                  <div className={`h-24 bg-gradient-to-br ${group.color} to-opacity-80 relative overflow-hidden`}>
+                  <div className={`h-24 bg-gradient-to-br ${normalizeColor(group.color)} to-opacity-80 relative overflow-hidden`}>
                     <div className="absolute inset-0 bg-black/10"></div>
                     <div className="absolute top-4 right-4 flex items-center space-x-2">
-                      {group.role === 'admin' && (
+                      {isAdmin && (
                         <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg">
                           <Crown size={14} className="text-yellow-800" />
                         </div>
                       )}
-                      {group.role === 'admin' && (
+                      {isAdmin && (
                         <button
                           className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/30 transition-colors"
                           onClick={(e) => {
@@ -474,7 +524,10 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                     </div>
                     <div className="absolute bottom-4 left-4">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
-                        <Users size={20} className="text-white" />
+                        {(() => {
+                          const IconComponent = getIconComponent(group.icon || 'Users');
+                          return <IconComponent size={20} className="text-white" />;
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -534,7 +587,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                     
                     {/* Action Buttons */}
                     <div className="mt-6 flex space-x-2">
-                      {group.role === 'visitor' ? (
+                      {group.user_role === 'visitor' ? (
                         // Anonymous user viewing public groups
                         <>
                           <Button 
@@ -577,20 +630,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                             <MessageSquare size={14} className="mr-1" />
                             Chat
                           </Button>
-                          {group.role === 'admin' ? (
-                            <Button 
-                              variant="outline"
-                              size="sm" 
-                              className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/30"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openGroupSettings(group);
-                              }}
-                            >
-                              <Settings size={14} className="mr-1" />
-                              Settings
-                            </Button>
-                          ) : (
+                          {!isAdmin && (
                             <Button 
                               variant="outline"
                               size="sm" 
@@ -609,7 +649,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

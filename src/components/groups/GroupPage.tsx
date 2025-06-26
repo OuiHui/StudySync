@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Calendar, BookOpen, MessageSquare, ArrowLeft, Settings, Crown, UserMinus, UserCheck, UserX } from 'lucide-react';
+import { Users, Calendar, BookOpen, MessageSquare, ArrowLeft, Settings, Crown, UserMinus, UserCheck, UserX, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChatPopup } from '@/components/chat/ChatPopup';
@@ -19,6 +19,24 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   const [attendingSessions, setAttendingSessions] = useState<string[]>(['1']); // Initially attending session 1
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // Helper function to get icon component by name
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      Users,
+      BookOpen,
+      Calculator,
+      Atom,
+      Code,
+      Globe,
+      Music,
+      Camera,
+      Heart,
+      Star,
+      Zap
+    };
+    return iconMap[iconName] || Users;
+  };
+
   // Mock data - in real app this would come from props or API
   const group = {
     id: groupId,
@@ -27,7 +45,8 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     description: 'A comprehensive study group focused on advanced mathematical concepts including multivariable calculus, linear algebra, and differential equations.',
     admin: 'Sarah Johnson',
     members: 12,
-    color: 'bg-blue-500',
+    color: 'bg-purple-500',
+    icon: 'Calculator',
     is_public: true,
     max_members: 20,
     member_count: 12,
@@ -152,7 +171,10 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
             Back
           </Button>
           <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center`}>
-            <Users size={24} className="text-white" />
+            {(() => {
+              const IconComponent = getIconComponent(group.icon || 'Users');
+              return <IconComponent size={24} className="text-white" />;
+            })()}
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{group.name}</h1>

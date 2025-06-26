@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Users, Crown } from 'lucide-react';
+import { Settings, Users, Crown, Calculator } from 'lucide-react';
 
 const GroupSettingsDemo = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -16,7 +16,9 @@ const GroupSettingsDemo = () => {
     is_public: true,
     max_members: 25,
     member_count: 12,
-    created_at: '2024-01-10T00:00:00Z'
+    created_at: '2024-01-10T00:00:00Z',
+    color: 'bg-purple-500',
+    icon: 'Calculator'
   };
 
   const handleGroupUpdated = (updatedGroup: any) => {
@@ -48,8 +50,8 @@ const GroupSettingsDemo = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Users size={24} className="text-white" />
+                <div className={`w-12 h-12 ${mockGroup.color} rounded-xl flex items-center justify-center`}>
+                  <Calculator size={24} className="text-white" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl text-gray-800">{mockGroup.name}</CardTitle>
@@ -109,6 +111,7 @@ const GroupSettingsDemo = () => {
           <CardContent>
             <div className="space-y-3 text-yellow-700">
               <p>🔧 <strong>Edit Group:</strong> Click "Open Group Settings" to modify group name, description, subject, privacy settings, and member limits.</p>
+              <p>🎨 <strong>Customize Appearance:</strong> Change the group icon and background color to personalize your group's visual identity.</p>
               <p>🗑️ <strong>Delete Group:</strong> Use the delete option in the settings dialog. You'll need to type the group name to confirm deletion.</p>
               <p>🔒 <strong>Privacy Toggle:</strong> Switch between public (anyone can join) and private (invite-only) modes.</p>
               <p>👥 <strong>Member Limits:</strong> Adjust the maximum number of members allowed in the group.</p>

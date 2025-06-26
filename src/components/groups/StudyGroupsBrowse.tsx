@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,24 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
   const [availableGroups, setAvailableGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper function to get icon component by name
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      Users,
+      BookOpen,
+      Calculator,
+      Atom,
+      Code,
+      Globe,
+      Music,
+      Camera,
+      Heart,
+      Star,
+      Zap
+    };
+    return iconMap[iconName] || BookOpen;
+  };
 
   const subjects = [
     'all',
@@ -56,6 +74,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         sessions: 0, // You can count sessions for this group separately if needed
         isEnlisted: groupEnrollments[group.id] || false,
         color: getSubjectColor(group.subject || 'General'),
+        icon: (group as any).icon || 'BookOpen', // Use icon from database or default to BookOpen
         created_at: group.created_at,
         max_members: group.max_members
       }));
@@ -291,7 +310,10 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className={`w-12 h-12 ${group.color} rounded-lg flex items-center justify-center mb-3`}>
-                  <BookOpen size={24} className="text-white" />
+                  {(() => {
+                    const IconComponent = getIconComponent(group.icon);
+                    return <IconComponent size={24} className="text-white" />;
+                  })()}
                 </div>
                 {group.isEnlisted && (
                   <span className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full">

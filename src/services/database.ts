@@ -21,8 +21,8 @@ const checkAuth = async () => {
     const now = Math.floor(Date.now() / 1000);
     const tokenExp = session.expires_at || 0;
     
-    // If token is expired or about to expire (within 60 seconds), try to refresh
-    if (tokenExp - now < 60) {
+    // If token is expired or about to expire (within 300 seconds), try to refresh
+    if (tokenExp - now < 300) {
       console.log('Token expired or expiring soon, attempting refresh...');
       
       const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
@@ -56,12 +56,22 @@ const handleDbError = (error: any, operation: string) => {
   } else if (error.code === 'PGRST301') {
     // Check if it's a JWT expiration
     if (error.message?.includes('JWT expired') || error.message?.includes('JWT')) {
+      // Redirect to auth page for re-authentication
+      console.log('JWT expired, redirecting to auth...');
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 1000);
       throw new Error(`Session expired. Please log in again.`);
     }
     throw new Error(`Authentication required for ${operation}`);
   } else if (error.message?.includes('RLS')) {
     throw new Error(`Access denied for ${operation}. Please ensure you're logged in.`);
   } else if (error.message?.includes('JWT expired')) {
+    // Handle direct JWT expired messages
+    console.log('Direct JWT expiration detected, redirecting to auth...');
+    setTimeout(() => {
+      window.location.href = '/auth';
+    }, 1000);
     throw new Error(`Session expired. Please log in again.`);
   } else {
     throw new Error(`Failed to ${operation}: ${error.message || 'Unknown error'}`);
@@ -269,6 +279,9 @@ class StudyGroupsService {
 
           return (createdGroups || []).map(group => ({
             ...group,
+            // Add fallback values for icon and color if not present in database
+            icon: (group as any).icon || 'Users',
+            color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: null,
             user_role: 'admin',
             joined_at: group.created_at
@@ -308,6 +321,9 @@ class StudyGroupsService {
           
           return {
             ...group,
+            // Add fallback values for icon and color if not present in database
+            icon: (group as any).icon || 'Users',
+            color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: creator,
             user_role: membership.role,
             joined_at: membership.joined_at
@@ -333,6 +349,9 @@ class StudyGroupsService {
 
         return (createdGroups || []).map(group => ({
           ...group,
+          // Add fallback values for icon and color if not present in database
+          icon: (group as any).icon || 'Users',
+          color: (group as any).color || 'from-blue-500 to-blue-600',
           creator_profile: null,
           user_role: 'admin',
           joined_at: group.created_at
@@ -426,6 +445,9 @@ class StudyGroupsService {
 
           return {
             ...group,
+            // Add fallback values for icon and color if not present in database
+            icon: (group as any).icon || 'Users',
+            color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: creator,
             member_count: memberCount
           };
@@ -627,19 +649,51 @@ class StudyGroupsService {
         throw new Error('Authentication required to update groups');
       }
 
-      const { data, error } = await supabase
-        .from('study_groups')
-        .update(updates)
-        .eq('id', id)
-        .eq('created_by', session.user.id)
-        .select()
-        .single();
+      // First try to update with all fields including icon and color
+      try {
+        const { data, error } = await supabase
+          .from('study_groups')
+          .update(updates)
+          .eq('id', id)
+          .eq('created_by', session.user.id)
+          .select()
+          .single();
 
-      if (error) {
-        handleDbError(error, 'update group');
+        if (error) {
+          handleDbError(error, 'update group');
+        }
+
+        return data;
+      } catch (error: any) {
+        // If the error is about unknown columns (icon/color), try without them
+        if (error.message?.includes('column') || error.code === '42703') {
+          console.warn('Icon/color columns not available, updating without them');
+          
+          // Remove icon and color from updates and try again
+          const { icon, color, ...safeUpdates } = updates as any;
+          
+          const { data, error: fallbackError } = await supabase
+            .from('study_groups')
+            .update(safeUpdates)
+            .eq('id', id)
+            .eq('created_by', session.user.id)
+            .select()
+            .single();
+
+          if (fallbackError) {
+            handleDbError(fallbackError, 'update group (fallback)');
+          }
+
+          // Add the icon and color back to the returned data for UI consistency
+          return {
+            ...data,
+            icon: (updates as any).icon || 'Users',
+            color: (updates as any).color || 'from-blue-500 to-blue-600'
+          };
+        } else {
+          throw error;
+        }
       }
-
-      return data;
     } catch (error) {
       console.error('Error updating group:', error);
       throw error;

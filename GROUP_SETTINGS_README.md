@@ -12,6 +12,12 @@ A full-featured modal dialog that allows group admins to:
   - Subject
   - Description
 
+- **Customize Appearance**
+  - Choose from 11 different icons (Users, Book, Calculator, Science, Code, Globe, Music, Camera, Heart, Star, Lightning)
+  - Select from 10 background colors (Blue, Purple, Green, Red, Orange, Pink, Indigo, Teal, Yellow, Cyan)
+  - Real-time preview of changes
+  - Custom icon and color combinations for unique group identity
+
 - **Privacy & Access Control**
   - Public/Private toggle with clear explanations
   - Maximum member limits (1-1000)
@@ -45,17 +51,21 @@ Uses existing `StudyGroupsService` methods:
 
 ### Design Elements
 - **Modern Gradient Design** - Consistent with app theme
+- **Custom Appearance** - Personalized icons and colors for each group
 - **Role-based Visibility** - Only admins see settings options
 - **Intuitive Icons** - Clear visual indicators (Settings, Crown for admin)
 - **Responsive Layout** - Works on all screen sizes
 - **Loading States** - Proper feedback during operations
+- **Dark Mode Support** - Proper color handling in both light and dark themes
 
 ### User Experience
-- **Clear Visual Hierarchy** - Organized into logical sections
+- **Clear Visual Hierarchy** - Organized into logical sections (Basic Info, Appearance, Privacy)
 - **Progressive Disclosure** - Delete confirmation only shows when needed
 - **Helpful Tooltips** - Explains privacy settings and limits
+- **Visual Customization** - Interactive icon and color selection with live preview
 - **Error Prevention** - Validation and confirmation steps
 - **Success Feedback** - Toast notifications for all actions
+- **Consistent Theming** - Proper dark mode support throughout
 
 ### Accessibility
 - **Keyboard Navigation** - All buttons and inputs accessible
