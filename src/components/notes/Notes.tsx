@@ -1,16 +1,21 @@
 
 import { useState, useEffect } from 'react';
-import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2, Edit, Trash2 } from 'lucide-react';
+import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2, Edit, Trash2, AlertTriangle, Save, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
 import { NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export const Notes = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
@@ -19,6 +24,19 @@ export const Notes = () => {
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Edit note state
+  const [editingNote, setEditingNote] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    content: '',
+    subject: ''
+  });
+  
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<any | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   useEffect(() => {
     loadNotes();
@@ -34,7 +52,20 @@ export const Notes = () => {
       setNotes(userNotes);
     } catch (err) {
       console.error('Error loading notes:', err);
-      setError('Failed to load notes. Please try again.');
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load notes. Please try again.';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
+        setError('Your session has expired. Please log in again.');
+        
+        // Optional: Auto-redirect to login after a short delay
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 3000);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -158,17 +189,129 @@ export const Notes = () => {
     return matchesSearch && matchesCategory && matchesSubject && matchesOwnership;
   });
 
-  const handleDeleteNote = async (noteId: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) {
+  const handleEditNote = async (note: any) => {
+    try {
+      // Fetch the full note content for editing
+      const fullNote = await NotesService.getNote(note.id);
+      setEditingNote(fullNote);
+      setEditFormData({
+        title: fullNote.title || '',
+        content: fullNote.content || '',
+        subject: fullNote.subject || ''
+      });
+    } catch (err) {
+      console.error('Error fetching note for editing:', err);
+      // Fallback to using the truncated data
+      setEditingNote(note);
+      setEditFormData({
+        title: note.title || '',
+        content: note.preview?.replace('...', '') || '',
+        subject: note.subject || ''
+      });
+      toast({
+        title: "Warning",
+        description: "Could not fetch full note content. You may be editing a preview.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingNote) return;
+
+    if (!editFormData.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Note title is required.",
+        variant: "destructive"
+      });
       return;
     }
 
     try {
-      await NotesService.deleteNote(noteId);
+      await NotesService.updateNote(editingNote.id, {
+        title: editFormData.title.trim(),
+        content: editFormData.content.trim(),
+        subject: editFormData.subject.trim() || null
+      });
+
+      toast({
+        title: "Note Updated",
+        description: "Your note has been updated successfully.",
+      });
+
+      setEditingNote(null);
+      loadNotes(); // Refresh the notes list
+    } catch (err) {
+      console.error('Error updating note:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update note. Please try again.';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
+        toast({
+          title: "Session Expired",
+          description: "Your session has expired. Redirecting to login...",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
+      } else {
+        toast({
+          title: "Update Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const handleDeleteNote = (note: any) => {
+    setNoteToDelete(note);
+    setShowDeleteConfirm(true);
+    setDeleteConfirm('');
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete || deleteConfirm !== noteToDelete.title) return;
+
+    try {
+      await NotesService.deleteNote(noteToDelete.id);
+      
+      toast({
+        title: "Note Deleted",
+        description: "Your note has been permanently deleted.",
+      });
+
+      setShowDeleteConfirm(false);
+      setNoteToDelete(null);
+      setDeleteConfirm('');
       loadNotes(); // Refresh the notes list
     } catch (err) {
       console.error('Error deleting note:', err);
-      setError('Failed to delete note. Please try again.');
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete note. Please try again.';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
+        toast({
+          title: "Session Expired",
+          description: "Your session has expired. Redirecting to login...",
+          variant: "destructive"
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
+      } else {
+        toast({
+          title: "Delete Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -398,14 +541,24 @@ export const Notes = () => {
                       Share
                     </Button>
                     {note.isMine && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditNote(note)}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteNote(note)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>
@@ -433,6 +586,132 @@ export const Notes = () => {
           setIsUploadPopupOpen(false);
         }}
       />
+
+      {/* Edit Note Dialog */}
+      <Dialog open={!!editingNote} onOpenChange={(open) => !open && setEditingNote(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Note
+            </DialogTitle>
+            <DialogDescription>
+              Update your note details and content.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title *</Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter note title..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-subject">Subject</Label>
+              <Input
+                id="edit-subject"
+                value={editFormData.subject}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="e.g., Mathematics, Physics..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-content">Content</Label>
+              <Textarea
+                id="edit-content"
+                value={editFormData.content}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Enter your note content..."
+                rows={8}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEditingNote(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={!editFormData.title.trim()}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-md">
+          <div className="flex items-center justify-center p-6">
+            <Card className="border-red-200 bg-red-50 dark:bg-red-900 dark:border-red-800 w-full shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Delete Note
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-red-700 dark:text-red-300">
+                  This action cannot be undone. This will permanently delete your note:
+                </p>
+                <div className="p-3 bg-red-100 dark:bg-red-800/30 rounded-lg">
+                  <p className="font-medium text-red-800 dark:text-red-200">
+                    "{noteToDelete?.title}"
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
+                    Type the note title <strong>{noteToDelete?.title}</strong> to confirm:
+                  </Label>
+                  <Input
+                    id="deleteConfirm"
+                    value={deleteConfirm}
+                    onChange={(e) => setDeleteConfirm(e.target.value)}
+                    placeholder={noteToDelete?.title}
+                    className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={confirmDeleteNote}
+                    disabled={deleteConfirm !== noteToDelete?.title}
+                    variant="destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Note Permanently
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setNoteToDelete(null);
+                      setDeleteConfirm('');
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

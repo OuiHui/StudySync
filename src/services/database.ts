@@ -14,6 +14,7 @@ const checkAuth = async () => {
 
     // If no session, return null
     if (!session) {
+      console.log('No active session found');
       return null;
     }
 
@@ -29,20 +30,46 @@ const checkAuth = async () => {
       
       if (refreshError) {
         console.error('Failed to refresh session:', refreshError);
+        console.log('Session refresh failed, user needs to log in again');
+        
         // Clear the session and redirect to login
         await supabase.auth.signOut();
+        
+        // Redirect to login page
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth';
+        }
+        
         return null;
       }
       
       if (refreshData?.session) {
         console.log('Session refreshed successfully');
         return refreshData.session;
+      } else {
+        console.log('Session refresh returned no session, redirecting to login');
+        await supabase.auth.signOut();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth';
+        }
+        return null;
       }
     }
 
     return session;
   } catch (error) {
     console.error('Unexpected error in checkAuth:', error);
+    
+    // On any unexpected error, clear session and redirect to login
+    try {
+      await supabase.auth.signOut();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth';
+      }
+    } catch (signOutError) {
+      console.error('Error signing out:', signOutError);
+    }
+    
     return null;
   }
 };
@@ -1109,7 +1136,7 @@ class NotesService {
     try {
       const session = await checkAuth();
       if (!session) {
-        return [];
+        throw new Error('Authentication required. Please log in again.');
       }
 
       const { data, error } = await supabase
@@ -1119,14 +1146,19 @@ class NotesService {
         .order('updated_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching notes:', error);
-        return [];
+        handleDbError(error, 'fetch notes');
       }
 
       return data || [];
     } catch (error) {
       console.error('Error fetching notes:', error);
-      return [];
+      
+      // Re-throw the error so the UI can handle it appropriately
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      throw new Error('An unexpected error occurred while fetching notes.');
     }
   }
 
@@ -1166,7 +1198,7 @@ class NotesService {
     try {
       const session = await checkAuth();
       if (!session) {
-        throw new Error('Authentication required to update notes');
+        throw new Error('Authentication required. Please log in again.');
       }
 
       const { data, error } = await supabase
@@ -1195,7 +1227,7 @@ class NotesService {
     try {
       const session = await checkAuth();
       if (!session) {
-        throw new Error('Authentication required to delete notes');
+        throw new Error('Authentication required. Please log in again.');
       }
 
       const { error } = await supabase
@@ -1211,6 +1243,31 @@ class NotesService {
       return true;
     } catch (error) {
       console.error('Error deleting note:', error);
+      throw error;
+    }
+  }
+
+  static async getNote(id: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to get note');
+      }
+
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('id', id)
+        .eq('created_by', session.user.id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting note:', error);
       throw error;
     }
   }
