@@ -761,8 +761,11 @@ class StudySessionsService {
         return [];
       }
 
-      // First get sessions with group info
-      const { data: sessions, error } = await supabase
+      const userId = session.user.id;
+
+      // Get sessions the user created OR sessions they're participating in
+      // First get sessions the user created
+      const { data: createdSessions, error: createdError } = await supabase
         .from('study_sessions')
         .select(`
           *,
@@ -772,19 +775,82 @@ class StudySessionsService {
             subject
           )
         `)
-        .or(`created_by.eq.${session.user.id}`)
+        .eq('created_by', userId)
         .order('scheduled_start', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching sessions:', error);
-        return [];
+      if (createdError) {
+        console.error('Error fetching created sessions:', createdError);
       }
 
-      if (!sessions) return [];
+      // Get sessions the user is participating in
+      const { data: participations, error: participationError } = await supabase
+        .from('session_participants')
+        .select('session_id')
+        .eq('user_id', userId);
+
+      let participatedSessions = [];
+      if (!participationError && participations && participations.length > 0) {
+        const sessionIds = participations.map(p => p.session_id);
+        const { data: sessions, error: sessionsError } = await supabase
+          .from('study_sessions')
+          .select(`
+            *,
+            study_groups (
+              id,
+              name,
+              subject
+            )
+          `)
+          .in('id', sessionIds)
+          .order('scheduled_start', { ascending: true });
+
+        if (!sessionsError) {
+          participatedSessions = sessions || [];
+        }
+      }
+
+      // Get sessions from groups the user is a member of
+      const { data: groupMemberships, error: membershipError } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', userId);
+
+      let groupSessions = [];
+      if (!membershipError && groupMemberships && groupMemberships.length > 0) {
+        const groupIds = groupMemberships.map(m => m.group_id);
+        const { data: sessions, error: groupSessionsError } = await supabase
+          .from('study_sessions')
+          .select(`
+            *,
+            study_groups (
+              id,
+              name,
+              subject
+            )
+          `)
+          .in('group_id', groupIds)
+          .order('scheduled_start', { ascending: true });
+
+        if (!groupSessionsError) {
+          groupSessions = sessions || [];
+        }
+      }
+
+      // Combine all sessions and remove duplicates
+      const allSessions = [
+        ...(createdSessions || []),
+        ...participatedSessions,
+        ...groupSessions
+      ];
+
+      // Remove duplicates by session ID
+      const uniqueSessions = allSessions.filter((session, index, self) => 
+        index === self.findIndex(s => s.id === session.id)
+      );
 
       // Get participants for each session separately
       const sessionsWithParticipants = await Promise.all(
-        sessions.map(async (studySession) => {
+        uniqueSessions.map(async (studySession) => {
           const { data: participants } = await supabase
             .from('session_participants')
             .select('user_id')
@@ -876,6 +942,66 @@ class StudySessionsService {
       return sessionsWithParticipants;
     } catch (error) {
       console.error('Error fetching available sessions:', error);
+      return [];
+    }
+  }
+
+  static async getSessionsByGroup(groupId: string) {
+    try {
+      // Get all sessions for this group
+      const { data: sessions, error } = await supabase
+        .from('study_sessions')
+        .select(`
+          *,
+          study_groups (
+            id,
+            name,
+            subject
+          )
+        `)
+        .eq('group_id', groupId)
+        .order('scheduled_start', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching group sessions:', error);
+        return [];
+      }
+
+      if (!sessions) return [];
+
+      // Get participants for each session separately
+      const sessionsWithParticipants = await Promise.all(
+        sessions.map(async (studySession) => {
+          const { data: participants } = await supabase
+            .from('session_participants')
+            .select('user_id')
+            .eq('session_id', studySession.id);
+
+          // Get profile info for participants
+          let participantProfiles = [];
+          if (participants && participants.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url, user_id')
+              .in('user_id', participants.map(p => p.user_id));
+            
+            participantProfiles = profiles || [];
+          }
+
+          return {
+            ...studySession,
+            participant_count: participants?.length || 0,
+            session_participants: participantProfiles.map(profile => ({
+              user_id: profile.user_id,
+              profiles: profile
+            }))
+          };
+        })
+      );
+
+      return sessionsWithParticipants;
+    } catch (error) {
+      console.error('Error fetching group sessions:', error);
       return [];
     }
   }
