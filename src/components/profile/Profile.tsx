@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Mail, Calendar, BookOpen, Users, Settings, Edit, Trophy, Star, Target, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,55 +7,180 @@ import { ChangePasswordPopup } from '@/components/profile/ChangePasswordPopup';
 import { NotificationSettingsPopup } from '@/components/profile/NotificationSettingsPopup';
 import { PrivacySettingsPopup } from '@/components/profile/PrivacySettingsPopup';
 import { DeleteAccountPopup } from '@/components/profile/DeleteAccountPopup';
+import { useAuth } from '@/contexts/AuthContext';
+import { ProfileService } from '@/services/database';
+import { useToast } from '@/hooks/use-toast';
 
 export const Profile = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
   const [privacySettingsOpen, setPrivacySettingsOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [userProfile, setUserProfile] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    joinDate: 'January 2024',
-    studyHours: 156,
-    groupsJoined: 4,
-    notesShared: 23,
-    avatar: 'JD',
-    bio: 'Computer Science student passionate about collaborative learning and helping others succeed in their academic journey.',
-    studyStreak: 15,
-    level: 'Advanced Learner',
-    points: 2450,
-    year: 'Senior' // Adding missing year property
+    id: '',
+    display_name: '',
+    email: '',
+    bio: '',
+    avatar_url: '',
+    created_at: '',
+    updated_at: ''
   });
 
-  const achievements = [
-    { id: '1', title: 'Study Streak', description: '15 days consecutive', icon: '🔥', earned: true },
-    { id: '2', title: 'Note Sharer', description: 'Shared 20+ notes', icon: '📚', earned: true },
-    { id: '3', title: 'Group Leader', description: 'Admin of 2 groups', icon: '👑', earned: true },
-    { id: '4', title: 'Early Bird', description: 'Study before 8 AM', icon: '🌅', earned: false },
-    { id: '5', title: 'Night Owl', description: 'Study after 10 PM', icon: '🦉', earned: true },
-    { id: '6', title: 'Collaboration Master', description: 'Join 5+ groups', icon: '🤝', earned: false },
-  ];
+  const [userStats, setUserStats] = useState({
+    studyHours: 0,
+    groupsJoined: 0,
+    notesShared: 0,
+    studyStreak: 0,
+    totalSessions: 0
+  });
 
-  const recentActivity = [
-    { id: '1', action: 'Completed study session', time: '2 hours ago', type: 'study' },
-    { id: '2', action: 'Shared notes in Advanced Math', time: '5 hours ago', type: 'share' },
-    { id: '3', action: 'Joined Physics Study Circle', time: '1 day ago', type: 'join' },
-    { id: '4', action: 'Created new study group', time: '2 days ago', type: 'create' }
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+
+  // Load user profile and stats
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user || authLoading) return;
+
+      try {
+        setLoading(true);
+        
+        // Load user profile
+        const profile = await ProfileService.getCurrentUser();
+        if (profile) {
+          setUserProfile({
+            id: profile.id,
+            display_name: profile.display_name || user.email?.split('@')[0] || 'User',
+            email: user.email || '',
+            bio: profile.bio || '',
+            avatar_url: profile.avatar_url || '',
+            created_at: profile.created_at,
+            updated_at: profile.updated_at
+          });
+        } else {
+          // Set defaults from auth user
+          setUserProfile({
+            id: user.id,
+            display_name: user.email?.split('@')[0] || 'User',
+            email: user.email || '',
+            bio: '',
+            avatar_url: '',
+            created_at: user.created_at || new Date().toISOString(),
+            updated_at: user.updated_at || new Date().toISOString()
+          });
+        }
+
+        // Load user stats
+        const stats = await ProfileService.getUserStats();
+        setUserStats(stats);
+
+        // Load recent activity
+        const activity = await ProfileService.getRecentActivity();
+        setRecentActivity(activity);
+
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        toast({
+          title: "Error Loading Profile",
+          description: "Failed to load profile data. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [user, authLoading, toast]);
+
+  // Helper functions
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const formatJoinDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  // Calculate user level based on stats
+  const getUserLevel = () => {
+    if (userStats.studyHours >= 100) return 'Expert';
+    if (userStats.studyHours >= 50) return 'Advanced';
+    if (userStats.studyHours >= 20) return 'Intermediate';
+    return 'Beginner';
+  };
+
+  const getUserPoints = () => {
+    return userStats.studyHours * 10 + userStats.groupsJoined * 50 + userStats.notesShared * 25 + userStats.studyStreak * 15;
+  };
+
+  const achievements = [
+    { id: '1', title: 'Study Streak', description: `${userStats.studyStreak} days consecutive`, icon: '🔥', earned: userStats.studyStreak > 0 },
+    { id: '2', title: 'Note Sharer', description: `Shared ${userStats.notesShared}+ notes`, icon: '📚', earned: userStats.notesShared >= 5 },
+    { id: '3', title: 'Group Member', description: `Joined ${userStats.groupsJoined} groups`, icon: '�', earned: userStats.groupsJoined >= 2 },
+    { id: '4', title: 'Study Master', description: `${userStats.studyHours} hours studied`, icon: '⏰', earned: userStats.studyHours >= 50 },
+    { id: '5', title: 'Session Starter', description: `${userStats.totalSessions} sessions created`, icon: '🎯', earned: userStats.totalSessions >= 10 },
+    { id: '6', title: 'Collaboration Expert', description: 'Join 5+ groups', icon: '🤝', earned: userStats.groupsJoined >= 5 },
   ];
 
   const studyStats = [
-    { label: 'Study Hours', value: userProfile.studyHours, icon: Clock, color: 'text-blue-600 dark:text-blue-400' },
-    { label: 'Groups Joined', value: userProfile.groupsJoined, icon: Users, color: 'text-green-600 dark:text-green-400' },
-    { label: 'Notes Shared', value: userProfile.notesShared, icon: BookOpen, color: 'text-purple-600 dark:text-purple-400' },
-    { label: 'Study Streak', value: `${userProfile.studyStreak} days`, icon: Star, color: 'text-orange-600 dark:text-orange-400' }
+    { label: 'Study Hours', value: userStats.studyHours, icon: Clock, color: 'text-blue-600 dark:text-blue-400' },
+    { label: 'Groups Joined', value: userStats.groupsJoined, icon: Users, color: 'text-green-600 dark:text-green-400' },
+    { label: 'Notes Shared', value: userStats.notesShared, icon: BookOpen, color: 'text-purple-600 dark:text-purple-400' },
+    { label: 'Study Streak', value: `${userStats.studyStreak} days`, icon: Star, color: 'text-orange-600 dark:text-orange-400' }
   ];
 
-  const handleSaveProfile = (updatedProfile: any) => {
-    setUserProfile(prev => ({ ...prev, ...updatedProfile }));
+  const handleSaveProfile = async (updatedProfile: any) => {
+    try {
+      await ProfileService.updateProfile({
+        display_name: updatedProfile.name,
+        bio: updatedProfile.bio
+      });
+      
+      setUserProfile(prev => ({
+        ...prev,
+        display_name: updatedProfile.name,
+        bio: updatedProfile.bio
+      }));
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Not Logged In</h2>
+          <p className="text-gray-600 dark:text-gray-300">Please log in to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -77,30 +201,42 @@ export const Profile = () => {
         <CardContent className="p-6">
           <div className="flex items-center space-x-6">
             <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">{userProfile.avatar}</span>
+              {userProfile.avatar_url ? (
+                <img 
+                  src={userProfile.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-white text-2xl font-bold">
+                  {getInitials(userProfile.display_name)}
+                </span>
+              )}
             </div>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{userProfile.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{userProfile.display_name}</h2>
               <p className="text-gray-600 dark:text-gray-300 flex items-center mt-1">
                 <Mail size={16} className="mr-2" />
                 {userProfile.email}
               </p>
               <p className="text-gray-600 dark:text-gray-300 flex items-center mt-1">
                 <Calendar size={16} className="mr-2" />
-                Joined {userProfile.joinDate}
+                Joined {formatJoinDate(userProfile.created_at)}
               </p>
               <div className="mt-3 flex items-center space-x-4">
                 <span className="px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-sm rounded-full">
-                  {userProfile.level}
+                  {getUserLevel()}
                 </span>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  {userProfile.points} points
+                  {getUserPoints()} points
                 </span>
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <p className="text-gray-700 dark:text-gray-300">{userProfile.bio}</p>
+            <p className="text-gray-700 dark:text-gray-300">
+              {userProfile.bio || 'No bio provided yet.'}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -240,9 +376,9 @@ export const Profile = () => {
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
         profile={{
-          name: userProfile.name,
+          name: userProfile.display_name,
           email: userProfile.email,
-          year: userProfile.year,
+          year: '', // This can be added to the profile schema later
           bio: userProfile.bio
         }}
         onSave={handleSaveProfile}
