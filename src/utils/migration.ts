@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Apply database migration to add icon and color fields to study_groups table
+ * Check if database migration has been applied for icon and color fields in study_groups table
  * This checks if the migration has been applied and provides instructions if not.
  */
 export async function applyGroupAppearanceMigration() {

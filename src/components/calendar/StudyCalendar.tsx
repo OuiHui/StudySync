@@ -223,7 +223,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
                               <div className="flex-1 min-w-0">
                                 <h4 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-800 dark:text-white truncate`}>{event.title}</h4>
                                 {event.group && (
-                                  <p className="text-xs text-blue-600 dark:text-blue-400 truncate">Group: {event.group.name}</p>
+                                  <p className="text-xs text-blue-600 dark:text-blue-400 truncate">{event.group.name}</p>
                                 )}
                                 <p className="text-xs text-gray-600 dark:text-gray-300 truncate">{event.subject}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{event.time}</p>
@@ -294,7 +294,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
                       {event.group && (
-                        <p className="text-xs text-blue-600 dark:text-blue-400 truncate">Group: {event.group.name}</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 truncate">{event.group.name}</p>
                       )}
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {format(event.date, 'EEE, MMM d')} at {format(new Date(event.scheduled_start), 'h:mm a')}

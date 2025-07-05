@@ -1408,134 +1408,9 @@ class NotificationsService {
         return [];
       }
 
-      const userId = session.user.id;
-      const notifications = [];
-
-      // Get only real upcoming study sessions (next 2 hours) that user is actually participating in
-      const now = new Date();
-      const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-      
-      // Get sessions user is participating in
-      const { data: participatingSessions, error: participatingError } = await supabase
-        .from('session_participants')
-        .select('session_id')
-        .eq('user_id', userId)
-        .eq('is_attending', true);
-
-      if (!participatingError && participatingSessions && participatingSessions.length > 0) {
-        const sessionIds = participatingSessions.map(p => p.session_id);
-        
-        const { data: upcomingSessions, error: sessionsError } = await supabase
-          .from('study_sessions')
-          .select('id, title, scheduled_start, study_groups(name)')
-          .in('id', sessionIds)
-          .gte('scheduled_start', now.toISOString())
-          .lte('scheduled_start', twoHoursFromNow.toISOString())
-          .order('scheduled_start', { ascending: true })
-          .limit(3);
-
-        if (!sessionsError && upcomingSessions) {
-          upcomingSessions.forEach(session => {
-            const startTime = new Date(session.scheduled_start);
-            const minutesUntil = Math.round((startTime.getTime() - now.getTime()) / (1000 * 60));
-            
-            notifications.push({
-              id: `session-${session.id}`,
-              type: 'session',
-              title: 'Upcoming Study Session',
-              message: `${session.title || 'Study session'} ${session.study_groups?.name ? `(${session.study_groups.name})` : ''} starts in ${minutesUntil} minutes`,
-              created_at: new Date(now.getTime() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-              read: false,
-              actionable: true
-            });
-          });
-        }
-      }
-
-      // Only show group welcome notifications for groups joined in the last hour (more realistic)
-      const { data: recentGroupMemberships, error: groupError } = await supabase
-        .from('group_members')
-        .select('id, joined_at, study_groups(name)')
-        .eq('user_id', userId)
-        .order('joined_at', { ascending: false })
-        .limit(2);
-
-      if (!groupError && recentGroupMemberships) {
-        recentGroupMemberships.forEach(membership => {
-          const joinedAt = new Date(membership.joined_at);
-          const isVeryRecent = now.getTime() - joinedAt.getTime() < 60 * 60 * 1000; // Last hour only
-          
-          if (isVeryRecent) {
-            notifications.push({
-              id: `group-${membership.id}`,
-              type: 'group',
-              title: 'Welcome to Group',
-              message: `You've successfully joined ${(membership.study_groups as any)?.name || 'a study group'}`,
-              created_at: membership.joined_at,
-              read: false,
-              actionable: false
-            });
-          }
-        });
-      }
-
-      // Only show note notifications for notes shared in groups the user is part of
-      try {
-        // First get user's groups
-        const { data: userGroups, error: userGroupsError } = await supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', userId);
-
-        if (!userGroupsError && userGroups && userGroups.length > 0) {
-          const groupIds = userGroups.map(g => g.group_id);
-          
-          // Get recent notes in user's groups (not created by user)
-          const { data: recentNotes, error: notesError } = await supabase
-            .from('notes')
-            .select('id, created_at, title, created_by, group_id')
-            .neq('created_by', userId)
-            .in('group_id', groupIds)
-            .order('created_at', { ascending: false })
-            .limit(2);
-
-          if (!notesError && recentNotes) {
-            // Get display names for note creators
-            const creatorIds = recentNotes.map(note => note.created_by);
-            const { data: creators } = await supabase
-              .from('profiles')
-              .select('user_id, display_name')
-              .in('user_id', creatorIds);
-
-            recentNotes.forEach(note => {
-              const createdAt = new Date(note.created_at);
-              const isRecent = now.getTime() - createdAt.getTime() < 24 * 60 * 60 * 1000; // Last 24 hours
-              
-              if (isRecent) {
-                const creator = creators?.find(c => c.user_id === note.created_by);
-                notifications.push({
-                  id: `note-${note.id}`,
-                  type: 'note',
-                  title: 'New Note in Group',
-                  message: `${creator?.display_name || 'Someone'} shared "${note.title || 'a note'}" in your group`,
-                  created_at: note.created_at,
-                  read: false,
-                  actionable: false
-                });
-              }
-            });
-          }
-        }
-      } catch (notesError) {
-        console.log('Notes notifications query failed (ignoring):', notesError);
-      }
-
-      // Sort by created_at descending
-      notifications.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      return notifications.slice(0, 10); // Return top 10 notifications
+      // For now, return empty array since we don't have a notifications table
+      // In a real implementation, you might use messages or create a notifications table
+      return [];
     } catch (error) {
       console.error('Error fetching notifications:', error);
       return [];
@@ -1545,7 +1420,6 @@ class NotificationsService {
   static async markAsRead(notificationId: string) {
     try {
       // Since there's no notifications table, just return success
-      // In a real implementation, you would update the notification's read status
       return { success: true };
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -1556,7 +1430,6 @@ class NotificationsService {
   static async markAllAsRead() {
     try {
       // Since there's no notifications table, just return success
-      // In a real implementation, you would update all notifications' read status
       return { success: true };
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -1858,51 +1731,6 @@ class ProfileService {
     }
   }
 
-  static async getStudyHoursToday() {
-    try {
-      const session = await checkAuth();
-      if (!session) {
-        return 0;
-      }
-
-      const userId = session.user.id;
-      const today = new Date();
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-
-      // Get today's completed sessions
-      const { data: sessions, error } = await supabase
-        .from('study_sessions')
-        .select('scheduled_start, scheduled_end, actual_start, actual_end, status')
-        .eq('created_by', userId)
-        .eq('status', 'completed')
-        .gte('scheduled_start', todayStart.toISOString())
-        .lt('scheduled_start', todayEnd.toISOString());
-
-      if (error) {
-        console.error('Error fetching today\'s sessions:', error);
-        return 0;
-      }
-
-      // Calculate actual study hours for today
-      let todayHours = 0;
-      (sessions || []).forEach(session => {
-        if (session.actual_start && session.actual_end) {
-          const duration = new Date(session.actual_end).getTime() - new Date(session.actual_start).getTime();
-          todayHours += duration / (1000 * 60 * 60); // Convert to hours
-        } else if (session.scheduled_start && session.scheduled_end) {
-          const duration = new Date(session.scheduled_end).getTime() - new Date(session.scheduled_start).getTime();
-          todayHours += duration / (1000 * 60 * 60); // Convert to hours
-        }
-      });
-
-      return Math.round(todayHours * 10) / 10; // Round to 1 decimal place
-    } catch (error) {
-      console.error('Error calculating today\'s study hours:', error);
-      return 0;
-    }
-  }
-
   static calculateStudyHours(sessions: any[]): number {
     if (!sessions || sessions.length === 0) return 0;
 
@@ -1976,57 +1804,39 @@ class ProfileService {
       // Get recent study sessions
       const { data: recentSessions, error: sessionsError } = await supabase
         .from('study_sessions')
-        .select('id, created_at, title, status')
+        .select('id, created_at, title')
         .eq('created_by', userId)
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (!sessionsError && recentSessions) {
         recentSessions.forEach(session => {
-          const action = session.status === 'completed' 
-            ? `Completed study session${session.title ? ` - ${session.title}` : ''}`
-            : `Created study session${session.title ? ` - ${session.title}` : ''}`;
-          
           activities.push({
             id: `session-${session.id}`,
-            action,
+            action: `Completed study session${session.title ? ` - ${session.title}` : ''}`,
             time: this.formatTimeAgo(session.created_at),
-            type: 'study',
-            activity_type: 'session',
-            description: action,
-            created_at: session.created_at
+            type: 'study'
           });
         });
       }
 
-      // Get recent notes - temporarily commented out to avoid 400 error
-      // The notes table might not exist or have RLS policies preventing access
-      try {
-        const { data: recentNotes, error: notesError } = await supabase
-          .from('notes')
-          .select('id, created_at, title')
-          .eq('created_by', userId)
-          .order('created_at', { ascending: false })
-          .limit(3);
+      // Get recent notes
+      const { data: recentNotes, error: notesError } = await supabase
+        .from('notes')
+        .select('id, created_at, title')
+        .eq('created_by', userId)
+        .order('created_at', { ascending: false })
+        .limit(3);
 
-        if (!notesError && recentNotes) {
-          recentNotes.forEach(note => {
-            const action = `Shared note${note.title ? ` - ${note.title}` : ''}`;
-            activities.push({
-              id: `note-${note.id}`,
-              action,
-              time: this.formatTimeAgo(note.created_at),
-              type: 'share',
-              activity_type: 'note',
-              description: action,
-              created_at: note.created_at
-            });
+      if (!notesError && recentNotes) {
+        recentNotes.forEach(note => {
+          activities.push({
+            id: `note-${note.id}`,
+            action: `Shared note${note.title ? ` - ${note.title}` : ''}`,
+            time: this.formatTimeAgo(note.created_at),
+            type: 'share'
           });
-        } else if (notesError) {
-          console.log('Notes query error (ignoring):', notesError);
-        }
-      } catch (notesError) {
-        console.log('Notes query failed (ignoring):', notesError);
+        });
       }
 
       // Get recent group memberships
@@ -2039,25 +1849,20 @@ class ProfileService {
 
       if (!membershipsError && recentMemberships) {
         recentMemberships.forEach(membership => {
-          const groupName = (membership.study_groups as any)?.name || 'group';
-          const action = `Joined ${groupName}`;
           activities.push({
             id: `membership-${membership.id}`,
-            action,
+            action: `Joined ${(membership.study_groups as any)?.name || 'group'}`,
             time: this.formatTimeAgo(membership.joined_at),
-            type: 'join',
-            activity_type: 'group',
-            description: action,
-            created_at: membership.joined_at
+            type: 'join'
           });
         });
       }
 
       // Sort all activities by time and return top 4
       activities.sort((a, b) => {
-        const timeA = new Date(a.created_at).getTime();
-        const timeB = new Date(b.created_at).getTime();
-        return timeB - timeA; // Most recent first
+        const timeA = this.parseTimeAgo(a.time);
+        const timeB = this.parseTimeAgo(b.time);
+        return timeA - timeB;
       });
 
       return activities.slice(0, 4);
@@ -2121,6 +1926,51 @@ class ProfileService {
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
+    }
+  }
+
+  static async getStudyHoursToday() {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return 0;
+      }
+
+      const userId = session.user.id;
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      // Get today's completed sessions
+      const { data: sessions, error } = await supabase
+        .from('study_sessions')
+        .select('scheduled_start, scheduled_end, actual_start, actual_end, status')
+        .eq('created_by', userId)
+        .eq('status', 'completed')
+        .gte('scheduled_start', todayStart.toISOString())
+        .lt('scheduled_start', todayEnd.toISOString());
+
+      if (error) {
+        console.error('Error fetching today\'s sessions:', error);
+        return 0;
+      }
+
+      // Calculate actual study hours for today
+      let todayHours = 0;
+      (sessions || []).forEach(session => {
+        if (session.actual_start && session.actual_end) {
+          const duration = new Date(session.actual_end).getTime() - new Date(session.actual_start).getTime();
+          todayHours += duration / (1000 * 60 * 60); // Convert to hours
+        } else if (session.scheduled_start && session.scheduled_end) {
+          const duration = new Date(session.scheduled_end).getTime() - new Date(session.scheduled_start).getTime();
+          todayHours += duration / (1000 * 60 * 60); // Convert to hours
+        }
+      });
+
+      return Math.round(todayHours * 10) / 10; // Round to 1 decimal place
+    } catch (error) {
+      console.error('Error calculating today\'s study hours:', error);
+      return 0;
     }
   }
 }

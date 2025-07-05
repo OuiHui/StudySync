@@ -163,9 +163,6 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
             <div className="text-center py-8">
               <Bell size={48} className="mx-auto text-gray-400 mb-2" />
               <p className="text-gray-500 dark:text-gray-400">No notifications</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                You'll see study session reminders and group updates here
-              </p>
             </div>
           ) : (
             displayNotifications.map((notification) => (
