@@ -58,7 +58,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
         title: session.title,
         type: session.group_id ? 'group-session' : 'study-session',
         date: new Date(session.scheduled_start),
-        time: format(new Date(session.scheduled_start), 'HH:mm'),
+        time: format(new Date(session.scheduled_start), 'h:mm a'),
         subject: session.study_groups?.subject || 'General',
         status: session.status,
         scheduled_start: session.scheduled_start,
@@ -216,19 +216,19 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
                   {selectedDateEvents.length > 0 ? (
                     <div className="space-y-3">
                       {selectedDateEvents.map((event) => (
-                        <div key={event.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div key={event.id} className="p-2 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-blue-400">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center space-x-2 flex-1">
                               {getEventIcon(event.type)}
-                              <div className="flex-1">
-                                <h4 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-800 dark:text-white`}>{event.title}</h4>
-                                <p className="text-xs text-gray-600 dark:text-gray-300">{event.subject}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{event.time}</p>
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-800 dark:text-white truncate`}>{event.title}</h4>
                                 {event.group && (
-                                  <p className="text-xs text-blue-600 dark:text-blue-400">Group: {event.group.name}</p>
+                                  <p className="text-xs text-blue-600 dark:text-blue-400 truncate">Group: {event.group.name}</p>
                                 )}
+                                <p className="text-xs text-gray-600 dark:text-gray-300 truncate">{event.subject}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{event.time}</p>
                                 {event.description && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{event.description}</p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{event.description}</p>
                                 )}
                                 {event.status && (
                                   <Badge variant="outline" className="text-xs mt-1">
@@ -237,8 +237,8 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Badge className={`${getEventColor(event.type)} text-xs`}>
+                            <div className="flex items-center space-x-2 ml-2 flex-shrink-0">
+                              <Badge className={`${getEventColor(event.type)} text-xs whitespace-nowrap`}>
                                 {event.type.replace('-', ' ')}
                               </Badge>
                               {!compact && (
@@ -289,15 +289,40 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
             ) : (
               <div className="space-y-2">
                 {getUpcomingEvents().slice(0, 3).map((event) => (
-                  <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <div key={event.id} className="flex items-center space-x-2 p-2 bg-gray-50 dark:bg-gray-700 rounded border-l-4 border-blue-400 min-h-[60px]">
                     {getEventIcon(event.type)}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{event.title}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{format(event.date, 'MMM d')} at {event.time}</p>
+                      {event.group && (
+                        <p className="text-xs text-blue-600 dark:text-blue-400 truncate">Group: {event.group.name}</p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {format(event.date, 'EEE, MMM d')} at {format(new Date(event.scheduled_start), 'h:mm a')}
+                      </p>
                     </div>
-                    <Badge className={`${getEventColor(event.type)} text-xs`}>
-                      {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
-                    </Badge>
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <Badge className={`${getEventColor(event.type)} text-xs`}>
+                        {event.type === 'group-session' ? 'Group' : event.type === 'test' ? 'Test' : 'Study'}
+                      </Badge>
+                      <EditSessionDialog 
+                        session={{
+                          id: event.id,
+                          title: event.title,
+                          description: event.description,
+                          scheduled_start: event.scheduled_start,
+                          scheduled_end: event.scheduled_end,
+                          max_participants: event.max_participants,
+                          group_id: event.group_id,
+                          status: event.status
+                        }}
+                        onSessionUpdated={loadEvents}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            <Edit size={12} />
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
                 ))}
                 {getUpcomingEvents().length === 0 && (

@@ -59,10 +59,19 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
     groupName: session.study_groups?.name || session.title || 'Unknown Group',
     subject: session.study_groups?.subject || 'General Study',
     participants: session.participant_count || 0,
-    startTime: new Date(session.scheduled_start).toLocaleTimeString(),
+    startTime: new Date(session.scheduled_start).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    }) + ' at ' + new Date(session.scheduled_start).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }),
     duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
     type: session.status === 'active' ? 'active' as const : 'planned' as const,
-    description: session.description || 'Study session'
+    description: session.description || 'Study session',
+    title: session.title // Ensure we have the actual session title
   }));
 
   const activeSessions = displaySessions.filter(s => s.type === 'active');
@@ -119,7 +128,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-white">{session.groupName}</h4>
+                      <h4 className="font-semibold text-gray-800 dark:text-white">
+                        {session.title || session.groupName}
+                      </h4>
+                      {session.title && session.study_groups?.name && (
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                          {session.study_groups.name}
+                        </p>
+                      )}
                       <p className="text-sm text-gray-600 dark:text-gray-300">{session.subject}</p>
                     </div>
                     <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">LIVE</span>
@@ -174,7 +190,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h4 className="font-semibold text-gray-800 dark:text-white">{session.groupName}</h4>
+                      <h4 className="font-semibold text-gray-800 dark:text-white">
+                        {session.title || session.groupName}
+                      </h4>
+                      {session.title && session.study_groups?.name && (
+                        <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                          {session.study_groups.name}
+                        </p>
+                      )}
                       <p className="text-sm text-gray-600 dark:text-gray-300">{session.subject}</p>
                     </div>
                     <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">SCHEDULED</span>
@@ -197,7 +220,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                     <Button 
                       variant="outline"
                       size="sm"
-                      className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                       onClick={() => setSelectedSession(session)}
                     >
                       <Eye size={14} className="mr-1" />
@@ -217,7 +240,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                         }}
                         onSessionUpdated={loadSessions}
                         trigger={
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button variant="outline" size="sm" className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-300">
                             <Edit size={14} className="mr-1" />
                             Edit
                           </Button>

@@ -21,6 +21,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<any[]>([]);
+  const [isDateTimePickerOpen, setIsDateTimePickerOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -57,7 +58,18 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     }
   };
 
+  // Helper function to convert datetime-local input to ISO string
+  const formatForDatabase = (dateTimeString: string) => {
+    const date = new Date(dateTimeString);
+    return date.toISOString();
+  };
+
   const handleOpenChange = (newOpen: boolean) => {
+    // Prevent closing if datetime picker is open
+    if (!newOpen && isDateTimePickerOpen) {
+      return;
+    }
+    
     setOpen(newOpen);
     if (newOpen) {
       loadGroups();
@@ -76,8 +88,8 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           title: formData.title.trim(),
           description: formData.description.trim() || null,
           group_id: formData.groupId === 'none' ? null : formData.groupId || null,
-          scheduled_start: formData.scheduledStart,
-          scheduled_end: formData.scheduledEnd,
+          scheduled_start: formatForDatabase(formData.scheduledStart),
+          scheduled_end: formatForDatabase(formData.scheduledEnd),
           max_participants: formData.maxParticipants,
           is_public: formData.isPublic,
           created_by: user.id,
@@ -125,9 +137,15 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     }
   };
 
-  // Get current date/time for min values
+  // Get current date/time for min values in local timezone
   const now = new Date();
-  const currentDateTime = format(now, "yyyy-MM-dd'T'HH:mm");
+  // Format for datetime-local input (YYYY-MM-DDTHH:MM)
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -140,7 +158,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center">
-            <Calendar size={20} className="mr-2" />
+            <Calendar size={20} className="mr-2 text-foreground" />
             Create Study Session
           </DialogTitle>
         </DialogHeader>
@@ -195,8 +213,11 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 type="datetime-local"
                 value={formData.scheduledStart}
                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                onFocus={() => setIsDateTimePickerOpen(true)}
+                onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 min={currentDateTime}
                 required
+                className="datetime-input"
               />
             </div>
             
@@ -207,8 +228,11 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 type="datetime-local"
                 value={formData.scheduledEnd}
                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledEnd: e.target.value }))}
+                onFocus={() => setIsDateTimePickerOpen(true)}
+                onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 min={formData.scheduledStart || currentDateTime}
                 required
+                className="datetime-input"
               />
             </div>
           </div>

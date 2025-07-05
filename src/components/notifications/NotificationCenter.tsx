@@ -52,46 +52,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     }
   };
 
-  // Mock data fallback
-  const mockNotifications: Notification[] = [
-    {
-      id: '1',
-      type: 'session',
-      title: 'Study Session Starting',
-      message: 'Advanced Mathematics session starts in 15 minutes',
-      time: '2 min ago',
-      read: false,
-      actionable: true
-    },
-    {
-      id: '2',
-      type: 'group',
-      title: 'New Group Invitation',
-      message: 'Sarah invited you to join Physics Study Group',
-      time: '1 hour ago',
-      read: false,
-      actionable: true
-    },
-    {
-      id: '3',
-      type: 'note',
-      title: 'Note Shared',
-      message: 'Mike shared new calculus notes in your group',
-      time: '3 hours ago',
-      read: true
-    },
-    {
-      id: '4',
-      type: 'friend',
-      title: 'Friend Request',
-      message: 'Emma Wilson sent you a friend request',
-      time: '5 hours ago',
-      read: false,
-      actionable: true
-    }
-  ];
-
-  // Use fetched notifications or fallback to mock data
+  // Use only real notifications from the database
   const displayNotifications = notifications.length > 0 ? notifications.map(notification => ({
     id: notification.id,
     type: notification.type || 'note',
@@ -100,7 +61,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     time: new Date(notification.created_at).toLocaleString(),
     read: notification.read || false,
     actionable: notification.actionable || false
-  })) : mockNotifications;
+  })) : [];
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -202,6 +163,9 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
             <div className="text-center py-8">
               <Bell size={48} className="mx-auto text-gray-400 mb-2" />
               <p className="text-gray-500 dark:text-gray-400">No notifications</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                You'll see study session reminders and group updates here
+              </p>
             </div>
           ) : (
             displayNotifications.map((notification) => (

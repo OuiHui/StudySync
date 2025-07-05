@@ -2,11 +2,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Apply database migration to add icon and color fields to study_groups table
- * This is a one-time migration that will be run manually.
+ * This checks if the migration has been applied and provides instructions if not.
  */
 export async function applyGroupAppearanceMigration() {
   try {
-    console.log('Applying group appearance migration...');
+    console.log('Checking group appearance migration status...');
     
     // Check if columns already exist by trying to select them
     const { data: testData, error: testError } = await supabase
@@ -19,26 +19,29 @@ export async function applyGroupAppearanceMigration() {
       return { success: true, message: 'Migration already applied' };
     }
     
-    // Apply the migration using RPC (if available) or manual SQL
-    const migrationSQL = `
-      ALTER TABLE study_groups 
-      ADD COLUMN IF NOT EXISTS icon text DEFAULT 'Users',
-      ADD COLUMN IF NOT EXISTS color text DEFAULT 'from-blue-500 to-blue-600';
+    // If columns don't exist, provide instructions for manual migration
+    const migrationInstructions = `
+      Migration Required: The study_groups table needs icon and color columns.
+      
+      To apply this migration:
+      1. Go to your Supabase dashboard
+      2. Navigate to the SQL Editor
+      3. Run the migration: supabase/migrations/20250627000000_add_group_appearance_fields.sql
+      
+      Or run via CLI: supabase db push
     `;
     
-    // Try to execute the migration using rpc if available
-    const { data, error } = await supabase.rpc('exec_sql', { sql: migrationSQL });
+    console.log(migrationInstructions);
     
-    if (error) {
-      console.error('Migration failed:', error);
-      return { success: false, error: error.message };
-    }
-    
-    console.log('Migration applied successfully');
-    return { success: true, message: 'Migration applied successfully' };
+    return { 
+      success: false, 
+      error: 'Migration not applied - columns do not exist',
+      instructions: migrationInstructions,
+      migrationFile: 'supabase/migrations/20250627000000_add_group_appearance_fields.sql'
+    };
     
   } catch (error) {
-    console.error('Migration error:', error);
+    console.error('Migration check error:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

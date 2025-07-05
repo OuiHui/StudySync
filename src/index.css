@@ -98,4 +98,70 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Datetime-local input styling */
+  input[type="datetime-local"] {
+    color-scheme: light;
+    position: relative;
+  }
+  
+  .dark input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+  
+  /* Calendar picker indicator - make it visible and properly themed */
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    opacity: 1 !important;
+    cursor: pointer !important;
+    display: block !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: transparent !important;
+    border-radius: 3px !important;
+    filter: none !important;
+  }
+  
+  /* Dark mode calendar icon - invert to white */
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background-color: transparent !important;
+    filter: invert(1) brightness(1.5) !important;
+  }
+  
+  /* Additional dark mode support for webkit inputs */
+  .dark input[type="datetime-local"] {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Ensure datetime text follows theme */
+  input[type="datetime-local"]::-webkit-datetime-edit {
+    color: inherit;
+  }
+  
+  /* Special handling for datetime-input class for higher specificity */
+  .datetime-input::-webkit-calendar-picker-indicator {
+    opacity: 1 !important;
+    cursor: pointer !important;
+    display: block !important;
+    width: 20px !important;
+    height: 20px !important;
+    background-color: transparent !important;
+    border-radius: 3px !important;
+    filter: none !important;
+  }
+  
+  .dark .datetime-input::-webkit-calendar-picker-indicator {
+    background-color: transparent !important;
+    filter: invert(1) brightness(1.5) !important;
+  }
+  
+  /* Media query fallback for browsers that prefer dark mode */
+  @media (prefers-color-scheme: dark) {
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+    .datetime-input::-webkit-calendar-picker-indicator {
+      background-color: transparent !important;
+      filter: invert(1) brightness(1.5) !important;
+    }
+  }
 }

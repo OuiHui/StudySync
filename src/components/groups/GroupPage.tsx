@@ -135,8 +135,16 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     ...session,
     id: session.id,
     title: session.title,
-    date: new Date(session.scheduled_start).toLocaleDateString(),
-    time: new Date(session.scheduled_start).toLocaleTimeString(),
+    date: new Date(session.scheduled_start).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    }),
+    time: new Date(session.scheduled_start).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }),
     duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
     attendees: session.participant_count || 0,
     type: session.status === 'active' ? 'active' as const : 'planned' as const
