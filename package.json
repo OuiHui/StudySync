@@ -1,8 +1,9 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "study-sphere-pomodoro-flow",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "homepage": "https://ouihui.github.io/study-sphere-pomodoro-flow",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
