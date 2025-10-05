@@ -2,47 +2,47 @@
 
 A comprehensive study platform that combines Pomodoro timers, study groups, collaborative note-taking, and social features to enhance your learning experience.
 
-##[Live Demo](https://ouihui.github.io/study-sphere-pomodoro-flow)
+## [Live Demo](https://ouihui.github.io/study-sphere-pomodoro-flow)
 
 **Try it now!** No setup required - just visit the link and start studying collaboratively with others around the world.
 
 ## Features
 
-###**Pomodoro Timer System**
+### **Pomodoro Timer System**
 - Solo study sessions with customizable work/break intervals
 - Group study sessions with synchronized timers
 - Global timer indicator that persists across navigation
 - Session goals and progress tracking
 - Completion effects and notifications
 
-###**Study Groups**
+### **Study Groups**
 - Create and join study groups with friends
 - Browse public groups by subject
 - Group management with customizable themes and icons
 - Real-time group study sessions
 - Group chat and collaboration features
 
-###**Collaborative Notes & Documents**
+### **Collaborative Notes & Documents**
 - Real-time collaborative editor
 - Document sharing and commenting system
 - Study material upload and organization
 - Multiple document types (study notes, lab reports, essays, etc.)
 - Version control and activity tracking
 
-###**Customization**
+### **Customization**
 - Dark/light theme support
 - Custom color themes and gradients
 - Personalized study environment
 - Responsive design for all devices
 
-###**Analytics & Progress**
+### **Analytics & Progress**
 - Study session tracking and statistics
 - Progress visualization with charts
 - Achievement system and badges
 - Study streaks and goals
 - Personal dashboard with insights
 
-###**User Management**
+### **User Management**
 - Secure authentication with Supabase
 - Profile customization and privacy settings
 - Friend system and social features
