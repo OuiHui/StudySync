@@ -1,9 +1,9 @@
 {
-  "name": "study-sphere-pomodoro-flow",
+  "name": "studysync",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://ouihui.github.io/study-sphere-pomodoro-flow",
+  "homepage": "https://ouihui.github.io/StudySync",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
