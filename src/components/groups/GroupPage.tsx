@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Calendar, BookOpen, MessageSquare, ArrowLeft, Settings, Crown, UserMinus, UserCheck, UserX, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, Loader2 } from 'lucide-react';
+import { Users, Calendar, BookOpen, MessageSquare, ArrowLeft, Settings, Crown, UserMinus, UserCheck, UserX, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, Loader2, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChatPopup } from '@/components/chat/ChatPopup';
+import { CollaborativeNotes } from '@/components/notes/CollaborativeNotes';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { StudySessionsService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -284,7 +285,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
         <>
           {/* Tabs */}
           <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-            {['sessions', 'notes', 'members'].map((tab) => (
+            {['sessions', 'notes', 'docs', 'members'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -414,6 +415,10 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
               ))}
             </div>
           )}
+
+          {activeTab === 'docs' && (
+            <CollaborativeNotes groupId={group.id} groupName={group.name} />
+          )}
         </>
       )}
 
@@ -423,6 +428,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
           isOpen={chatOpen}
           onClose={() => setChatOpen(false)}
           groupName={group.name}
+          groupId={group.id}
         />
       )}
 

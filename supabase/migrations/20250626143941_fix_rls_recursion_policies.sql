@@ -102,31 +102,56 @@ CREATE POLICY "Session creators can manage all participants"
   );
 
 -- Ensure profiles table has proper policies
-CREATE POLICY IF NOT EXISTS "Users can read all profiles"
+DROP POLICY IF EXISTS "Users can read all profiles" ON profiles;
+CREATE POLICY "Users can read all profiles"
   ON profiles FOR SELECT
   USING (true);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own profile"
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+CREATE POLICY "Users can update their own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = user_id);
 
 -- Ensure study_groups table has proper policies
-CREATE POLICY IF NOT EXISTS "Anyone can read public groups"
+DROP POLICY IF EXISTS "Anyone can read public groups" ON study_groups;
+CREATE POLICY "Anyone can read public groups"
   ON study_groups FOR SELECT
   USING (is_public = true);
 
-CREATE POLICY IF NOT EXISTS "Users can read groups they created"
+DROP POLICY IF EXISTS "Users can read groups they created" ON study_groups;
+CREATE POLICY "Users can read groups they created"
   ON study_groups FOR SELECT
   USING (auth.uid() = created_by);
 
-CREATE POLICY IF NOT EXISTS "Users can manage groups they created"
+DROP POLICY IF EXISTS "Users can manage groups they created" ON study_groups;
+CREATE POLICY "Users can manage groups they created"
   ON study_groups FOR ALL
   USING (auth.uid() = created_by);
 
 -- Add helpful indexes to improve performance
-CREATE INDEX IF NOT EXISTS idx_group_members_user_id ON group_members(user_id);
-CREATE INDEX IF NOT EXISTS idx_group_members_group_id ON group_members(group_id);
-CREATE INDEX IF NOT EXISTS idx_study_sessions_created_by ON study_sessions(created_by);
-CREATE INDEX IF NOT EXISTS idx_study_sessions_group_id ON study_sessions(group_id);
-CREATE INDEX IF NOT EXISTS idx_session_participants_user_id ON session_participants(user_id);
-CREATE INDEX IF NOT EXISTS idx_session_participants_session_id ON session_participants(session_id);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_group_members_user_id') THEN
+        CREATE INDEX idx_group_members_user_id ON group_members(user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_group_members_group_id') THEN
+        CREATE INDEX idx_group_members_group_id ON group_members(group_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_study_sessions_created_by') THEN
+        CREATE INDEX idx_study_sessions_created_by ON study_sessions(created_by);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_study_sessions_group_id') THEN
+        CREATE INDEX idx_study_sessions_group_id ON study_sessions(group_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_session_participants_user_id') THEN
+        CREATE INDEX idx_session_participants_user_id ON session_participants(user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_session_participants_session_id') THEN
+        CREATE INDEX idx_session_participants_session_id ON session_participants(session_id);
+    END IF;
+END $$;

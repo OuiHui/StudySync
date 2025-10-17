@@ -1288,10 +1288,47 @@ class NotesService {
     }
   }
 
+  static async getGroupNotes(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      const { data, error } = await supabase
+        .from('notes')
+        .select(`
+          *,
+          profiles:created_by (
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('group_id', groupId)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        handleDbError(error, 'fetch group notes');
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching group notes:', error);
+      
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      throw new Error('An unexpected error occurred while fetching group notes.');
+    }
+  }
+
   static async createNote(noteData: {
     title: string;
     content?: string;
     subject?: string;
+    group_id?: string;
+    is_collaborative?: boolean;
     permission_level?: 'private' | 'friends' | 'group' | 'public';
   }) {
     try {
@@ -2052,7 +2089,13 @@ class ChatService {
       // Get messages
       const { data: messages, error } = await supabase
         .from('messages')
-        .select('*')
+        .select(`
+          *,
+          profiles:sender_id (
+            display_name,
+            avatar_url
+          )
+        `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -2061,23 +2104,72 @@ class ChatService {
         return [];
       }
 
-      if (!messages || messages.length === 0) return [];
-
-      // Get sender profiles for all messages
-      const senderIds = [...new Set(messages.map(m => m.sender_id))];
-      const { data: senderProfiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, user_id')
-        .in('user_id', senderIds);
-
-      // Combine messages with sender profiles
-      return messages.map(message => ({
-        ...message,
-        sender: senderProfiles?.find(p => p.user_id === message.sender_id)
-      }));
+      return messages || [];
     } catch (error) {
       console.error('Error fetching messages:', error);
       return [];
+    }
+  }
+
+  static async getOrCreateGroupConversation(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // First, try to find existing conversation for this group
+      const { data: existingConversation, error: findError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('group_id', groupId)
+        .eq('is_group_chat', true)
+        .single();
+
+      if (findError && findError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is expected if conversation doesn't exist
+        console.error('Error finding conversation:', findError);
+        throw findError;
+      }
+
+      if (existingConversation) {
+        return existingConversation;
+      }
+
+      // Create new group conversation
+      const { data: conversation, error: createError } = await supabase
+        .from('conversations')
+        .insert({
+          created_by: session.user.id,
+          group_id: groupId,
+          is_group_chat: true,
+          name: null // Will be derived from group name
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating conversation:', createError);
+        throw createError;
+      }
+
+      // Add the creator as a participant
+      const { error: participantError } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversation.id,
+          user_id: session.user.id
+        });
+
+      if (participantError) {
+        console.error('Error adding participant:', participantError);
+        // Don't throw here as conversation is created
+      }
+
+      return conversation;
+    } catch (error) {
+      console.error('Error getting or creating group conversation:', error);
+      throw error;
     }
   }
 
@@ -2088,7 +2180,7 @@ class ChatService {
         throw new Error('Authentication required to send messages');
       }
 
-      // Insert the message first
+      // Insert the message
       const { data: message, error } = await supabase
         .from('messages')
         .insert({
@@ -2096,24 +2188,20 @@ class ChatService {
           sender_id: session.user.id,
           content
         })
-        .select('*')
+        .select(`
+          *,
+          profiles:sender_id (
+            display_name,
+            avatar_url
+          )
+        `)
         .single();
 
       if (error) {
         handleDbError(error, 'send message');
       }
 
-      // Get sender profile separately
-      const { data: senderProfile } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url')
-        .eq('user_id', session.user.id)
-        .single();
-
-      return {
-        ...message,
-        sender: senderProfile
-      };
+      return message;
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;

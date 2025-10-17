@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
+import { CollaborativeNotes } from './CollaborativeNotes';
 import { NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +22,9 @@ export const Notes = () => {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
   const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'collaborative' | 'legacy'>('legacy');
+
+  // For legacy view
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -352,28 +356,51 @@ export const Notes = () => {
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Study Materials</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Share and access notes, flashcards, and documents</p>
         </div>
-        <Button 
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-          onClick={() => setIsUploadPopupOpen(true)}
-        >
-          <Plus size={16} className="mr-2" />
-          Upload Material
-        </Button>
+        <div className="flex items-center space-x-3">
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+            <Button
+              variant={viewMode === 'collaborative' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('collaborative')}
+            >
+              Real-time Notes
+            </Button>
+            <Button
+              variant={viewMode === 'legacy' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('legacy')}
+            >
+              Legacy View
+            </Button>
+          </div>
+          <Button 
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+            onClick={() => setIsUploadPopupOpen(true)}
+          >
+            <Plus size={16} className="mr-2" />
+            Upload Material
+          </Button>
+        </div>
       </div>
 
-      {error && (
-        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
-          <AlertDescription className="text-red-800 dark:text-red-200">
-            {error}
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Show collaborative notes by default */}
+      {viewMode === 'collaborative' ? (
+        <CollaborativeNotes />
+      ) : (
+        <>
+          {error && (
+            <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+              <AlertDescription className="text-red-800 dark:text-red-200">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <span className="ml-2 text-gray-600 dark:text-gray-300">Loading your notes...</span>
-        </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading your notes...</span>
+            </div>
       ) : (
         <>
           {/* Search and Filter */}
@@ -712,6 +739,14 @@ export const Notes = () => {
           </div>
         </DialogContent>
       </Dialog>
+        </>
+      )}
+
+      {/* Upload Material Popup */}
+      <UploadMaterialPopup 
+        isOpen={isUploadPopupOpen} 
+        onClose={() => setIsUploadPopupOpen(false)} 
+      />
     </div>
   );
 };

@@ -1,12 +1,15 @@
 
-import { useState, useEffect } from 'react';
-import { X, Send, Users, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Send, Users, Loader2, Circle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { ChatService } from '@/services/database';
+import { RealtimeService, RealtimeMessage } from '@/services/realtime';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: string;
@@ -26,33 +29,14 @@ interface ChatPopupProps {
 
 export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen && groupId) {
-      loadMessages();
-    }
-  }, [isOpen, groupId]);
-
-  const loadMessages = async () => {
-    if (!groupId) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const groupMessages = await ChatService.getMessages(groupId);
-      setMessages(groupMessages);
-    } catch (err) {
-      console.error('Error loading messages:', err);
-      // If no conversation exists, just show empty state instead of error
-      setMessages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [onlineUsers, setOnlineUsers] = useState<Record<string, any[]>>({});
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Mock data fallback
   const mockMessages: ChatMessage[] = [
@@ -82,6 +66,119 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     }
   ];
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (groupId) {
+        loadMessages();
+        setupRealtimeSubscriptions();
+      } else {
+        // If no groupId, just show empty state
+        setMessages([]);
+        setLoading(false);
+      }
+    }
+
+    return () => {
+      // Cleanup subscriptions when component unmounts or closes
+      if (groupId) {
+        RealtimeService.unsubscribe(`messages:${groupId}`);
+        RealtimeService.unsubscribe(`presence:${groupId}`);
+        RealtimeService.untrackPresence(groupId);
+      }
+    };
+  }, [isOpen, groupId]);
+
+  const setupRealtimeSubscriptions = async () => {
+    if (!groupId || !user) return;
+
+    try {
+      // Set up presence tracking
+      await RealtimeService.trackPresence(groupId, {
+        id: user.id,
+        name: user.user_metadata?.display_name || user.email || 'Anonymous',
+        avatar: user.user_metadata?.avatar_url,
+      });
+
+      // Subscribe to presence updates
+      RealtimeService.subscribeToPresence(groupId, (presences) => {
+        setOnlineUsers(presences);
+      });
+
+      // Subscribe to new messages (will be set up after we get conversation ID)
+    } catch (error) {
+      console.error('Error setting up realtime subscriptions:', error);
+    }
+  };
+
+  const setupMessageSubscription = (convId: string) => {
+    if (!groupId) return;
+
+    RealtimeService.subscribeToMessages(
+      groupId,
+      (newMessage: RealtimeMessage) => {
+        setMessages(prev => [...prev, newMessage]);
+        
+        // Show toast notification for messages from other users
+        if (newMessage.sender_id !== user?.id) {
+          toast({
+            title: "New message",
+            description: `${newMessage.profiles?.display_name || 'Someone'}: ${newMessage.content}`,
+          });
+        }
+      },
+      (updatedMessage: RealtimeMessage) => {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === updatedMessage.id ? updatedMessage : msg
+          )
+        );
+      },
+      (deletedMessageId: string) => {
+        setMessages(prev => 
+          prev.filter(msg => msg.id !== deletedMessageId)
+        );
+      }
+    );
+  };
+
+  const loadMessages = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (!groupId) {
+        console.warn('No groupId provided');
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+      
+      // First, get or create conversation for the group
+      const conversation = await ChatService.getOrCreateGroupConversation(groupId);
+      setConversationId(conversation.id);
+      
+      // Then load messages for that conversation
+      const groupMessages = await ChatService.getMessages(conversation.id);
+      setMessages(groupMessages);
+      
+      // Set up real-time message subscription
+      setupMessageSubscription(conversation.id);
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      setError('Failed to load messages. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Use fetched messages or fallback to mock data
   const displayMessages = messages.length > 0 ? messages.map(msg => ({
     id: msg.id,
@@ -93,17 +190,19 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
   })) : mockMessages;
 
   const sendMessage = async () => {
-    if (!message.trim() || !user || !groupId) return;
+    if (!message.trim() || !user || !conversationId) return;
     
     try {
-      await ChatService.sendMessage(groupId, message.trim());
+      await ChatService.sendMessage(conversationId, message.trim());
       
-      setMessage('');
-      await loadMessages(); // Reload messages to show the new one
+      setMessage(''); // Clear input after sending
     } catch (err) {
       console.error('Error sending message:', err);
-      // For now, just show error. In a real app, you might want to create the conversation first
-      setError('Failed to send message. The conversation may not exist yet.');
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -123,6 +222,12 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
           <div className="flex items-center space-x-2">
             <Users size={18} className="text-blue-500" />
             <CardTitle className="text-lg dark:text-white">{groupName} Chat</CardTitle>
+            {Object.keys(onlineUsers).length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                <Circle className="w-2 h-2 fill-green-500 text-green-500 mr-1" />
+                {Object.keys(onlineUsers).length} online
+              </Badge>
+            )}
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X size={18} />
@@ -182,6 +287,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
               </div>
               ))
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Message Input */}
