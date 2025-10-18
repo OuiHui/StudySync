@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
-import { CollaborativeNotes } from './CollaborativeNotes';
 import { NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +21,6 @@ export const Notes = () => {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
   const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'collaborative' | 'legacy'>('legacy');
 
   // For legacy view
   const [notes, setNotes] = useState<any[]>([]);
@@ -37,14 +35,36 @@ export const Notes = () => {
     subject: ''
   });
   
-  // Delete confirmation state
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [noteToDelete, setNoteToDelete] = useState<any | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState('');
+  // View file state
+  const [viewingNote, setViewingNote] = useState<any | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  
+  // Create note state
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [newNoteData, setNewNoteData] = useState({
+    title: '',
+    content: '',
+    subject: '',
+    group_id: ''
+  });
 
   useEffect(() => {
     loadNotes();
+    loadGroups();
   }, [user]);
+
+  const loadGroups = async () => {
+    if (!user) return;
+    
+    try {
+      const { StudyGroupsService } = await import('@/services/database');
+      const userGroups = await StudyGroupsService.getUserGroups();
+      setGroups(userGroups);
+    } catch (err) {
+      console.error('Error loading groups:', err);
+    }
+  };
 
   const loadNotes = async () => {
     if (!user) return;
@@ -272,26 +292,65 @@ export const Notes = () => {
     }
   };
 
-  const handleDeleteNote = (note: any) => {
-    setNoteToDelete(note);
-    setShowDeleteConfirm(true);
-    setDeleteConfirm('');
+  const handleViewNote = async (note: any) => {
+    setViewingNote(note);
+    setViewDialogOpen(true);
   };
 
-  const confirmDeleteNote = async () => {
-    if (!noteToDelete || deleteConfirm !== noteToDelete.title) return;
+  const handleCreateNote = async () => {
+    if (!newNoteData.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Note title is required.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
-      await NotesService.deleteNote(noteToDelete.id);
+      await NotesService.createNote({
+        title: newNoteData.title.trim(),
+        content: newNoteData.content.trim(),
+        subject: newNoteData.subject.trim() || null,
+        group_id: newNoteData.group_id || null,
+        is_collaborative: true
+      });
+
+      toast({
+        title: "Note Created",
+        description: "Your note has been created successfully.",
+      });
+
+      setNewNoteData({
+        title: '',
+        content: '',
+        subject: '',
+        group_id: ''
+      });
+      setIsCreateDialogOpen(false);
+      loadNotes(); // Refresh the notes list
+    } catch (err) {
+      console.error('Error creating note:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create note. Please try again.';
+      
+      toast({
+        title: "Create Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteNote = async (note: any) => {
+    try {
+      await NotesService.deleteNote(note.id);
       
       toast({
         title: "Note Deleted",
         description: "Your note has been permanently deleted.",
       });
 
-      setShowDeleteConfirm(false);
-      setNoteToDelete(null);
-      setDeleteConfirm('');
       loadNotes(); // Refresh the notes list
     } catch (err) {
       console.error('Error deleting note:', err);
@@ -354,40 +413,28 @@ export const Notes = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">Study Materials</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Share and access notes, flashcards, and documents</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Create, share and access notes, flashcards, and documents</p>
         </div>
         <div className="flex items-center space-x-3">
-          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 p-1">
-            <Button
-              variant={viewMode === 'collaborative' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('collaborative')}
-            >
-              Real-time Notes
-            </Button>
-            <Button
-              variant={viewMode === 'legacy' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('legacy')}
-            >
-              Legacy View
-            </Button>
-          </div>
+          <Button 
+            className="bg-green-500 hover:bg-green-600 text-white"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
+            <Plus size={16} className="mr-2" />
+            Create Note
+          </Button>
           <Button 
             className="bg-blue-500 hover:bg-blue-600 text-white"
             onClick={() => setIsUploadPopupOpen(true)}
           >
-            <Plus size={16} className="mr-2" />
+            <Upload size={16} className="mr-2" />
             Upload Material
           </Button>
         </div>
       </div>
 
-      {/* Show collaborative notes by default */}
-      {viewMode === 'collaborative' ? (
-        <CollaborativeNotes />
-      ) : (
-        <>
+      {/* Main content */}
+      <>
           {error && (
             <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
               <AlertDescription className="text-red-800 dark:text-red-200">
@@ -559,13 +606,18 @@ export const Notes = () => {
                   </div>
                   
                   <div className="mt-4 flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleViewNote(note)}
+                    >
+                      <BookOpen size={14} className="mr-1" />
+                      View
+                    </Button>
                     <Button variant="outline" size="sm" className="flex-1">
                       <Download size={14} className="mr-1" />
                       Download
-                    </Button>
-                    <Button size="sm" className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
-                      <Share size={14} className="mr-1" />
-                      Share
                     </Button>
                     {note.isMine && (
                       <>
@@ -613,6 +665,100 @@ export const Notes = () => {
           setIsUploadPopupOpen(false);
         }}
       />
+
+      {/* Create Note Dialog with Collaborative Editor Interface */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Note
+            </DialogTitle>
+            <DialogDescription>
+              Create a collaborative note that you can edit and share with your study groups.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-180px)]">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-title">Title *</Label>
+                <Input
+                  id="create-title"
+                  value={newNoteData.title}
+                  onChange={(e) => setNewNoteData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter note title..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="create-group">Study Group (Subject)</Label>
+                <select
+                  id="create-group"
+                  value={newNoteData.group_id}
+                  onChange={(e) => {
+                    const selectedGroup = groups.find(g => g.id === e.target.value);
+                    setNewNoteData(prev => ({ 
+                      ...prev, 
+                      group_id: e.target.value,
+                      subject: selectedGroup?.subject || prev.subject
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                >
+                  <option value="">Personal Note (No Group)</option>
+                  {groups.map(group => (
+                    <option key={group.id} value={group.id}>
+                      {group.name} - {group.subject}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-content">Content</Label>
+              <Textarea
+                id="create-content"
+                value={newNoteData.content}
+                onChange={(e) => setNewNoteData(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="Start typing your note content... This note will support collaborative editing."
+                rows={15}
+                className="font-mono"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Tip: This note can be edited collaboratively in real-time with your study group members.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateDialogOpen(false);
+                setNewNoteData({
+                  title: '',
+                  content: '',
+                  subject: '',
+                  group_id: ''
+                });
+              }}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateNote}
+              disabled={!newNoteData.title.trim()}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Create Note
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Note Dialog */}
       <Dialog open={!!editingNote} onOpenChange={(open) => !open && setEditingNote(null)}>
@@ -679,73 +825,97 @@ export const Notes = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="max-w-md">
-          <div className="flex items-center justify-center p-6">
-            <Card className="border-red-200 bg-red-50 dark:bg-red-900 dark:border-red-800 w-full shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Delete Note
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-red-700 dark:text-red-300">
-                  This action cannot be undone. This will permanently delete your note:
-                </p>
-                <div className="p-3 bg-red-100 dark:bg-red-800/30 rounded-lg">
-                  <p className="font-medium text-red-800 dark:text-red-200">
-                    "{noteToDelete?.title}"
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
-                    Type the note title <strong>{noteToDelete?.title}</strong> to confirm:
-                  </Label>
-                  <Input
-                    id="deleteConfirm"
-                    value={deleteConfirm}
-                    onChange={(e) => setDeleteConfirm(e.target.value)}
-                    placeholder={noteToDelete?.title}
-                    className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
+      {/* View Note Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={(open) => !open && setViewDialogOpen(false)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              {viewingNote?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {viewingNote?.subject && `Subject: ${viewingNote.subject}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* If note has a file URL (PDF, image, etc.), show it */}
+            {viewingNote?.file_url && (
+              <div className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
+                {viewingNote.file_url.endsWith('.pdf') ? (
+                  <iframe
+                    src={viewingNote.file_url}
+                    className="w-full h-[600px]"
+                    title={viewingNote.title}
                   />
+                ) : viewingNote.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                  <img 
+                    src={viewingNote.file_url} 
+                    alt={viewingNote.title}
+                    className="w-full h-auto"
+                  />
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Preview not available for this file type.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => window.open(viewingNote.file_url, '_blank')}
+                    >
+                      <Download size={16} className="mr-2" />
+                      Download File
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Show text content if available */}
+            {viewingNote?.content && (
+              <div className="prose dark:prose-invert max-w-none">
+                <div className="whitespace-pre-wrap p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                  {viewingNote.content}
                 </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={confirmDeleteNote}
-                    disabled={deleteConfirm !== noteToDelete?.title}
-                    variant="destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Note Permanently
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowDeleteConfirm(false);
-                      setNoteToDelete(null);
-                      setDeleteConfirm('');
-                    }}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
+            
+            {!viewingNote?.file_url && !viewingNote?.content && (
+              <div className="text-center py-8 text-gray-500">
+                No content available
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setViewDialogOpen(false)}
+            >
+              Close
+            </Button>
+            {viewingNote?.file_url && (
+              <Button
+                onClick={() => window.open(viewingNote.file_url, '_blank')}
+              >
+                <Download size={16} className="mr-2" />
+                Download
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
         </>
-      )}
 
       {/* Upload Material Popup */}
       <UploadMaterialPopup 
         isOpen={isUploadPopupOpen} 
-        onClose={() => setIsUploadPopupOpen(false)} 
+        onClose={() => {
+          setIsUploadPopupOpen(false);
+          // Reload notes after upload
+          loadNotes();
+        }} 
       />
     </div>
   );

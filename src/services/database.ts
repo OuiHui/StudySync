@@ -1297,13 +1297,7 @@ class NotesService {
 
       const { data, error } = await supabase
         .from('notes')
-        .select(`
-          *,
-          profiles:created_by (
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('group_id', groupId)
         .order('updated_at', { ascending: false });
 

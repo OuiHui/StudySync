@@ -61,7 +61,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
             <CardHeader className="text-center">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl dark:text-white">
-                  {mode === 'work' ? '🍅 Work Session' : '☕ Break Time'}
+                  {mode === 'work' ? 'Work Session' : 'Break Time!'}
                 </CardTitle>
                 <SessionSettings
                   workDuration={workDuration}

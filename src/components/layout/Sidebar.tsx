@@ -34,7 +34,6 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'groups', label: 'My Groups', icon: Users },
     { id: 'browse-groups', label: 'Browse Groups', icon: Search },
     { id: 'notes', label: 'Notes', icon: FileText },
-    { id: 'collaborative-docs', label: 'Shared Docs', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 

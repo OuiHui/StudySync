@@ -7,8 +7,6 @@ import { GroupStudySession } from '@/components/study/GroupStudySession';
 import { StudyGroups } from '@/components/groups/StudyGroups';
 import { Notes } from '@/components/notes/Notes';
 import { Profile } from '@/components/profile/Profile';
-import { CollaborativeEditor } from '@/components/docs/CollaborativeEditor';
-import { CollaborativeDocsDashboard } from '@/components/docs/CollaborativeDocsDashboard';
 import { ColorCustomizer } from '@/components/settings/ColorCustomizer';
 import { AvailableSessionsList } from '@/components/study/AvailableSessionsList';
 import { GroupPage } from '@/components/groups/GroupPage';
@@ -269,10 +267,6 @@ const Index = () => {
         );
       case 'notes':
         return <Notes />;
-      case 'collaborative-editor':
-        return <CollaborativeEditor onBackToDashboard={() => setActiveTab('collaborative-docs')} />;
-      case 'collaborative-docs':
-        return <CollaborativeDocsDashboard onOpenDocument={() => setActiveTab('collaborative-editor')} />;
       case 'profile':
         return <Profile />;
       default:
