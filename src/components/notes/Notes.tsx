@@ -17,7 +17,6 @@ export const Notes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
   const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
@@ -32,7 +31,8 @@ export const Notes = () => {
   const [editFormData, setEditFormData] = useState({
     title: '',
     content: '',
-    subject: ''
+    subject: '',
+    permission_level: 'private' as 'private' | 'public' | 'group' | 'friends'
   });
   
   // View file state
@@ -187,14 +187,6 @@ export const Notes = () => {
     created_by: note.created_by
   })) : mockNotes;
   const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
-  
-  const categories = [
-    { id: 'all', label: 'All Materials', count: displayNotes.length },
-    { id: 'notes', label: 'Notes', count: displayNotes.filter(n => n.category === 'notes').length },
-    { id: 'flashcards', label: 'Flashcards', count: displayNotes.filter(n => n.category === 'flashcards').length },
-    { id: 'documents', label: 'Documents', count: displayNotes.filter(n => n.category === 'documents').length },
-    { id: 'study-guide', label: 'Study Guides', count: displayNotes.filter(n => n.category === 'study-guide').length },
-  ];
 
   const ownershipOptions = [
     { id: 'all', label: 'All Notes', count: displayNotes.length },
@@ -205,12 +197,11 @@ export const Notes = () => {
   const filteredNotes = displayNotes.filter(note => {
     const matchesSearch = (note.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (note.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || note.category === selectedCategory;
     const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
     const matchesOwnership = selectedOwnership === 'all' || 
                            (selectedOwnership === 'mine' && note.isMine) ||
                            (selectedOwnership === 'public' && !note.isMine);
-    return matchesSearch && matchesCategory && matchesSubject && matchesOwnership;
+    return matchesSearch && matchesSubject && matchesOwnership;
   });
 
   const handleEditNote = async (note: any) => {
@@ -221,7 +212,8 @@ export const Notes = () => {
       setEditFormData({
         title: fullNote.title || '',
         content: fullNote.content || '',
-        subject: fullNote.subject || ''
+        subject: fullNote.subject || '',
+        permission_level: fullNote.permission_level || 'private'
       });
     } catch (err) {
       console.error('Error fetching note for editing:', err);
@@ -230,7 +222,8 @@ export const Notes = () => {
       setEditFormData({
         title: note.title || '',
         content: note.preview?.replace('...', '') || '',
-        subject: note.subject || ''
+        subject: note.subject || '',
+        permission_level: note.permission_level || 'private'
       });
       toast({
         title: "Warning",
@@ -256,7 +249,8 @@ export const Notes = () => {
       await NotesService.updateNote(editingNote.id, {
         title: editFormData.title.trim(),
         content: editFormData.content.trim(),
-        subject: editFormData.subject.trim() || null
+        subject: editFormData.subject.trim() || null,
+        permission_level: editFormData.permission_level
       });
 
       toast({
@@ -293,8 +287,17 @@ export const Notes = () => {
   };
 
   const handleViewNote = async (note: any) => {
-    setViewingNote(note);
-    setViewDialogOpen(true);
+    try {
+      // Fetch the full note content for viewing
+      const fullNote = await NotesService.getNote(note.id);
+      setViewingNote(fullNote);
+      setViewDialogOpen(true);
+    } catch (err) {
+      console.error('Error fetching note for viewing:', err);
+      // Fallback to using the note data we have
+      setViewingNote(note);
+      setViewDialogOpen(true);
+    }
   };
 
   const handleCreateNote = async () => {
@@ -378,36 +381,7 @@ export const Notes = () => {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'notes':
-        return '📝';
-      case 'flashcards':
-        return '🗂️';
-      case 'documents':
-        return '📄';
-      case 'study-guide':
-        return '📚';
-      default:
-        return '📋';
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'notes':
-        return 'bg-blue-100 text-blue-800';
-      case 'flashcards':
-        return 'bg-green-100 text-green-800';
-      case 'documents':
-        return 'bg-purple-100 text-purple-800';
-      case 'study-guide':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+ 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -433,21 +407,19 @@ export const Notes = () => {
         </div>
       </div>
 
-      {/* Main content */}
-      <>
-          {error && (
-            <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
-              <AlertDescription className="text-red-800 dark:text-red-200">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <AlertDescription className="text-red-800 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
 
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading your notes...</span>
-            </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-2 text-gray-600 dark:text-gray-300">Loading your notes...</span>
+        </div>
       ) : (
         <>
           {/* Search and Filter */}
@@ -478,168 +450,71 @@ export const Notes = () => {
             </div>
           </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Categories Sidebar */}
-        <div className="space-y-4">
-          {/* Ownership Filter */}
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg dark:text-white">Ownership</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {ownershipOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => setSelectedOwnership(option.id)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                      selectedOwnership === option.id
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-medium">{option.label}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      selectedOwnership === option.id
-                        ? 'bg-blue-200 text-blue-800'
-                        : 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
-                    }`}>
-                      {option.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg dark:text-white">Categories</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
-                      selectedCategory === category.id
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="font-medium">{category.label}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      selectedCategory === category.id
-                        ? 'bg-blue-200 text-blue-800'
-                        : 'bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
-                    }`}>
-                      {category.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-md dark:bg-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg dark:text-white">Recent Uploads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="text-center text-gray-500">
-                  <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Upload your first material to get started!</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Notes Grid */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Notes Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredNotes.map((note) => (
-              <Card key={note.id} className="border-0 shadow-md hover:shadow-lg transition-all duration-200 dark:bg-gray-800">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">{getCategoryIcon(note.category)}</span>
-                      <div>
-                        <CardTitle className="text-lg dark:text-gray-100">{note.title}</CardTitle>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{note.subject}</p>
-                      </div>
+              <Card 
+                key={note.id} 
+                className="border-0 shadow-md hover:shadow-xl transition-all duration-200 dark:bg-gray-800 cursor-pointer group"
+                onClick={() => handleViewNote(note)}
+              >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2 flex-1">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {note.title}
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{note.subject}</p>
                     </div>
-                    <div className="flex flex-col space-y-1">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(note.category)}`}>
-                        {note.category.replace('-', ' ')}
+                  </div>
+                    {note.isMine && (
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        note.isPrivate ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                      }`}>
+                        {note.isPrivate ? 'Private' : 'Public'}
                       </span>
-                      {note.isMine && (
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          note.isPrivate ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                        }`}>
-                          {note.isPrivate ? 'Private' : 'Public'}
-                        </span>
-                      )}
-                      {!note.isMine && (
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                          Public
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">{note.preview}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">{note.preview}</p>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2 mb-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600 dark:text-gray-400">By {note.author}</span>
                       <span className="text-gray-600 dark:text-gray-400">{note.date}</span>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Group: {note.group}</span>
-                      <span className="text-gray-600 dark:text-gray-400">{note.downloads} downloads</span>
-                    </div>
                   </div>
                   
-                  <div className="mt-4 flex space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleViewNote(note)}
-                    >
-                      <BookOpen size={14} className="mr-1" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Download size={14} className="mr-1" />
-                      Download
-                    </Button>
-                    {note.isMine && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEditNote(note)}
-                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                        >
-                          <Edit size={14} />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDeleteNote(note)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  {note.isMine && (
+                    <div className="mt-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditNote(note);
+                        }}
+                        className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      >
+                        <Edit size={14} className="mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNote(note);
+                        }}
+                        className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <Trash2 size={14} className="mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -652,8 +527,6 @@ export const Notes = () => {
               <p className="text-gray-600 dark:text-gray-300">Try adjusting your search or filter criteria</p>
             </div>
           )}
-        </div>
-      </div>
         </>
       )}
 
@@ -805,6 +678,21 @@ export const Notes = () => {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="edit-permission">Privacy</Label>
+              <select
+                id="edit-permission"
+                value={editFormData.permission_level}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, permission_level: e.target.value as 'private' | 'public' | 'group' | 'friends' }))}
+                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+              >
+                <option value="private">Private (Only You)</option>
+                <option value="friends">Friends Only</option>
+                <option value="group">Group Members</option>
+                <option value="public">Public (Everyone)</option>
+              </select>
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -873,7 +761,7 @@ export const Notes = () => {
             )}
             
             {/* Show text content if available */}
-            {viewingNote?.content && (
+            {viewingNote?.content && viewingNote.content.trim() !== '' && (
               <div className="prose dark:prose-invert max-w-none">
                 <div className="whitespace-pre-wrap p-4 bg-white dark:bg-gray-800 rounded-lg border">
                   {viewingNote.content}
@@ -881,9 +769,19 @@ export const Notes = () => {
               </div>
             )}
             
-            {!viewingNote?.file_url && !viewingNote?.content && (
+            {/* Show preview if content is not available but preview is */}
+            {(!viewingNote?.content || viewingNote.content.trim() === '') && viewingNote?.preview && (
+              <div className="prose dark:prose-invert max-w-none">
+                <div className="whitespace-pre-wrap p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                  {viewingNote.preview}
+                </div>
+              </div>
+            )}
+            
+            {!viewingNote?.file_url && (!viewingNote?.content || viewingNote.content.trim() === '') && !viewingNote?.preview && (
               <div className="text-center py-8 text-gray-500">
-                No content available
+                <p className="mb-2">No content available for this note yet.</p>
+                <p className="text-sm">This might be a newly created note or a file-based note.</p>
               </div>
             )}
           </div>
@@ -906,7 +804,6 @@ export const Notes = () => {
           </div>
         </DialogContent>
       </Dialog>
-        </>
 
       {/* Upload Material Popup */}
       <UploadMaterialPopup 

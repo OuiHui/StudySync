@@ -185,6 +185,17 @@ const Index = () => {
     setPendingNavigation(null);
   };
 
+  const handleCancelTimer = () => {
+    // Stop and reset the timer
+    setGlobalTimer(prev => ({
+      ...prev,
+      isActive: false,
+      timeLeft: 0,
+      initialTime: 25 * 60,
+      isGroupTimer: false
+    }));
+  };
+
   // Determine background gradient based on timer state
   const getBackgroundGradient = () => {
     if (globalTimer.isActive && globalTimer.timeLeft > 0) {
@@ -249,7 +260,16 @@ const Index = () => {
       case 'available-sessions':
         return <AvailableSessionsList onJoinSession={handleJoinSession} />;
       case 'groups':
-        return <StudyGroups onSelectGroup={setSelectedGroupId} />;
+        return selectedGroupId && activeTab === 'groups' ? (
+          <GroupPage 
+            groupId={selectedGroupId} 
+            onBack={() => setSelectedGroupId(null)}
+            isEnlisted={groupEnrollments[selectedGroupId]}
+            onUpdateEnrollment={handleUpdateEnrollment}
+          />
+        ) : (
+          <StudyGroups onSelectGroup={setSelectedGroupId} />
+        );
       case 'browse-groups':
         return selectedGroupId ? (
           <GroupPage 
@@ -275,7 +295,7 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${getBackgroundGradient()} flex transition-all duration-1000`} style={{
+    <div className={`min-h-screen bg-gradient-to-br ${getBackgroundGradient()} flex transition-all duration-1000 ease-in-out`} style={{
       '--box-bg': currentTheme.primary + '10',
       '--box-border': currentTheme.primary + '30',
       '--accent': currentTheme.primary
@@ -313,6 +333,7 @@ const Index = () => {
           timeLeft={globalTimer.timeLeft}
           isActive={globalTimer.isActive}
           onToggle={handleGlobalTimerToggle}
+          onCancel={handleCancelTimer}
           formatTime={globalTimer.formatTime}
         />
       )}

@@ -302,8 +302,16 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
 
           {/* Tab Content */}
           {activeTab === 'sessions' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displaySessions.map((session) => (
+            <>
+              {displaySessions.length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">No study sessions scheduled</h3>
+                  <p className="text-gray-600 dark:text-gray-300">This group doesn't have any study sessions yet. Check back later or create one!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {displaySessions.map((session) => (
                 <Card key={session.id} className="border-0 shadow-md dark:bg-gray-800">
                   <CardHeader>
                     <CardTitle className="text-lg text-gray-800 dark:text-white">{session.title}</CardTitle>
@@ -362,8 +370,10 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
                     )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {activeTab === 'notes' && (

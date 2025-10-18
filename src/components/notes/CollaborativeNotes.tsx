@@ -301,78 +301,79 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {notes.map((note) => (
-            <Card key={note.id} className="hover:shadow-lg transition-shadow">
+            <Card 
+              key={note.id} 
+              className="border-0 shadow-md hover:shadow-xl transition-all duration-200 dark:bg-gray-800 cursor-pointer group"
+              onClick={() => {
+                // Could add a view handler here
+              }}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg truncate dark:text-white">
-                      {note.title}
-                    </CardTitle>
-                    {note.subject && (
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        {note.subject}
-                      </Badge>
-                    )}
+                  <div className="flex items-center space-x-2 flex-1">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {note.title}
+                      </CardTitle>
+                      {note.subject && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{note.subject}</p>
+                      )}
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-1 ml-2">
-                    {note.is_collaborative && (
-                      <Badge variant="outline" className="text-xs">
-                        <Users className="w-3 h-3 mr-1" />
-                        Collaborative
-                      </Badge>
-                    )}
-                    
-                    {note.created_by === user?.id && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditNote(note)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteNote(note.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  {note.created_by === user?.id && (
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                      Mine
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               
               <CardContent>
-                <div className="space-y-3">
-                  {note.content && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
-                      {note.content}
-                    </p>
-                  )}
-                  
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>
+                {note.content && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
+                    {note.content}
+                  </p>
+                )}
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">
                       By {note.profiles?.display_name || 'Unknown'}
                     </span>
-                    <span>
+                    <span className="text-gray-600 dark:text-gray-400">
                       {new Date(note.updated_at).toLocaleDateString()}
                     </span>
                   </div>
-                  
-                  {/* Show active collaborators for this note */}
-                  {groupId && Object.values(cursorPositions).some((cursor: any) => cursor.note_id === note.id) && (
-                    <div className="flex items-center space-x-1">
-                      <Eye className="w-3 h-3 text-green-500" />
-                      <span className="text-xs text-green-600 dark:text-green-400">
-                        {Object.values(cursorPositions).filter((cursor: any) => cursor.note_id === note.id).length} viewing
-                      </span>
-                    </div>
-                  )}
                 </div>
+                
+                {note.created_by === user?.id && (
+                  <div className="mt-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditNote(note);
+                      }}
+                      className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      <Edit size={14} className="mr-1" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteNote(note.id);
+                      }}
+                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 size={14} className="mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
