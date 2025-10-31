@@ -120,7 +120,7 @@ export const CreateCollaborativeDocDialog = ({ onDocumentCreated }: CreateCollab
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="type">Document Type</Label>
+            <Label>Document Type</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}

@@ -117,7 +117,7 @@ export const GroupManagement = ({ onCreateGroup, onJoinGroup, onLeaveGroup }: Gr
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="groupPrivacy">Privacy Setting</Label>
+              <Label>Privacy Setting</Label>
               <Select value={newGroupPrivacy} onValueChange={(value: 'public' | 'private') => setNewGroupPrivacy(value)}>
                 <SelectTrigger>
                   <SelectValue />

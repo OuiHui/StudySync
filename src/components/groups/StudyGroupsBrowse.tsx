@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
+import { Users, Search, BookOpen, Calendar, ArrowRight, UserPlus, UserMinus, Loader2, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, Crown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,7 +95,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         color: normalizeColor((group as any).color) || getSubjectColor(group.subject || 'General'),
         icon: (group as any).icon || 'BookOpen', // Use icon from database or default to BookOpen
         created_at: group.created_at,
-        max_members: group.max_members
+        max_members: group.max_members,
+        created_by: group.created_by
       }));
       
       setAvailableGroups(transformedGroups);
@@ -264,15 +265,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         </Alert>
       )}
 
-      {/* Information about current limitations */}
-      <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
-        <AlertDescription className="text-blue-800 dark:text-blue-200">
-          <strong>Note:</strong> Member counts and group member lists are currently unavailable due to database configuration. 
-          Join/leave functionality may also be limited until database policies are updated.
-          {user && <><br /><strong>Tip:</strong> You can create new study groups using the "Create Group" button above!</>}
-        </AlertDescription>
-      </Alert>
-
       {/* Search and Filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -346,7 +338,10 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
 
           {/* Groups Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGroups.map((group) => (
+            {filteredGroups.map((group) => {
+              const isCreator = user?.id === group.created_by;
+              
+              return (
           <Card 
             key={group.id}
             className="border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer dark:bg-gray-800"
@@ -360,6 +355,12 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
                 {group.isEnlisted && (
                   <span className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full">
                     Joined
+                  </span>
+                )}
+                {isCreator && (
+                  <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-xs rounded-full flex items-center">
+                    <Crown size={12} className="mr-1" />
+                    Creator
                   </span>
                 )}
               </div>
@@ -398,7 +399,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
                   <ArrowRight size={14} className="mr-1" />
                   View Details
                 </Button>
-                {group.isEnlisted ? (
+                {!isCreator && (
+                  group.isEnlisted ? (
                   <Button 
                     variant="outline"
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-900/20"
@@ -421,11 +423,13 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
                     <UserPlus size={14} className="mr-1" />
                     Join
                   </Button>
+                )
                 )}
               </div>
             </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {filteredGroups.length === 0 && !loading && (

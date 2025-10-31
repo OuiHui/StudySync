@@ -184,7 +184,11 @@ export const Notes = () => {
     isPrivate: note.permission_level === 'private',
     isMine: true, // These are all user's notes
     user_id: note.created_by,
-    created_by: note.created_by
+    created_by: note.created_by,
+    file_url: note.file_url,
+    file_name: note.file_name,
+    content: note.content,
+    permission_level: note.permission_level
   })) : mockNotes;
   const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
 

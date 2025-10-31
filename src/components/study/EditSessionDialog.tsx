@@ -212,7 +212,7 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="groupId">Study Group (Optional)</Label>
+            <Label>Study Group (Optional)</Label>
             <Select
               value={formData.groupId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, groupId: value }))}
@@ -276,7 +276,7 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label>Status</Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}

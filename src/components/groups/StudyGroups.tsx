@@ -624,7 +624,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                             <MessageSquare size={14} className="mr-1" />
                             Chat
                           </Button>
-                          {!isAdmin && (
+                          {!isCreator && (
                             <Button 
                               variant="outline"
                               size="sm" 

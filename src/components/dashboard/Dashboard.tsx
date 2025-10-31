@@ -20,6 +20,7 @@ export const Dashboard = ({ onNavigate, onMarkAllNotificationsRead }: DashboardP
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [userStats, setUserStats] = useState({
     studyHoursToday: '0h',
+    studyHoursThisWeek: '0h',
     activeGroups: '0',
     notesShared: '0',
     sessionsThisWeek: '0'
@@ -75,9 +76,11 @@ export const Dashboard = ({ onNavigate, onMarkAllNotificationsRead }: DashboardP
       try {
         const statsData = await ProfileService.getUserStats();
         const todayHours = await ProfileService.getStudyHoursToday();
+        const weekHours = await ProfileService.getStudyHoursThisWeek();
         
         setUserStats({
           studyHoursToday: `${todayHours}h`,
+          studyHoursThisWeek: `${weekHours}h`,
           activeGroups: String(statsData.groupsJoined || 0),
           notesShared: String(statsData.notesShared || 0),
           sessionsThisWeek: String(thisWeekSessions.length)
@@ -87,6 +90,7 @@ export const Dashboard = ({ onNavigate, onMarkAllNotificationsRead }: DashboardP
         // Set fallback values
         setUserStats({
           studyHoursToday: '0h',
+          studyHoursThisWeek: '0h',
           activeGroups: '0',
           notesShared: '0',
           sessionsThisWeek: String(thisWeekSessions.length)
@@ -379,13 +383,13 @@ export const Dashboard = ({ onNavigate, onMarkAllNotificationsRead }: DashboardP
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600 dark:text-gray-300">Study Hours</span>
-                    <span className="text-gray-800 dark:text-white">{userStats.studyHoursToday}/8 hours</span>
+                    <span className="text-gray-600 dark:text-gray-300">Study Hours This Week</span>
+                    <span className="text-gray-800 dark:text-white">{userStats.studyHoursThisWeek}/40 hours</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full" 
-                      style={{ width: `${Math.min((parseFloat(userStats.studyHoursToday.replace('h', '')) / 8) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((parseFloat(userStats.studyHoursThisWeek.replace('h', '')) / 40) * 100, 100)}%` }}
                     ></div>
                   </div>
                 </div>

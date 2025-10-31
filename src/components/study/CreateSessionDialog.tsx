@@ -180,7 +180,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="groupId">Study Group (Optional)</Label>
+            <Label>Study Group (Optional)</Label>
             <Select
               value={formData.groupId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, groupId: value }))}

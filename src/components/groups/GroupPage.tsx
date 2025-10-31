@@ -26,6 +26,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   // State for real data
   const [sessions, setSessions] = useState<any[]>([]);
   const [group, setGroup] = useState<any>(null);
+  const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +34,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   useEffect(() => {
     loadGroupData();
     loadGroupSessions();
+    loadGroupMembers();
   }, [groupId, user]);
 
   const loadGroupData = async () => {
@@ -58,6 +60,15 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
       setError('Failed to load group sessions');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadGroupMembers = async () => {
+    try {
+      const groupMembers = await StudyGroupsService.getGroupMembers(groupId);
+      setMembers(groupMembers);
+    } catch (err) {
+      console.error('Error loading group members:', err);
     }
   };
 
@@ -98,58 +109,32 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     return <IconComponent size={size} className={className} />;
   };
 
-  // Mock data for notes and members - in real app this would come from props or API
-  const notes = [
-    {
-      id: '1',
-      title: 'Calculus Review Notes',
-      author: 'Sarah Johnson',
-      date: '2024-01-10',
-      subject: 'Mathematics'
-    },
-    {
-      id: '2',
-      title: 'Linear Algebra Formulas',
-      author: 'Mike Chen',
-      date: '2024-01-12',
-      subject: 'Mathematics'
-    },
-    {
-      id: '3',
-      title: 'Practice Problems Set 1',
-      author: 'Emma Wilson',
-      date: '2024-01-14',
-      subject: 'Mathematics'
-    }
-  ];
-
-  const members = [
-    { id: '1', name: 'Sarah Johnson', role: 'Admin', avatar: 'SJ' },
-    { id: '2', name: 'Mike Chen', role: 'Member', avatar: 'MC' },
-    { id: '3', name: 'Emma Wilson', role: 'Member', avatar: 'EW' },
-    { id: '4', name: 'John Smith', role: 'Member', avatar: 'JS' },
-    { id: '5', name: 'Lisa Brown', role: 'Moderator', avatar: 'LB' }
-  ];
-
   // Transform sessions data for display
-  const displaySessions = sessions.map(session => ({
-    ...session,
-    id: session.id,
-    title: session.title,
-    date: new Date(session.scheduled_start).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    }),
-    time: new Date(session.scheduled_start).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }),
-    duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
-    attendees: session.participant_count || 0,
-    type: session.status === 'active' ? 'active' as const : 'planned' as const
-  }));
+  const displaySessions = sessions.map(session => {
+    const sessionDate = new Date(session.scheduled_start);
+    const now = new Date();
+    const isPast = sessionDate < now;
+    
+    return {
+      ...session,
+      id: session.id,
+      title: session.title,
+      date: sessionDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      }),
+      time: sessionDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }),
+      duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
+      attendees: session.participant_count || 0,
+      type: session.status === 'active' ? 'active' as const : 'planned' as const,
+      isPast
+    };
+  });
 
   const handleLeaveGroup = () => {
     setEnrolled(false);
@@ -229,7 +214,12 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {enrolled && (
+              {user?.id === group.created_by ? (
+                <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm rounded-full flex items-center gap-1">
+                  <Crown className="h-3 w-3" />
+                  Creator
+                </span>
+              ) : enrolled && (
                 <span className="px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-sm rounded-full">
                   Enrolled
                 </span>
@@ -251,23 +241,25 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
                   Group Settings
                 </Button>
               )}
-              {enrolled ? (
-                <Button
-                  onClick={handleLeaveGroup}
-                  variant="outline"
-                  className="text-red-600 border-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-900/20"
-                >
-                  <UserMinus size={16} className="mr-1" />
-                  Leave Group
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleJoinGroup}
-                  className="bg-green-500 hover:bg-green-600 text-white"
-                >
-                  <UserCheck size={16} className="mr-1" />
-                  Join Group
-                </Button>
+              {user?.id !== group.created_by && (
+                enrolled ? (
+                  <Button
+                    onClick={handleLeaveGroup}
+                    variant="outline"
+                    className="text-red-600 border-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-900/20"
+                  >
+                    <UserMinus size={16} className="mr-1" />
+                    Leave Group
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleJoinGroup}
+                    className="bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    <UserCheck size={16} className="mr-1" />
+                    Join Group
+                  </Button>
+                )
               )}
             </div>
           </div>
@@ -285,7 +277,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
         <>
           {/* Tabs */}
           <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-            {['sessions', 'notes', 'docs', 'members'].map((tab) => (
+            {['sessions', 'notes', 'members'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -312,9 +304,16 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {displaySessions.map((session) => (
-                <Card key={session.id} className="border-0 shadow-md dark:bg-gray-800">
+                <Card key={session.id} className={`border-0 shadow-md dark:bg-gray-800 ${session.isPast ? 'opacity-60' : ''}`}>
                   <CardHeader>
-                    <CardTitle className="text-lg text-gray-800 dark:text-white">{session.title}</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-gray-800 dark:text-white">{session.title}</CardTitle>
+                      {session.isPast && (
+                        <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                          Past
+                        </span>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -328,7 +327,7 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">Duration: {session.duration}</div>
                       
-                      {session.type === 'planned' && (
+                      {session.type === 'planned' && !session.isPast && (
                         <div className="flex items-center text-sm">
                           {attendingSessions.includes(session.id) ? (
                             <span className="text-green-600 dark:text-green-400 flex items-center">
@@ -342,7 +341,11 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
                       )}
                     </div>
                     
-                    {session.type === 'active' ? (
+                    {session.isPast ? (
+                      <Button disabled className="w-full mt-4 opacity-50 cursor-not-allowed">
+                        Session Ended
+                      </Button>
+                    ) : session.type === 'active' ? (
                       <Button className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white">
                         Join Session
                       </Button>
@@ -377,57 +380,68 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
           )}
 
           {activeTab === 'notes' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {notes.map((note) => (
-                <Card key={note.id} className="border-0 shadow-md dark:bg-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-gray-800 dark:text-white">{note.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600 dark:text-gray-300">By: {note.author}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300">Date: {note.date}</div>
-                      <span className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded">
-                        {note.subject}
-                      </span>
-                    </div>
-                    <Button variant="outline" className="w-full mt-4 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                      <BookOpen size={14} className="mr-1" />
-                      View Note
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <CollaborativeNotes groupId={group.id} groupName={group.name} />
           )}
 
           {activeTab === 'members' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {members.map((member) => (
-                <Card key={member.id} className="border-0 shadow-md dark:bg-gray-800">
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-medium">{member.avatar}</span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-800 dark:text-white">{member.name}</h3>
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-600 dark:text-gray-300">{member.role}</span>
-                          {member.role === 'Admin' && (
-                            <Crown size={14} className="ml-1 text-yellow-500" />
+              {members.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <Users size={48} className="mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 dark:text-gray-300">No members found</p>
+                </div>
+              ) : (
+                members.map((member) => {
+                  const isCurrentUser = user?.id === member.id;
+                  const isAdmin = member.role === 'admin';
+                  const initials = member.name
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+                  
+                  return (
+                    <Card 
+                      key={member.id} 
+                      className={`border-0 shadow-md dark:bg-gray-800 ${isCurrentUser ? 'ring-2 ring-blue-500' : ''}`}
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-3">
+                          {member.avatar ? (
+                            <img 
+                              src={member.avatar} 
+                              alt={member.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className={`w-12 h-12 ${isAdmin ? 'bg-yellow-500' : 'bg-blue-500'} rounded-full flex items-center justify-center`}>
+                              <span className="text-white font-medium">{initials}</span>
+                            </div>
                           )}
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-800 dark:text-white">
+                              {member.name}
+                              {isCurrentUser && (
+                                <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(You)</span>
+                              )}
+                            </h3>
+                            <div className="flex items-center">
+                              <span className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                {member.role}
+                              </span>
+                              {isAdmin && (
+                                <Crown size={14} className="ml-1 text-yellow-500" />
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
             </div>
-          )}
-
-          {activeTab === 'docs' && (
-            <CollaborativeNotes groupId={group.id} groupName={group.name} />
           )}
         </>
       )}

@@ -750,6 +750,57 @@ class StudyGroupsService {
       throw error;
     }
   }
+
+  static async getGroupMembers(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      // First get group members
+      const { data: members, error: membersError } = await supabase
+        .from('group_members')
+        .select('user_id, role, joined_at')
+        .eq('group_id', groupId)
+        .order('joined_at', { ascending: true });
+
+      if (membersError) {
+        console.error('Error fetching group members:', membersError);
+        return [];
+      }
+
+      if (!members || members.length === 0) {
+        return [];
+      }
+
+      // Then get profiles for all members
+      const userIds = members.map(m => m.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching member profiles:', profilesError);
+      }
+
+      // Combine the data
+      return members.map(member => {
+        const profile = profiles?.find(p => p.user_id === member.user_id);
+        return {
+          id: member.user_id,
+          name: profile?.display_name || 'Unknown User',
+          avatar: profile?.avatar_url || null,
+          role: member.role || 'member',
+          joined_at: member.joined_at
+        };
+      });
+    } catch (error) {
+      console.error('Error getting group members:', error);
+      return [];
+    }
+  }
 }
 
 // Study Sessions Service
@@ -1324,6 +1375,8 @@ class NotesService {
     group_id?: string;
     is_collaborative?: boolean;
     permission_level?: 'private' | 'friends' | 'group' | 'public';
+    file_url?: string | null;
+    file_name?: string | null;
   }) {
     try {
       const session = await checkAuth();
@@ -1425,6 +1478,46 @@ class NotesService {
       return data;
     } catch (error) {
       console.error('Error getting note:', error);
+      throw error;
+    }
+  }
+
+  static async uploadFile(file: File) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to upload files');
+      }
+
+      // Create a unique file name with timestamp
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${session.user.id}/${timestamp}.${fileExt}`;
+
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('note-files')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Upload error:', error);
+        throw new Error(`Failed to upload file: ${error.message}`);
+      }
+
+      // Get public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('note-files')
+        .getPublicUrl(fileName);
+
+      return {
+        url: urlData.publicUrl,
+        fileName: file.name
+      };
+    } catch (error) {
+      console.error('Error uploading file:', error);
       throw error;
     }
   }
@@ -2001,6 +2094,52 @@ class ProfileService {
       return Math.round(todayHours * 10) / 10; // Round to 1 decimal place
     } catch (error) {
       console.error('Error calculating today\'s study hours:', error);
+      return 0;
+    }
+  }
+
+  static async getStudyHoursThisWeek() {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return 0;
+      }
+
+      const userId = session.user.id;
+      const today = new Date();
+      const weekStart = new Date(today.getTime() - (today.getDay() * 24 * 60 * 60 * 1000));
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Get this week's completed sessions
+      const { data: sessions, error } = await supabase
+        .from('study_sessions')
+        .select('scheduled_start, scheduled_end, actual_start, actual_end, status')
+        .eq('created_by', userId)
+        .eq('status', 'completed')
+        .gte('scheduled_start', weekStart.toISOString())
+        .lt('scheduled_start', weekEnd.toISOString());
+
+      if (error) {
+        console.error('Error fetching this week\'s sessions:', error);
+        return 0;
+      }
+
+      // Calculate actual study hours for this week
+      let weekHours = 0;
+      (sessions || []).forEach(session => {
+        if (session.actual_start && session.actual_end) {
+          const duration = new Date(session.actual_end).getTime() - new Date(session.actual_start).getTime();
+          weekHours += duration / (1000 * 60 * 60); // Convert to hours
+        } else if (session.scheduled_start && session.scheduled_end) {
+          const duration = new Date(session.scheduled_end).getTime() - new Date(session.scheduled_start).getTime();
+          weekHours += duration / (1000 * 60 * 60); // Convert to hours
+        }
+      });
+
+      return Math.round(weekHours * 10) / 10; // Round to 1 decimal place
+    } catch (error) {
+      console.error('Error calculating this week\'s study hours:', error);
       return 0;
     }
   }

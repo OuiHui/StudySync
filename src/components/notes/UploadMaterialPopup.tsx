@@ -51,12 +51,26 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       setLoading(true);
       setError(null);
 
-      // Create note with the form data
+      let fileUrl = null;
+      let fileName = null;
+
+      // If a file is selected, upload it to Supabase Storage
+      if (file) {
+        const uploadResult = await NotesService.uploadFile(file);
+        if (uploadResult) {
+          fileUrl = uploadResult.url;
+          fileName = uploadResult.fileName;
+        }
+      }
+
+      // Create note with the form data and file URL if available
       await NotesService.createNote({
         title: title.trim(),
         content: description || '',
         subject: subject,
-        permission_level: isPrivate ? 'private' : 'public'
+        permission_level: isPrivate ? 'private' : 'public',
+        file_url: fileUrl,
+        file_name: fileName
       });
 
       // Reset form
@@ -74,7 +88,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       onClose();
     } catch (err) {
       console.error('Error creating note:', err);
-      setError('Failed to create note. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to create note. Please try again.');
     } finally {
       setLoading(false);
     }

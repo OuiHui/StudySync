@@ -73,7 +73,7 @@ export function Auth() {
             <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
               <BookOpen size={24} className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Study App</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">StudySync</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300">
             Join thousands of students in collaborative learning
