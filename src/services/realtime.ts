@@ -40,15 +40,15 @@ export class RealtimeService {
   private static channels: Map<string, RealtimeChannel> = new Map();
 
   /**
-   * Subscribe to real-time messages for a specific group
+   * Subscribe to real-time messages for a specific conversation
    */
   static subscribeToMessages(
-    groupId: string,
+    conversationId: string,
     onMessageReceived: (message: RealtimeMessage) => void,
     onMessageUpdated?: (message: RealtimeMessage) => void,
     onMessageDeleted?: (messageId: string) => void
   ): RealtimeChannel {
-    const channelName = `messages:${groupId}`;
+    const channelName = `messages:${conversationId}`;
     
     // Remove existing channel if any
     this.unsubscribe(channelName);
@@ -61,27 +61,24 @@ export class RealtimeService {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `group_id=eq.${groupId}`,
+          filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
           console.log('New message received:', payload);
           
-          // Fetch the complete message with profile data
-          const { data: messageWithProfile } = await supabase
-            .from('messages')
-            .select(`
-              *,
-              profiles:sender_id (
-                display_name,
-                avatar_url
-              )
-            `)
-            .eq('id', payload.new.id)
+          // Fetch the sender's profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .eq('id', payload.new.sender_id)
             .single();
 
-          if (messageWithProfile) {
-            onMessageReceived(messageWithProfile as unknown as RealtimeMessage);
-          }
+          const messageWithProfile = {
+            ...payload.new,
+            profiles: profile || null
+          } as unknown as RealtimeMessage;
+
+          onMessageReceived(messageWithProfile);
         }
       )
       .on(
@@ -90,27 +87,25 @@ export class RealtimeService {
           event: 'UPDATE',
           schema: 'public',
           table: 'messages',
-          filter: `group_id=eq.${groupId}`,
+          filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
           console.log('Message updated:', payload);
           
           if (onMessageUpdated) {
-            const { data: messageWithProfile } = await supabase
-              .from('messages')
-              .select(`
-                *,
-                profiles:sender_id (
-                  display_name,
-                  avatar_url
-                )
-              `)
-              .eq('id', payload.new.id)
+            // Fetch the sender's profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id, display_name, avatar_url')
+              .eq('id', payload.new.sender_id)
               .single();
 
-            if (messageWithProfile) {
-              onMessageUpdated(messageWithProfile as unknown as RealtimeMessage);
-            }
+            const messageWithProfile = {
+              ...payload.new,
+              profiles: profile || null
+            } as unknown as RealtimeMessage;
+
+            onMessageUpdated(messageWithProfile);
           }
         }
       )
@@ -120,7 +115,7 @@ export class RealtimeService {
           event: 'DELETE',
           schema: 'public',
           table: 'messages',
-          filter: `group_id=eq.${groupId}`,
+          filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
           console.log('Message deleted:', payload);

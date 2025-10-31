@@ -22,6 +22,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [selectedGroupDetails, setSelectedGroupDetails] = useState<any | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [studyGroups, setStudyGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -162,7 +163,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
           id: group.id,
           name: group.name,
           subject: group.subject || 'General',
-          members: 0, // We'll need to count this from group_members separately
+          members: group.member_count || 0,
           user_role: group.user_role || 'member', // Keep as user_role for consistency
           nextSession: null, // This would come from study_sessions
           description: group.description || '',
@@ -200,8 +201,9 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
     }
   };
 
-  const openChat = (groupName: string) => {
+  const openChat = (groupName: string, groupId: string) => {
     setSelectedGroupName(groupName);
+    setSelectedGroupId(groupId);
     setChatOpen(true);
   };
 
@@ -618,7 +620,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
                             className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openChat(group.name);
+                              openChat(group.name, group.id);
                             }}
                           >
                             <MessageSquare size={14} className="mr-1" />
@@ -671,8 +673,8 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
         <GroupDetails
           group={selectedGroupDetails}
           onClose={() => setSelectedGroupDetails(null)}
-          onOpenChat={(groupName) => {
-            openChat(groupName);
+          onOpenChat={(groupName, groupId) => {
+            openChat(groupName, groupId);
             setSelectedGroupDetails(null);
           }}
         />
@@ -690,6 +692,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
         groupName={selectedGroupName}
+        groupId={selectedGroupId}
       />
       </div>
     </div>

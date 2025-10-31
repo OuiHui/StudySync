@@ -38,34 +38,6 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock data fallback
-  const mockMessages: ChatMessage[] = [
-    {
-      id: '1',
-      userId: '2',
-      userName: 'Sarah Chen',
-      message: 'Hey everyone! Ready for today\'s study session?',
-      timestamp: '14:30',
-      avatar: '👩'
-    },
-    {
-      id: '2',
-      userId: '3',
-      userName: 'Mike Johnson',
-      message: 'Yes! I brought my calculus notes',
-      timestamp: '14:32',
-      avatar: '👨'
-    },
-    {
-      id: '3',
-      userId: user?.id || 'current-user',
-      userName: 'You',
-      message: 'Perfect! Let\'s start with chapter 7',
-      timestamp: '14:35',
-      avatar: '👤'
-    }
-  ];
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -88,13 +60,15 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
 
     return () => {
       // Cleanup subscriptions when component unmounts or closes
+      if (conversationId) {
+        RealtimeService.unsubscribe(`messages:${conversationId}`);
+      }
       if (groupId) {
-        RealtimeService.unsubscribe(`messages:${groupId}`);
         RealtimeService.unsubscribe(`presence:${groupId}`);
         RealtimeService.untrackPresence(groupId);
       }
     };
-  }, [isOpen, groupId]);
+  }, [isOpen, groupId, conversationId]);
 
   const setupRealtimeSubscriptions = async () => {
     if (!groupId || !user) return;
@@ -119,10 +93,10 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
   };
 
   const setupMessageSubscription = (convId: string) => {
-    if (!groupId) return;
+    if (!convId) return;
 
     RealtimeService.subscribeToMessages(
-      groupId,
+      convId,
       (newMessage: RealtimeMessage) => {
         setMessages(prev => [...prev, newMessage]);
         
@@ -179,23 +153,30 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     }
   };
 
-  // Use fetched messages or fallback to mock data
-  const displayMessages = messages.length > 0 ? messages.map(msg => ({
+  // Transform messages for display
+  const displayMessages = messages.map(msg => ({
     id: msg.id,
     userId: msg.sender_id,
     userName: msg.profiles?.display_name || 'Unknown User',
     message: msg.content,
     timestamp: new Date(msg.created_at).toLocaleTimeString(),
     avatar: msg.profiles?.avatar_url || '👤'
-  })) : mockMessages;
+  }));
 
   const sendMessage = async () => {
     if (!message.trim() || !user || !conversationId) return;
     
     try {
-      await ChatService.sendMessage(conversationId, message.trim());
+      const messageContent = message.trim();
+      setMessage(''); // Clear input immediately
       
-      setMessage(''); // Clear input after sending
+      // Send message to backend
+      const sentMessage = await ChatService.sendMessage(conversationId, messageContent);
+      
+      // Add message to local state immediately (optimistic update)
+      if (sentMessage) {
+        setMessages(prev => [...prev, sentMessage]);
+      }
     } catch (err) {
       console.error('Error sending message:', err);
       toast({
@@ -246,7 +227,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
         
         <CardContent className="flex flex-col h-[400px] p-0">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide">
             {loading ? (
               <div className="flex justify-center items-center h-full">
                 <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
@@ -297,11 +278,17 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
+                placeholder={loading ? "Loading chat..." : "Type your message..."}
                 className="flex-1 min-h-[40px] max-h-[100px] resize-none"
                 rows={1}
+                disabled={loading}
               />
-              <Button onClick={sendMessage} size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
+              <Button 
+                onClick={sendMessage} 
+                size="sm" 
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+                disabled={!message.trim() || !conversationId || loading}
+              >
                 <Send size={16} />
               </Button>
             </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 interface GroupDetailsProps {
   group: any;
   onClose: () => void;
-  onOpenChat: (groupName: string) => void;
+  onOpenChat: (groupName: string, groupId: string) => void;
 }
 
 export const GroupDetails = ({ group, onClose, onOpenChat }: GroupDetailsProps) => {
@@ -124,7 +124,7 @@ export const GroupDetails = ({ group, onClose, onOpenChat }: GroupDetailsProps) 
               variant="outline" 
               className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => {
-                onOpenChat(group.name);
+                onOpenChat(group.name, group.id);
               }}
             >
               <MessageSquare size={16} className="mr-1" />

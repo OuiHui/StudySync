@@ -340,11 +340,30 @@ class StudyGroupsService {
           .in('user_id', creatorIds);
 
         // Combine membership data with group details
-        const groupsWithDetails = memberships.map(membership => {
+        const groupsWithDetails = await Promise.all(memberships.map(async membership => {
           const group = groups?.find(g => g.id === membership.group_id);
           const creator = creators?.find(c => c.user_id === group?.created_by);
           
           if (!group) return null;
+
+          // Get member count for this group
+          let memberCount = 0;
+          try {
+            const { data: members, error: memberError } = await supabase
+              .from('group_members')
+              .select('id', { count: 'exact' })
+              .eq('group_id', group.id);
+
+            if (memberError) {
+              console.warn(`Could not fetch member count for group ${group.id}:`, memberError);
+              memberCount = 0;
+            } else {
+              memberCount = members?.length || 0;
+            }
+          } catch (memberError) {
+            console.warn(`Exception fetching member count for group ${group.id}:`, memberError);
+            memberCount = 0;
+          }
           
           return {
             ...group,
@@ -353,12 +372,14 @@ class StudyGroupsService {
             color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: creator,
             user_role: membership.role,
-            joined_at: membership.joined_at
+            joined_at: membership.joined_at,
+            member_count: memberCount
           };
-        }).filter(Boolean);
+        }));
 
-        console.log('Successfully fetched user groups:', groupsWithDetails.length);
-        return groupsWithDetails;
+        const filteredGroups = groupsWithDetails.filter(Boolean);
+        console.log('Successfully fetched user groups:', filteredGroups.length);
+        return filteredGroups;
         
       } catch (error) {
         console.error('Error fetching user groups, trying fallback:', error);
@@ -2219,25 +2240,48 @@ class ChatService {
 
   static async getMessages(conversationId: string) {
     try {
-      // Get messages
-      const { data: messages, error } = await supabase
+      // Get messages with sender profile information
+      // We need to do a separate query for profiles since sender_id references auth.users, not profiles
+      const { data: messages, error: messagesError } = await supabase
         .from('messages')
-        .select(`
-          *,
-          profiles:sender_id (
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching messages:', error);
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
         return [];
       }
 
-      return messages || [];
+      if (!messages || messages.length === 0) {
+        return [];
+      }
+
+      // Get unique sender IDs
+      const senderIds = [...new Set(messages.map(m => m.sender_id))];
+
+      // Fetch profiles for all senders
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', senderIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // Return messages without profile data
+        return messages;
+      }
+
+      // Create a map of profiles by ID for quick lookup
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Merge profile data with messages
+      const messagesWithProfiles = messages.map(message => ({
+        ...message,
+        profiles: profilesMap.get(message.sender_id) || null
+      }));
+
+      return messagesWithProfiles;
     } catch (error) {
       console.error('Error fetching messages:', error);
       return [];
@@ -2321,20 +2365,27 @@ class ChatService {
           sender_id: session.user.id,
           content
         })
-        .select(`
-          *,
-          profiles:sender_id (
-            display_name,
-            avatar_url
-          )
-        `)
+        .select()
         .single();
 
       if (error) {
         handleDbError(error, 'send message');
       }
 
-      return message;
+      // Fetch the sender's profile separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .eq('id', session.user.id)
+        .single();
+
+      // Combine message with profile
+      const messageWithProfile = {
+        ...message,
+        profiles: profile || null
+      };
+
+      return messageWithProfile;
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;
