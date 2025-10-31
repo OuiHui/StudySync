@@ -7,6 +7,7 @@ import { ChangePasswordPopup } from '@/components/profile/ChangePasswordPopup';
 import { NotificationSettingsPopup } from '@/components/profile/NotificationSettingsPopup';
 import { PrivacySettingsPopup } from '@/components/profile/PrivacySettingsPopup';
 import { DeleteAccountPopup } from '@/components/profile/DeleteAccountPopup';
+import { FriendsSection } from '@/components/profile/FriendsSection';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileService } from '@/services/database';
 import { useToast } from '@/hooks/use-toast';
@@ -328,6 +329,9 @@ export const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Friends Section */}
+      <FriendsSection />
 
       {/* Settings Section */}
       <Card className="border-0 shadow-md dark:bg-gray-800">

@@ -1762,6 +1762,32 @@ class NotificationsService {
 
 // Friends Service
 class FriendsService {
+  // Search for users by email or display name
+  static async searchUsers(searchTerm: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase.rpc('search_users', {
+        search_term: searchTerm,
+        current_user_id: session.user.id
+      });
+
+      if (error) {
+        console.error('Error searching users:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  }
+
+  // Get all friends (accepted friendships)
   static async getUserFriends() {
     try {
       const session = await checkAuth();
@@ -1769,11 +1795,11 @@ class FriendsService {
         return [];
       }
 
-      // Get accepted friendships
+      // Get accepted friendships where user is either sender or receiver
       const { data: friendships, error } = await supabase
-        .from('friendships')
+        .from('friendships' as any)
         .select('*')
-        .or(`requester_id.eq.${session.user.id},addressee_id.eq.${session.user.id}`)
+        .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`)
         .eq('status', 'accepted');
 
       if (error) {
@@ -1784,37 +1810,41 @@ class FriendsService {
       if (!friendships || friendships.length === 0) return [];
 
       // Get friend user IDs
-      const friendUserIds = friendships.map(friendship => 
-        friendship.requester_id === session.user.id 
-          ? friendship.addressee_id 
-          : friendship.requester_id
+      const friendUserIds = (friendships as any[]).map((friendship: any) => 
+        friendship.user_id === session.user.id 
+          ? friendship.friend_id 
+          : friendship.user_id
       );
 
-      // Get friend profiles
-      const { data: friendProfiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, user_id')
-        .in('user_id', friendUserIds);
+      // Get users data
+      const { data: users } = await supabase.auth.admin.listUsers();
+      const friendUsers = users?.users.filter(u => friendUserIds.includes(u.id)) || [];
 
-      // Combine friendship data with profiles
-      return friendships.map(friendship => {
-        const friendUserId = friendship.requester_id === session.user.id 
-          ? friendship.addressee_id 
-          : friendship.requester_id;
+      // Combine friendship data with user data
+      return (friendships as any[]).map((friendship: any) => {
+        const friendUserId = friendship.user_id === session.user.id 
+          ? friendship.friend_id 
+          : friendship.user_id;
         
-        const friendProfile = friendProfiles?.find(p => p.user_id === friendUserId);
+        const friendUser = friendUsers.find(u => u.id === friendUserId);
         
         return {
-          ...friendship,
-          friend: friendProfile
+          id: friendship.id,
+          friendship_id: friendship.id,
+          user_id: friendUserId,
+          display_name: friendUser?.user_metadata?.display_name || friendUser?.email || 'Unknown',
+          email: friendUser?.email || '',
+          avatar_url: friendUser?.user_metadata?.avatar_url || null,
+          created_at: friendship.created_at
         };
-      }).filter(f => f.friend);
+      }).filter(f => f.user_id);
     } catch (error) {
       console.error('Error fetching friends:', error);
       return [];
     }
   }
 
+  // Get pending friend requests (received)
   static async getFriendRequests() {
     try {
       const session = await checkAuth();
@@ -1822,11 +1852,11 @@ class FriendsService {
         return [];
       }
 
-      // Get pending friend requests where current user is the addressee
+      // Get pending requests where current user is the friend (receiver)
       const { data: requests, error } = await supabase
-        .from('friendships')
+        .from('friendships' as any)
         .select('*')
-        .eq('addressee_id', session.user.id)
+        .eq('friend_id', session.user.id)
         .eq('status', 'pending');
 
       if (error) {
@@ -1836,43 +1866,90 @@ class FriendsService {
 
       if (!requests || requests.length === 0) return [];
 
-      // Get requester profiles
-      const requesterIds = requests.map(r => r.requester_id);
-      const { data: requesterProfiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, user_id')
-        .in('user_id', requesterIds);
+      // Get sender user IDs
+      const senderIds = (requests as any[]).map((r: any) => r.user_id);
+      
+      // Get users data
+      const { data: users } = await supabase.auth.admin.listUsers();
+      const senderUsers = users?.users.filter(u => senderIds.includes(u.id)) || [];
 
-      // Combine request data with requester profiles
-      return requests.map(request => ({
-        ...request,
-        requester: requesterProfiles?.find(p => p.user_id === request.requester_id)
-      })).filter(r => r.requester);
+      // Combine request data with sender data
+      return (requests as any[]).map((request: any) => {
+        const senderUser = senderUsers.find(u => u.id === request.user_id);
+        return {
+          id: request.id,
+          user_id: request.user_id,
+          display_name: senderUser?.user_metadata?.display_name || senderUser?.email || 'Unknown',
+          email: senderUser?.email || '',
+          avatar_url: senderUser?.user_metadata?.avatar_url || null,
+          created_at: request.created_at
+        };
+      });
     } catch (error) {
       console.error('Error fetching friend requests:', error);
       return [];
     }
   }
 
-  static async sendFriendRequest(userId: string) {
+  // Get sent friend requests (pending)
+  static async getSentFriendRequests() {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      // Get pending requests where current user is the sender
+      const { data: requests, error } = await supabase
+        .from('friendships' as any)
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('status', 'pending');
+
+      if (error) {
+        console.error('Error fetching sent friend requests:', error);
+        return [];
+      }
+
+      return requests || [];
+    } catch (error) {
+      console.error('Error fetching sent friend requests:', error);
+      return [];
+    }
+  }
+
+  // Send a friend request
+  static async sendFriendRequest(friendId: string) {
     try {
       const session = await checkAuth();
       if (!session) {
         throw new Error('Authentication required to send friend requests');
       }
 
+      // Check if friendship already exists
+      const { data: existing } = await supabase
+        .from('friendships' as any)
+        .select('*')
+        .or(`and(user_id.eq.${session.user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${session.user.id})`)
+        .single();
+
+      if (existing) {
+        throw new Error('Friend request already exists or you are already friends');
+      }
+
       const { data, error } = await supabase
-        .from('friendships')
+        .from('friendships' as any)
         .insert({
-          requester_id: session.user.id,
-          addressee_id: userId,
+          user_id: session.user.id,
+          friend_id: friendId,
           status: 'pending'
         })
         .select()
         .single();
 
       if (error) {
-        handleDbError(error, 'send friend request');
+        console.error('Error sending friend request:', error);
+        throw error;
       }
 
       return data;
@@ -1882,23 +1959,28 @@ class FriendsService {
     }
   }
 
-  static async acceptFriendRequest(friendshipId: string) {
+  // Accept a friend request
+  static async acceptFriendRequest(requestId: string) {
     try {
       const session = await checkAuth();
       if (!session) {
-        throw new Error('Authentication required to accept friend requests');
+        throw new Error('Authentication required');
       }
 
       const { data, error } = await supabase
-        .from('friendships')
-        .update({ status: 'accepted' })
-        .eq('id', friendshipId)
-        .eq('addressee_id', session.user.id)
+        .from('friendships' as any)
+        .update({ 
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestId)
+        .eq('friend_id', session.user.id) // Only the receiver can accept
         .select()
         .single();
 
       if (error) {
-        handleDbError(error, 'accept friend request');
+        console.error('Error accepting friend request:', error);
+        throw error;
       }
 
       return data;
@@ -1908,26 +1990,80 @@ class FriendsService {
     }
   }
 
+  // Reject a friend request
+  static async rejectFriendRequest(requestId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('friendships' as any)
+        .delete()
+        .eq('id', requestId)
+        .eq('friend_id', session.user.id); // Only the receiver can reject
+
+      if (error) {
+        console.error('Error rejecting friend request:', error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      throw error;
+    }
+  }
+
+  // Remove a friend
   static async removeFriend(friendshipId: string) {
     try {
       const session = await checkAuth();
       if (!session) {
-        throw new Error('Authentication required to remove friends');
+        throw new Error('Authentication required');
       }
 
       const { error } = await supabase
-        .from('friendships')
+        .from('friendships' as any)
         .delete()
         .eq('id', friendshipId)
-        .or(`requester_id.eq.${session.user.id},addressee_id.eq.${session.user.id}`);
+        .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`);
 
       if (error) {
-        handleDbError(error, 'remove friend');
+        console.error('Error removing friend:', error);
+        throw error;
       }
 
       return true;
     } catch (error) {
       console.error('Error removing friend:', error);
+      throw error;
+    }
+  }
+
+  // Cancel a sent friend request
+  static async cancelFriendRequest(requestId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('friendships' as any)
+        .delete()
+        .eq('id', requestId)
+        .eq('user_id', session.user.id); // Only the sender can cancel
+
+      if (error) {
+        console.error('Error canceling friend request:', error);
+        throw error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error canceling friend request:', error);
       throw error;
     }
   }
