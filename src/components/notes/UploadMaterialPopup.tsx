@@ -1,13 +1,14 @@
 
-import { useState } from 'react';
-import { Upload, X, File, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, X, File, Loader2, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NotesService } from '@/services/database';
+import { NotesService, StudyGroupsService } from '@/services/database';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface UploadMaterialPopupProps {
   isOpen: boolean;
@@ -24,9 +25,57 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customSubjects, setCustomSubjects] = useState<any[]>([]);
+  const [userGroups, setUserGroups] = useState<any[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [showNewSubject, setShowNewSubject] = useState(false);
+  const [newSubjectName, setNewSubjectName] = useState('');
 
-  const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'Literature', 'Computer Science'];
   const categories = ['notes', 'flashcards', 'documents', 'study-guide'];
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen]);
+
+  const loadData = async () => {
+    try {
+      const [subjects, groups] = await Promise.all([
+        NotesService.getUserSubjects(),
+        StudyGroupsService.getUserGroups()
+      ]);
+      setCustomSubjects(subjects);
+      setUserGroups(groups);
+    } catch (err) {
+      console.error('Error loading data:', err);
+    }
+  };
+
+  const handleCreateSubject = async () => {
+    if (!newSubjectName.trim()) {
+      setError('Subject name is required');
+      return;
+    }
+
+    try {
+      const newSubject = await NotesService.createSubject(newSubjectName);
+      setCustomSubjects(prev => [...prev, newSubject]);
+      setSubject((newSubject as any)?.name || newSubjectName);
+      setNewSubjectName('');
+      setShowNewSubject(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create subject');
+    }
+  };
+
+  const toggleGroupSelection = (groupId: string) => {
+    setSelectedGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -64,7 +113,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       }
 
       // Create note with the form data and file URL if available
-      await NotesService.createNote({
+      const note = await NotesService.createNote({
         title: title.trim(),
         content: description || '',
         subject: subject,
@@ -73,6 +122,11 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
         file_name: fileName
       });
 
+      // Share with selected groups if any
+      if (note && selectedGroups.length > 0) {
+        await NotesService.shareNoteWithGroups(note.id, selectedGroups);
+      }
+
       // Reset form
       setTitle('');
       setDescription('');
@@ -80,6 +134,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       setCategory('notes');
       setIsPrivate(false);
       setFile(null);
+      setSelectedGroups([]);
       
       // Call success callback and close
       if (onUploadSuccess) {
@@ -163,7 +218,50 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
 
           {/* Subject */}
           <div>
-            <Label htmlFor="subject">Subject</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="subject">Subject</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNewSubject(!showNewSubject)}
+                className="h-auto p-1 text-xs"
+              >
+                <Plus size={14} className="mr-1" />
+                New Subject
+              </Button>
+            </div>
+            
+            {showNewSubject ? (
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={newSubjectName}
+                  onChange={(e) => setNewSubjectName(e.target.value)}
+                  placeholder="Enter new subject name..."
+                  className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCreateSubject}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewSubject(false);
+                    setNewSubjectName('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : null}
+            
             <select
               id="subject"
               value={subject}
@@ -172,9 +270,13 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
               required
             >
               <option value="">Select a subject</option>
-              {subjects.map(subj => (
-                <option key={subj} value={subj}>{subj}</option>
-              ))}
+              {customSubjects.length === 0 ? (
+                <option value="" disabled>Create a subject first using + New Subject</option>
+              ) : (
+                customSubjects.map(subj => (
+                  <option key={subj.id} value={subj.name}>{subj.name}</option>
+                ))
+              )}
             </select>
           </div>
 
@@ -193,6 +295,33 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
               <option value="study-guide">Study Guide</option>
             </select>
           </div>
+
+          {/* Share with Groups */}
+          {!isPrivate && userGroups.length > 0 && (
+            <div>
+              <Label>Share with Study Groups (optional)</Label>
+              <div className="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-md p-2 dark:border-gray-600">
+                {userGroups.map(group => (
+                  <div key={group.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`group-${group.id}`}
+                      checked={selectedGroups.includes(group.id)}
+                      onCheckedChange={() => toggleGroupSelection(group.id)}
+                    />
+                    <label
+                      htmlFor={`group-${group.id}`}
+                      className="text-sm cursor-pointer dark:text-white"
+                    >
+                      {group.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Selected groups: {selectedGroups.length}
+              </p>
+            </div>
+          )}
 
           {/* Privacy */}
           <div className="flex items-center space-x-2">

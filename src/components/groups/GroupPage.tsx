@@ -139,13 +139,11 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   const handleLeaveGroup = () => {
     setEnrolled(false);
     onUpdateEnrollment?.(groupId, false);
-    console.log('Left group:', groupId);
   };
 
   const handleJoinGroup = () => {
     setEnrolled(true);
     onUpdateEnrollment?.(groupId, true);
-    console.log('Joined group:', groupId);
   };
 
   const handleAttendSession = (sessionId: string) => {
@@ -165,13 +163,11 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   };
 
   const handleGroupUpdated = (updatedGroup: any) => {
-    console.log('Group updated:', updatedGroup);
     // In a real app, you would update the group data
     // For now, just close the settings dialog
   };
 
   const handleGroupDeleted = (groupId: string) => {
-    console.log('Group deleted:', groupId);
     // Navigate back to groups list since this group no longer exists
     onBack();
   };

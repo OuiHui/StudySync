@@ -60,7 +60,7 @@ export const CollaborativeDocsDashboard = ({ onOpenDocument }: CollaborativeDocs
   const recentDocuments = documents.filter(doc => !doc.isActive);
 
   const handleOpenDocument = (documentId: string) => {
-    console.log('Opening document:', documentId);
+
     setCurrentDocumentId(documentId);
     if (onOpenDocument) {
       onOpenDocument(documentId);

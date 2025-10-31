@@ -47,28 +47,28 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen) {
-      if (groupId) {
-        loadMessages();
-        setupRealtimeSubscriptions();
-      } else {
-        // If no groupId, just show empty state
-        setMessages([]);
-        setLoading(false);
-      }
+    if (isOpen && groupId) {
+      loadMessages();
+      setupRealtimeSubscriptions();
+    } else if (isOpen && !groupId) {
+      // If no groupId, just show empty state
+      setMessages([]);
+      setLoading(false);
     }
 
     return () => {
-      // Cleanup subscriptions when component unmounts or closes
-      if (conversationId) {
-        RealtimeService.unsubscribe(`messages:${conversationId}`);
-      }
-      if (groupId) {
-        RealtimeService.unsubscribe(`presence:${groupId}`);
-        RealtimeService.untrackPresence(groupId);
+      // Cleanup subscriptions when popup closes
+      if (!isOpen) {
+        if (conversationId) {
+          RealtimeService.unsubscribe(`messages:${conversationId}`);
+        }
+        if (groupId) {
+          RealtimeService.unsubscribe(`presence:${groupId}`);
+          RealtimeService.untrackPresence(groupId);
+        }
       }
     };
-  }, [isOpen, groupId, conversationId]);
+  }, [isOpen, groupId]);
 
   const setupRealtimeSubscriptions = async () => {
     if (!groupId || !user) return;
@@ -153,15 +153,55 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     }
   };
 
-  // Transform messages for display
-  const displayMessages = messages.map(msg => ({
-    id: msg.id,
-    userId: msg.sender_id,
-    userName: msg.profiles?.display_name || 'Unknown User',
-    message: msg.content,
-    timestamp: new Date(msg.created_at).toLocaleTimeString(),
-    avatar: msg.profiles?.avatar_url || '👤'
-  }));
+  // Transform messages for display with date grouping
+  const displayMessages = messages.map(msg => {
+    const date = new Date(msg.created_at);
+    return {
+      id: msg.id,
+      userId: msg.sender_id,
+      userName: msg.profiles?.display_name || 'Unknown User',
+      message: msg.content,
+      timestamp: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      fullDate: date,
+      dateString: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      avatar: msg.profiles?.avatar_url || '👤'
+    };
+  });
+
+  // Helper function to check if we need a date separator
+  const shouldShowDateSeparator = (currentIndex: number) => {
+    if (currentIndex === 0) return true; // Always show for first message
+    
+    const currentMsg = displayMessages[currentIndex];
+    const previousMsg = displayMessages[currentIndex - 1];
+    
+    // Check if dates are different
+    const currentDate = currentMsg.fullDate.toDateString();
+    const previousDate = previousMsg.fullDate.toDateString();
+    
+    return currentDate !== previousDate;
+  };
+
+  // Helper function to format date separator
+  const formatDateSeparator = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const messageDate = date.toDateString();
+    const todayDate = today.toDateString();
+    const yesterdayDate = yesterday.toDateString();
+    
+    if (messageDate === todayDate) return 'Today';
+    if (messageDate === yesterdayDate) return 'Yesterday';
+    
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long', 
+      day: 'numeric',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+    });
+  };
 
   const sendMessage = async () => {
     if (!message.trim() || !user || !conversationId) return;
@@ -238,34 +278,48 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
                 <p className="text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
               </div>
             ) : (
-              displayMessages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.userId === user?.id ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] ${msg.userId === user?.id ? 'order-2' : 'order-1'}`}>
-                  <div className={`px-3 py-2 rounded-lg ${
-                    msg.userId === user?.id 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                  }`}>
+              displayMessages.map((msg, index) => (
+                <div key={msg.id}>
+                  {/* Date Separator */}
+                  {shouldShowDateSeparator(index) && (
+                    <div className="flex justify-center my-4">
+                      <div className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full">
+                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          {formatDateSeparator(msg.fullDate)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Message */}
+                  <div className={`flex ${msg.userId === user?.id ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] ${msg.userId === user?.id ? 'order-2' : 'order-1'}`}>
+                      <div className={`px-3 py-2 rounded-lg ${
+                        msg.userId === user?.id 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                      }`}>
+                        {msg.userId !== user?.id && (
+                          <div className="flex items-center space-x-1 mb-1">
+                            <span className="text-xs">{msg.avatar}</span>
+                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{msg.userName}</p>
+                          </div>
+                        )}
+                        <p className="text-sm">{msg.message}</p>
+                        <p className={`text-xs mt-1 ${
+                          msg.userId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {msg.timestamp}
+                        </p>
+                      </div>
+                    </div>
                     {msg.userId !== user?.id && (
-                      <div className="flex items-center space-x-1 mb-1">
-                        <span className="text-xs">{msg.avatar}</span>
-                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{msg.userName}</p>
+                      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0">
+                        {msg.avatar}
                       </div>
                     )}
-                    <p className="text-sm">{msg.message}</p>
-                    <p className={`text-xs mt-1 ${
-                      msg.userId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                    }`}>
-                      {msg.timestamp}
-                    </p>
                   </div>
                 </div>
-                {msg.userId !== user?.id && (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0">
-                    {msg.avatar}
-                  </div>
-                )}
-              </div>
               ))
             )}
             <div ref={messagesEndRef} />

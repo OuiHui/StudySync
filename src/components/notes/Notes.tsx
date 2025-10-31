@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2, Edit, Trash2, AlertTriangle, Save, X } from 'lucide-react';
+import { BookOpen, Plus, Share, Download, Search, Filter, Upload, Loader2, Edit, Trash2, AlertTriangle, Save, X, FileText, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
 import { NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,8 +32,14 @@ export const Notes = () => {
     title: '',
     content: '',
     subject: '',
-    permission_level: 'private' as 'private' | 'public' | 'group' | 'friends'
+    permission_level: 'private' as 'private' | 'public' | 'group' | 'friends',
+    selectedGroups: [] as string[]
   });
+  
+  // Share note state
+  const [sharingNote, setSharingNote] = useState<any | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareSelectedGroups, setShareSelectedGroups] = useState<string[]>([]);
   
   // View file state
   const [viewingNote, setViewingNote] = useState<any | null>(null);
@@ -170,26 +176,42 @@ export const Notes = () => {
   ];
 
   // Use the fetched notes or fallback to mock data if no real data
-  const displayNotes = notes.length > 0 ? notes.map(note => ({
-    id: note.id,
-    title: note.title || 'Untitled',
-    subject: note.subject || 'General',
-    author: 'You', // Since these are user's own notes
-    sharedBy: 'me',
-    date: new Date(note.created_at).toLocaleDateString(),
-    downloads: 0, // Not tracked in current schema
-    category: 'notes', // Default to notes since category isn't in schema
-    group: 'Personal',
-    preview: note.content ? note.content.substring(0, 100) + '...' : 'No content preview',
-    isPrivate: note.permission_level === 'private',
-    isMine: true, // These are all user's notes
-    user_id: note.created_by,
-    created_by: note.created_by,
-    file_url: note.file_url,
-    file_name: note.file_name,
-    content: note.content,
-    permission_level: note.permission_level
-  })) : mockNotes;
+  const displayNotes = notes.length > 0 ? notes.map(note => {
+    const hasPDF = note.file_url && note.file_url.toLowerCase().endsWith('.pdf');
+    const hasFile = note.file_url && note.file_url.trim() !== '';
+    
+    let preview = 'No content preview';
+    if (hasPDF) {
+      preview = `📄 PDF Document: ${note.file_name || 'Unnamed file'}`;
+    } else if (hasFile) {
+      preview = `📎 Attached file: ${note.file_name || 'File available'}`;
+    } else if (note.content && note.content.trim() !== '') {
+      preview = note.content.substring(0, 100) + '...';
+    }
+    
+    return {
+      id: note.id,
+      title: note.title || 'Untitled',
+      subject: note.subject || 'General',
+      author: 'You', // Since these are user's own notes
+      sharedBy: 'me',
+      date: new Date(note.created_at).toLocaleDateString(),
+      downloads: 0, // Not tracked in current schema
+      category: 'notes', // Default to notes since category isn't in schema
+      group: 'Personal',
+      preview,
+      isPrivate: note.permission_level === 'private',
+      isMine: true, // These are all user's notes
+      user_id: note.created_by,
+      created_by: note.created_by,
+      file_url: note.file_url,
+      file_name: note.file_name,
+      content: note.content,
+      permission_level: note.permission_level,
+      hasPDF,
+      hasFile
+    };
+  }) : mockNotes;
   const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
 
   const ownershipOptions = [
@@ -212,12 +234,18 @@ export const Notes = () => {
     try {
       // Fetch the full note content for editing
       const fullNote = await NotesService.getNote(note.id);
+      
+      // Fetch groups this note is shared with
+      const sharedGroups = await NotesService.getNoteSharedGroups(note.id);
+      const groupIds = sharedGroups.map((sg: any) => sg.group_id);
+      
       setEditingNote(fullNote);
       setEditFormData({
         title: fullNote.title || '',
         content: fullNote.content || '',
         subject: fullNote.subject || '',
-        permission_level: fullNote.permission_level || 'private'
+        permission_level: fullNote.permission_level || 'private',
+        selectedGroups: groupIds
       });
     } catch (err) {
       console.error('Error fetching note for editing:', err);
@@ -227,7 +255,8 @@ export const Notes = () => {
         title: note.title || '',
         content: note.preview?.replace('...', '') || '',
         subject: note.subject || '',
-        permission_level: note.permission_level || 'private'
+        permission_level: note.permission_level || 'private',
+        selectedGroups: []
       });
       toast({
         title: "Warning",
@@ -250,12 +279,16 @@ export const Notes = () => {
     }
 
     try {
+      // Update note basic fields
       await NotesService.updateNote(editingNote.id, {
         title: editFormData.title.trim(),
         content: editFormData.content.trim(),
         subject: editFormData.subject.trim() || null,
         permission_level: editFormData.permission_level
       });
+
+      // Update group shares
+      await NotesService.shareNoteWithGroups(editingNote.id, editFormData.selectedGroups);
 
       toast({
         title: "Note Updated",
@@ -287,6 +320,81 @@ export const Notes = () => {
           variant: "destructive"
         });
       }
+    }
+  };
+
+  const toggleGroupSelection = (groupId: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      selectedGroups: prev.selectedGroups.includes(groupId)
+        ? prev.selectedGroups.filter(id => id !== groupId)
+        : [...prev.selectedGroups, groupId]
+    }));
+  };
+
+  const toggleShareGroupSelection = (groupId: string) => {
+    setShareSelectedGroups(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
+  const handleShareNote = async (note: any) => {
+    try {
+      // Fetch existing shares
+      const sharedGroups = await NotesService.getNoteSharedGroups(note.id);
+      const groupIds = sharedGroups.map((share: any) => share.group_id);
+      
+      setSharingNote(note);
+      setShareSelectedGroups(groupIds);
+      setShareDialogOpen(true);
+    } catch (err) {
+      console.error('Error loading note shares:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load sharing settings",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveShare = async () => {
+    if (!sharingNote) return;
+
+    try {
+      await NotesService.shareNoteWithGroups(sharingNote.id, shareSelectedGroups);
+      
+      // Update the note's permission level if needed
+      if (shareSelectedGroups.length > 0 && sharingNote.permission_level !== 'group') {
+        await NotesService.updateNote(sharingNote.id, {
+          permission_level: 'group'
+        });
+      } else if (shareSelectedGroups.length === 0 && sharingNote.permission_level === 'group') {
+        await NotesService.updateNote(sharingNote.id, {
+          permission_level: 'private'
+        });
+      }
+
+      toast({
+        title: "Sharing Updated",
+        description: `Note is now shared with ${shareSelectedGroups.length} group(s)`,
+      });
+
+      setShareDialogOpen(false);
+      setSharingNote(null);
+      setShareSelectedGroups([]);
+      loadNotes(); // Refresh the notes list
+    } catch (err) {
+      console.error('Error updating sharing:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update sharing. Please try again.';
+      
+      toast({
+        title: "Sharing Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
   };
 
@@ -492,7 +600,18 @@ export const Notes = () => {
                   </div>
                   
                   {note.isMine && (
-                    <div className="mt-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="mt-4 flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShareNote(note);
+                        }}
+                        className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                      >
+                        <Share size={16} />
+                      </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -502,8 +621,7 @@ export const Notes = () => {
                         }}
                         className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       >
-                        <Edit size={14} className="mr-1" />
-                        Edit
+                        <Edit size={16} />
                       </Button>
                       <Button 
                         variant="outline" 
@@ -514,8 +632,7 @@ export const Notes = () => {
                         }}
                         className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
-                        <Trash2 size={14} className="mr-1" />
-                        Delete
+                        <Trash2 size={16} />
                       </Button>
                     </div>
                   )}
@@ -697,6 +814,32 @@ export const Notes = () => {
               </select>
             </div>
 
+            {editFormData.permission_level === 'group' && groups.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Share with Study Groups
+                </Label>
+                <div className="border rounded-md p-4 space-y-3 max-h-48 overflow-y-auto dark:border-gray-600">
+                  {groups.map((group) => (
+                    <div key={group.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-group-${group.id}`}
+                        checked={editFormData.selectedGroups.includes(group.id)}
+                        onCheckedChange={() => toggleGroupSelection(group.id)}
+                      />
+                      <label
+                        htmlFor={`edit-group-${group.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {group.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
@@ -805,6 +948,80 @@ export const Notes = () => {
                 Download
               </Button>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Note Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Share className="h-5 w-5" />
+              Share Note with Groups
+            </DialogTitle>
+            <DialogDescription>
+              Select which study groups can access "{sharingNote?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {groups.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                <p className="mb-2">No study groups available</p>
+                <p className="text-sm">Join or create a study group to share notes.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Select Groups
+                </Label>
+                <div className="border rounded-md p-4 space-y-3 max-h-64 overflow-y-auto dark:border-gray-600">
+                  {groups.map((group) => (
+                    <div key={group.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`share-group-${group.id}`}
+                        checked={shareSelectedGroups.includes(group.id)}
+                        onCheckedChange={() => toggleShareGroupSelection(group.id)}
+                      />
+                      <label
+                        htmlFor={`share-group-${group.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {group.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {shareSelectedGroups.length === 0 
+                    ? "Note will be private" 
+                    : `Shared with ${shareSelectedGroups.length} group(s)`}
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShareDialogOpen(false);
+                  setSharingNote(null);
+                  setShareSelectedGroups([]);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveShare}
+                className="bg-green-500 hover:bg-green-600 text-white"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Sharing
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

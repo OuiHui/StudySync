@@ -128,7 +128,6 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
       const isAnonymous = isAnonymousUser();
       
       if (isAnonymous) {
-        console.log('Anonymous user, showing public groups instead');
         // For anonymous users, show public groups
         const publicGroups = await StudyGroupsService.getPublicGroups();
         
@@ -244,7 +243,6 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   };
 
   const handleGroupUpdated = (updatedGroup: any) => {
-    console.log('Updating group in UI:', updatedGroup);
     setStudyGroups(prevGroups => 
       prevGroups.map(group => 
         group.id === updatedGroup.id 

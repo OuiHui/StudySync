@@ -266,12 +266,10 @@ class StudyGroupsService {
     try {
       const session = await checkAuth();
       if (!session) {
-        console.log('No session found, returning empty groups');
         return [];
       }
 
       const userId = session.user.id;
-      console.log('Fetching user groups for user:', userId);
 
       // Check if this is an anonymous user
       const isAnonymous = !session.user.email || 
@@ -279,7 +277,6 @@ class StudyGroupsService {
                          session.user.aud === 'anonymous';
       
       if (isAnonymous) {
-        console.log('Anonymous user detected, returning empty groups');
         return [];
       }
 
@@ -316,7 +313,6 @@ class StudyGroupsService {
         }
 
         if (!memberships || memberships.length === 0) {
-          console.log('No group memberships found');
           return [];
         }
 
@@ -378,7 +374,6 @@ class StudyGroupsService {
         }));
 
         const filteredGroups = groupsWithDetails.filter(Boolean);
-        console.log('Successfully fetched user groups:', filteredGroups.length);
         return filteredGroups;
         
       } catch (error) {
@@ -437,7 +432,6 @@ class StudyGroupsService {
       // Get group details...
       */
       
-      console.log('getUserGroupsViaMembers is disabled due to RLS recursion');
       return [];
       
     } catch (error) {
@@ -502,7 +496,6 @@ class StudyGroupsService {
         })
       );
 
-      console.log(`Successfully fetched ${groupsWithCreators.length} public groups`);
       return groupsWithCreators;
     } catch (error) {
       console.error('Error fetching public groups:', error);
@@ -1367,17 +1360,32 @@ class NotesService {
         throw new Error('Authentication required. Please log in again.');
       }
 
-      const { data, error } = await supabase
+      // First, get notes shared via the note_group_shares table
+      const sharedNotes = await this.getGroupSharedNotes(groupId);
+      
+      // Also get notes that have this group_id directly (legacy support)
+      const { data: legacyGroupNotes, error: legacyError } = await supabase
         .from('notes')
         .select('*')
         .eq('group_id', groupId)
         .order('updated_at', { ascending: false });
 
-      if (error) {
-        handleDbError(error, 'fetch group notes');
+      if (legacyError) {
+        console.error('Error fetching legacy group notes:', legacyError);
       }
 
-      return data || [];
+      // Combine both results and remove duplicates
+      const allNotes = [...sharedNotes, ...(legacyGroupNotes || [])];
+      const uniqueNotes = Array.from(
+        new Map(allNotes.map(note => [note.id, note])).values()
+      );
+
+      // Sort by updated_at descending
+      uniqueNotes.sort((a, b) => 
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+
+      return uniqueNotes;
     } catch (error) {
       console.error('Error fetching group notes:', error);
       
@@ -1540,6 +1548,175 @@ class NotesService {
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
+    }
+  }
+
+  // Custom Subjects Methods
+  static async getUserSubjects() {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('custom_subjects' as any)
+        .select('*')
+        .eq('created_by', session.user.id)
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching custom subjects:', error);
+        // Return empty array if table doesn't exist yet
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching custom subjects:', error);
+      return [];
+    }
+  }
+
+  static async createSubject(name: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { data, error } = await supabase
+        .from('custom_subjects' as any)
+        .insert({ name: name.trim(), created_by: session.user.id })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          throw new Error('You already have a subject with this name');
+        }
+        throw new Error(`Failed to create subject: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating subject:', error);
+      throw error;
+    }
+  }
+
+  static async deleteSubject(id: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('custom_subjects' as any)
+        .delete()
+        .eq('id', id)
+        .eq('created_by', session.user.id);
+
+      if (error) {
+        throw new Error(`Failed to delete subject: ${error.message}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting subject:', error);
+      throw error;
+    }
+  }
+
+  // Group Sharing Methods
+  static async shareNoteWithGroups(noteId: string, groupIds: string[]) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // Remove existing shares first
+      const { error: deleteError } = await supabase
+        .from('note_group_shares' as any)
+        .delete()
+        .eq('note_id', noteId);
+
+      if (deleteError) {
+        console.error('Error removing existing shares:', deleteError);
+        throw new Error(`Failed to update sharing: ${deleteError.message}`);
+      }
+
+      // Add new shares
+      if (groupIds.length > 0) {
+        const shares = groupIds.map(groupId => ({
+          note_id: noteId,
+          group_id: groupId
+        }));
+
+        const { error } = await supabase
+          .from('note_group_shares' as any)
+          .insert(shares);
+
+        if (error) {
+          console.error('Error sharing note:', error);
+          throw new Error(`Failed to share note: ${error.message}`);
+        }
+      }
+
+      return groupIds;
+    } catch (error) {
+      console.error('Error sharing note with groups:', error);
+      throw error;
+    }
+  }
+
+  static async getNoteSharedGroups(noteId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('note_group_shares' as any)
+        .select('group_id, study_groups(id, name)')
+        .eq('note_id', noteId);
+
+      if (error) {
+        console.error('Error fetching shared groups:', error);
+        return [];
+      }
+
+      return (data as any) || [];
+    } catch (error) {
+      console.error('Error fetching shared groups:', error);
+      return [];
+    }
+  }
+
+  static async getGroupSharedNotes(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('note_group_shares' as any)
+        .select('note_id, notes(*)')
+        .eq('group_id', groupId);
+
+      if (error) {
+        console.error('Error fetching group shared notes:', error);
+        return [];
+      }
+
+      return (data as any)?.map((item: any) => item.notes).filter(Boolean) || [];
+    } catch (error) {
+      console.error('Error fetching group shared notes:', error);
+      return [];
     }
   }
 }

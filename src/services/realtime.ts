@@ -253,7 +253,6 @@ export class RealtimeService {
       .channel(channelName)
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
-        console.log('Presence sync:', newState);
         onPresenceUpdate(newState);
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
