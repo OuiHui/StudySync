@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SessionProgress } from './SessionProgress';
-import { useTimer } from '../hooks/useTimer';
+import { useTimer } from '@/hooks/useTimer';
 
 interface StudyTimerProps {
   onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;

@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { Sidebar } from '@/components/common/layout/Sidebar';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { StudySession } from '@/components/study/StudySession';
 import { GroupStudySession } from '@/components/study/GroupStudySession';
 import { StudyGroups } from '@/components/groups/StudyGroups';
 import { Notes } from '@/components/notes/Notes';
 import { Profile } from '@/components/profile/Profile';
-import { ColorCustomizer } from '@/components/settings/ColorCustomizer';
+import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
 import { AvailableSessionsList } from '@/components/study/AvailableSessionsList';
 import { GroupPage } from '@/components/groups/GroupPage';
 import { StudyGroupsBrowse } from '@/components/groups/StudyGroupsBrowse';

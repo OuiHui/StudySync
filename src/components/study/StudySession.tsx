@@ -2,11 +2,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SessionSettings } from './SessionSettings';
-import { TimerDisplay } from './components/TimerDisplay';
-import { SessionProgress } from './components/SessionProgress';
-import { CurrentSettings } from './components/CurrentSettings';
-import { StudyMaterial } from './components/StudyMaterial';
-import { useTimer } from './hooks/useTimer';
+import { TimerDisplay } from './TimerDisplay';
+import { SessionProgress } from './SessionProgress';
+import { CurrentSettings } from './CurrentSettings';
+import { StudyMaterial } from './StudyMaterial';
+import { useTimer } from '@/hooks/useTimer';
 
 interface StudySessionProps {
   onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;

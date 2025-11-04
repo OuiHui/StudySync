@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BookOpen, Users, Calendar, Bell, BellDot, Play, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { NotificationCenter } from '@/components/common/notifications/NotificationCenter';
 import { StudySessionsService, ProfileService, StudyGroupsService, NotesService, NotificationsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isToday, parseISO } from 'date-fns';
@@ -19,8 +19,8 @@ export const Dashboard = ({ onNavigate, onMarkAllNotificationsRead }: DashboardP
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [userStats, setUserStats] = useState({
-    studyHoursToday: '0h',
-    studyHoursThisWeek: '0h',
+    studyHoursToday: '0',
+    studyHoursThisWeek: '0',
     activeGroups: '0',
     notesShared: '0',
     sessionsThisWeek: '0'

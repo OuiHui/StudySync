@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { StudyTimer } from './components/StudyTimer';
-import { ParticipantsList } from './components/ParticipantsList';
-import { SessionStats } from './components/SessionStats';
-import { SessionNotes } from './components/SessionNotes';
-import { StudyGoals } from './components/StudyGoals';
-import { ColorCustomizer } from '@/components/settings/ColorCustomizer';
+import { StudyTimer } from './StudyTimer';
+import { ParticipantsList } from './ParticipantsList';
+import { SessionStats } from './SessionStats';
+import { SessionNotes } from './SessionNotes';
+import { StudyGoals } from './StudyGoals';
+import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 
 interface GroupStudySessionProps {
