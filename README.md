@@ -2,10 +2,6 @@
 
 A comprehensive study platform that combines Pomodoro timers, study groups, collaborative note-taking, and social features to enhance your learning experience.
 
-## [Live Demo](https://ouihui.github.io/study-sphere-pomodoro-flow)
-
-**Try it now!** No setup required - just visit the link and start studying collaboratively with others around the world.
-
 ## Features
 
 ### **Pomodoro Timer System**
