@@ -61,7 +61,6 @@ A comprehensive study platform that combines Pomodoro timers, study groups, coll
 ## Getting Started
 
 ### For Users
-Just visit the [live demo](https://ouihui.github.io/study-sphere-pomodoro-flow) and start using StudySphere immediately! All users share the same collaborative database, so you can:
 - Join existing study groups
 - Collaborate on shared documents
 - Participate in group study sessions
