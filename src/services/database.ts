@@ -137,36 +137,39 @@ class StudyEventsService {
         handleDbError(error, 'fetch study events');
       }
 
-      if (!sessions) return [];
+      if (!sessions || sessions.length === 0) return [];
 
-      // Get participants for each session separately
-      const sessionsWithParticipants = await Promise.all(
-        sessions.map(async (session) => {
-          const { data: participants } = await supabase
-            .from('session_participants')
-            .select('user_id')
-            .eq('session_id', session.id);
+      const sessionIds = sessions.map(s => s.id);
+      const { data: participants } = await supabase
+        .from('session_participants')
+        .select('session_id, user_id')
+        .in('session_id', sessionIds);
 
-          // Get profile info for participants
-          let participantProfiles = [];
-          if (participants && participants.length > 0) {
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, display_name, avatar_url')
-              .in('user_id', participants.map(p => p.user_id));
-            
-            participantProfiles = profiles || [];
-          }
+      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, user_id')
+          .in('user_id', userIds);
+        profiles = profilesData || [];
+      }
 
+      const sessionsWithParticipants = sessions.map((session) => {
+        const sessionParts = participants?.filter(p => p.session_id === session.id) || [];
+        const participantProfiles = sessionParts.map(sp => {
+          const profile = profiles.find(p => p.user_id === sp.user_id);
           return {
-            ...session,
-            session_participants: participantProfiles.map(profile => ({
-              user_id: profile.user_id,
-              profiles: profile
-            }))
+            user_id: sp.user_id,
+            profiles: profile || null
           };
-        })
-      );
+        });
+
+        return {
+          ...session,
+          session_participants: participantProfiles
+        };
+      });
 
       return sessionsWithParticipants;
     } catch (error) {
@@ -335,31 +338,21 @@ class StudyGroupsService {
           .select('id, display_name, avatar_url, user_id')
           .in('user_id', creatorIds);
 
+        const { data: allMembersData } = await supabase
+          .from('group_members')
+          .select('id, group_id')
+          .in('group_id', groupIds);
+
+        const allMembers = allMembersData || [];
+
         // Combine membership data with group details
-        const groupsWithDetails = await Promise.all(memberships.map(async membership => {
+        const groupsWithDetails = memberships.map(membership => {
           const group = groups?.find(g => g.id === membership.group_id);
           const creator = creators?.find(c => c.user_id === group?.created_by);
           
           if (!group) return null;
 
-          // Get member count for this group
-          let memberCount = 0;
-          try {
-            const { data: members, error: memberError } = await supabase
-              .from('group_members')
-              .select('id', { count: 'exact' })
-              .eq('group_id', group.id);
-
-            if (memberError) {
-              console.warn(`Could not fetch member count for group ${group.id}:`, memberError);
-              memberCount = 0;
-            } else {
-              memberCount = members?.length || 0;
-            }
-          } catch (memberError) {
-            console.warn(`Exception fetching member count for group ${group.id}:`, memberError);
-            memberCount = 0;
-          }
+          const memberCount = allMembers.filter(m => m.group_id === group.id).length;
           
           return {
             ...group,
@@ -371,7 +364,7 @@ class StudyGroupsService {
             joined_at: membership.joined_at,
             member_count: memberCount
           };
-        }));
+        });
 
         const filteredGroups = groupsWithDetails.filter(Boolean);
         return filteredGroups;
@@ -454,47 +447,33 @@ class StudyGroupsService {
         return [];
       }
 
-      if (!groups) return [];
+      if (!groups || groups.length === 0) return [];
+
+      const creatorIds = [...new Set(groups.map(g => g.created_by))];
+      const groupIds = groups.map(g => g.id);
+
+      const [creatorsData, membersData] = await Promise.all([
+        supabase.from('profiles').select('id, display_name, avatar_url, user_id').in('user_id', creatorIds),
+        supabase.from('group_members').select('id, group_id').in('group_id', groupIds)
+      ]);
+
+      const creators = creatorsData.data || [];
+      const allMembers = membersData.data || [];
 
       // Get creator profiles and member counts for each group
-      const groupsWithCreators = await Promise.all(
-        groups.map(async (group) => {
-          // Get creator profile
-          const { data: creator } = await supabase
-            .from('profiles')
-            .select('id, display_name, avatar_url')
-            .eq('user_id', group.created_by)
-            .single();
+      const groupsWithCreators = groups.map((group) => {
+        const creator = creators.find(c => c.user_id === group.created_by);
+        const memberCount = allMembers.filter(m => m.group_id === group.id).length;
 
-          // Try to get member count (with fallback if RLS issues persist)
-          let memberCount = 0;
-          try {
-            const { data: members, error: memberError } = await supabase
-              .from('group_members')
-              .select('id', { count: 'exact' })
-              .eq('group_id', group.id);
-
-            if (memberError) {
-              console.warn(`Could not fetch member count for group ${group.id}:`, memberError);
-              memberCount = 0;
-            } else {
-              memberCount = members?.length || 0;
-            }
-          } catch (memberError) {
-            console.warn(`Exception fetching member count for group ${group.id}:`, memberError);
-            memberCount = 0;
-          }
-
-          return {
-            ...group,
-            // Add fallback values for icon and color if not present in database
-            icon: (group as any).icon || 'Users',
-            color: (group as any).color || 'from-blue-500 to-blue-600',
-            creator_profile: creator,
-            member_count: memberCount
-          };
-        })
-      );
+        return {
+          ...group,
+          // Add fallback values for icon and color if not present in database
+          icon: (group as any).icon || 'Users',
+          color: (group as any).color || 'from-blue-500 to-blue-600',
+          creator_profile: creator || null,
+          member_count: memberCount
+        };
+      });
 
       return groupsWithCreators;
     } catch (error) {
