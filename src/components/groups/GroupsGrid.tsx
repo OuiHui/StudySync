@@ -1,4 +1,4 @@
-import { Users, Crown, Settings, BookOpen, MessageSquare, UserMinus, Loader2, Search, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
+import { Users, Crown, Settings, BookOpen, MessageSquare, UserMinus, Search, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
@@ -93,19 +93,10 @@ export const GroupsGrid = ({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          {isAnonymousUser ? 'Public Study Groups' : 'My Study Groups'}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          {loading ? 'Loading...' : `${filteredGroups.length} groups found`}
-        </p>
-      </div>
       
       {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2 text-gray-600 dark:text-gray-300">Loading study groups...</span>
+        <div className="flex justify-center items-center py-16">
+          <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
         </div>
       ) : error ? (
         <div className="text-center py-20">
@@ -115,8 +106,8 @@ export const GroupsGrid = ({
           </Button>
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="text-center py-20">
-          <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Users className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
             {searchTerm 
               ? 'No groups match your search' 
@@ -158,9 +149,9 @@ export const GroupsGrid = ({
             const isAdmin = isCreator || isAdminRole;
             
             return (
-            <Card 
-              key={group.id} 
-              className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:scale-105 overflow-hidden"
+            <Card
+              key={group.id}
+              className="group border border-gray-100 dark:border-gray-700/60 shadow-none hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white dark:bg-gray-900 overflow-hidden"
               onClick={() => openGroupPage(group.id)}
             >
               <div className={`h-24 bg-gradient-to-br ${normalizeColor(group.color)} to-opacity-80 relative overflow-hidden`}>
@@ -204,17 +195,19 @@ export const GroupsGrid = ({
                     {group.description || 'No description available'}
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4 py-3">
-                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <div className="text-lg font-bold text-gray-800 dark:text-white">{group.members}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">Members</div>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <div className="text-lg font-bold text-gray-800 dark:text-white">
-                        {group.is_public ? 'Public' : 'Private'}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-300">Visibility</div>
-                    </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <Users size={12} />
+                      {group.members} {group.members === 1 ? 'member' : 'members'}
+                    </span>
+                    <span className="text-gray-200 dark:text-gray-700">·</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      group.is_public
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {group.is_public ? 'Public' : 'Private'}
+                    </span>
                   </div>
                   
                   {group.nextSession && (
@@ -305,19 +298,6 @@ export const GroupsGrid = ({
         </div>
       )}
 
-      {filteredGroups.length === 0 && searchTerm && (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 mt-6">
-          <CardContent className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search size={24} className="text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">No groups found</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              No groups found matching "{searchTerm}". Try adjusting your search terms.
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

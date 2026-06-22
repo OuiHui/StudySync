@@ -1,5 +1,4 @@
 import { Search, Loader2, UserPlus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SearchResult } from '@/hooks/useFriends';
@@ -35,14 +34,11 @@ export const FriendSearch = ({
   currentUserId
 }: FriendSearchProps) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
-      <CardHeader>
-        <CardTitle className="flex items-center text-gray-800 dark:text-white">
-          <Search size={20} className="mr-2 text-blue-500" />
-          Find Friends
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Find Friends</h3>
+      </div>
+      <div className="p-5 space-y-4">
         <div className="flex gap-2">
           <Input
             type="text"
@@ -69,7 +65,7 @@ export const FriendSearch = ({
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
                     {result.avatar_url ? (
                       <img 
                         src={result.avatar_url} 
@@ -77,7 +73,7 @@ export const FriendSearch = ({
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-white text-sm font-bold">
+                      <span className="text-white text-xs font-semibold">
                         {getInitials(result.display_name, result.email)}
                       </span>
                     )}
@@ -112,11 +108,11 @@ export const FriendSearch = ({
         )}
 
         {searchTerm && searchResults.length === 0 && !searching && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-            No users found matching "{searchTerm}"
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-3">
+            No users found for "{searchTerm}"
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

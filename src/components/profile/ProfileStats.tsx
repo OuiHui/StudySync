@@ -1,27 +1,31 @@
-import { Clock, Users, BookOpen, Star } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Clock, Users, BookOpen, Flame } from 'lucide-react';
 import { UserStats } from '@/hooks/useProfileData';
 
 export const ProfileStats = ({ stats }: { stats: UserStats }) => {
   const studyStats = [
-    { label: 'Study Hours', value: stats.studyHours, icon: Clock, color: 'text-blue-600 dark:text-blue-400' },
-    { label: 'Groups Joined', value: stats.groupsJoined, icon: Users, color: 'text-green-600 dark:text-green-400' },
-    { label: 'Notes Shared', value: stats.notesShared, icon: BookOpen, color: 'text-purple-600 dark:text-purple-400' },
-    { label: 'Study Streak', value: `${stats.studyStreak} days`, icon: Star, color: 'text-orange-600 dark:text-orange-400' }
+    { label: 'Study Hours', value: stats.studyHours, icon: Clock, accent: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { label: 'Groups', value: stats.groupsJoined, icon: Users, accent: 'text-violet-500 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+    { label: 'Notes Shared', value: stats.notesShared, icon: BookOpen, accent: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+    { label: 'Day Streak', value: `${stats.studyStreak}`, icon: Flame, accent: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-50 dark:bg-orange-900/20' },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {studyStats.map((stat) => {
-        const IconComponent = stat.icon;
+        const Icon = stat.icon;
         return (
-          <Card key={stat.label} className="border-0 shadow-md dark:bg-gray-800">
-            <CardContent className="p-4 text-center">
-              <IconComponent size={24} className={`mx-auto mb-2 ${stat.color}`} />
-              <div className="text-2xl font-bold text-gray-800 dark:text-white">{stat.value}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">{stat.label}</div>
-            </CardContent>
-          </Card>
+          <div
+            key={stat.label}
+            className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 px-4 py-4 flex items-center gap-3"
+          >
+            <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center shrink-0`}>
+              <Icon size={18} className={stat.accent} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xl font-bold text-gray-900 dark:text-white leading-tight">{stat.value}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{stat.label}</div>
+            </div>
+          </div>
         );
       })}
     </div>

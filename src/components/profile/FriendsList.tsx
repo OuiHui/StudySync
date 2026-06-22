@@ -1,5 +1,4 @@
-import { Users, UserMinus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserMinus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Friend } from '@/hooks/useFriends';
 import { getInitials, getDisplayName } from './FriendSearch';
@@ -9,64 +8,76 @@ interface FriendsListProps {
   handleRemoveFriend: (friendshipId: string, friendName: string) => void;
 }
 
+const avatarColors = [
+  'from-violet-400 to-purple-500',
+  'from-sky-400 to-blue-500',
+  'from-emerald-400 to-teal-500',
+  'from-orange-400 to-amber-500',
+  'from-rose-400 to-pink-500',
+  'from-indigo-400 to-indigo-600',
+];
+
+const getAvatarColor = (str: string) => avatarColors[(str?.charCodeAt(0) || 0) % avatarColors.length];
+
 export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
-      <CardHeader>
-        <CardTitle className="flex items-center text-gray-800 dark:text-white">
-          <Users size={20} className="mr-2 text-purple-500" />
-          Friends ({friends.length})
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {friends.length === 0 ? (
-          <div className="text-center py-8">
-            <Users size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400">
-              No friends yet. Search for users to add friends!
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {friends.map((friend) => (
-              <div 
-                key={friend.id} 
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+          Friends
+        </h3>
+        {friends.length > 0 && (
+          <span className="text-xs text-gray-400 dark:text-gray-500">{friends.length}</span>
+        )}
+      </div>
+
+      {friends.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+          <Users size={28} className="text-gray-300 dark:text-gray-600 mb-2" />
+          <p className="text-sm text-gray-400 dark:text-gray-500">
+            No friends yet — search to add some.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-50 dark:divide-gray-800">
+          {friends.map((friend) => {
+            const name = getDisplayName(friend.display_name, friend.email);
+            const initials = getInitials(friend.display_name, friend.email);
+            const gradient = getAvatarColor(name);
+
+            return (
+              <div
+                key={friend.id}
+                className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors"
               >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                    {friend.avatar_url ? (
-                      <img 
-                        src={friend.avatar_url} 
-                        alt="Avatar" 
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white text-sm font-bold">
-                        {getInitials(friend.display_name, friend.email)}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">
-                      {getDisplayName(friend.display_name, friend.email)}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{friend.email}</p>
-                  </div>
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
+                  {friend.avatar_url ? (
+                    <img
+                      src={friend.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-xs font-semibold">{initials}</span>
+                  )}
                 </div>
-                <Button 
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
+                </div>
+                <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleRemoveFriend(friend.friendshipId, getDisplayName(friend.display_name, friend.email))}
-                  className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                  onClick={() => handleRemoveFriend(friend.friendshipId, name)}
+                  className="text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-gray-600 dark:hover:text-red-400 p-1.5 h-auto"
                 >
                   <UserMinus size={14} />
                 </Button>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };

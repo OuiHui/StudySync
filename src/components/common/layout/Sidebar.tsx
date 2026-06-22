@@ -12,7 +12,8 @@ import {
   UsersRound,
   FileText,
   BarChart3,
-  Search
+  Search,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './UserMenu';
@@ -34,6 +35,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'groups', label: 'My Groups', icon: Users },
     { id: 'browse-groups', label: 'Browse Groups', icon: Search },
     { id: 'notes', label: 'Notes', icon: FileText },
+    { id: 'find-friends', label: 'Find Friends', icon: UserPlus },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 

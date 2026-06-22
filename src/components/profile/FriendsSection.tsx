@@ -1,5 +1,3 @@
-import { Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { useFriends } from '@/hooks/useFriends';
 
 import { FriendSearch } from './FriendSearch';
@@ -27,11 +25,9 @@ export const FriendsSection = () => {
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="animate-spin text-blue-500" size={32} />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-10">
+        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+      </div>
     );
   }
 

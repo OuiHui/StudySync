@@ -23,6 +23,7 @@ import MyGroups from "@/pages/MyGroups";
 import BrowseGroups from "@/pages/BrowseGroups";
 import Notes from "@/pages/Notes";
 import Profile from "@/pages/Profile";
+import FindFriends from "@/pages/FindFriends";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,7 @@ const App = () => (
                         <Route path="groups" element={<MyGroups />} />
                         <Route path="browse-groups" element={<BrowseGroups />} />
                         <Route path="notes" element={<Notes />} />
+                        <Route path="find-friends" element={<FindFriends />} />
                         <Route path="profile" element={<Profile />} />
                       </Route>
                       <Route path="*" element={<NotFound />} />
