@@ -13,13 +13,12 @@ import { useProfileData } from '@/hooks/useProfileData';
 
 import { ProfileOverview } from './ProfileOverview';
 import { ProfileStats } from './ProfileStats';
-import { ProfileAchievements } from './ProfileAchievements';
-import { ProfileActivity } from './ProfileActivity';
+
 import { ProfileSettings } from './ProfileSettings';
 
 export const Profile = () => {
   const { toast } = useToast();
-  const { user, authLoading, loading, userProfile, setUserProfile, userStats, recentActivity } = useProfileData();
+  const { user, authLoading, loading, userProfile, setUserProfile, userStats } = useProfileData();
   
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -86,13 +85,10 @@ export const Profile = () => {
         </Button>
       </div>
 
-      <ProfileOverview profile={userProfile} stats={userStats} />
+      <ProfileOverview profile={userProfile} />
       <ProfileStats stats={userStats} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ProfileAchievements stats={userStats} />
-        <ProfileActivity activity={recentActivity} />
-      </div>
+
 
       <FriendsSection />
 
