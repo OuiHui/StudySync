@@ -892,34 +892,39 @@ class StudySessionsService {
         index === self.findIndex(s => s.id === session.id)
       );
 
-      // Get participants for each session separately
-      const sessionsWithParticipants = await Promise.all(
-        uniqueSessions.map(async (studySession) => {
-          const { data: participants } = await supabase
-            .from('session_participants')
-            .select('user_id')
-            .eq('session_id', studySession.id);
+      if (!uniqueSessions || uniqueSessions.length === 0) return [];
 
-          // Get profile info for participants
-          let participantProfiles = [];
-          if (participants && participants.length > 0) {
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, display_name, avatar_url, user_id')
-              .in('user_id', participants.map(p => p.user_id));
-            
-            participantProfiles = profiles || [];
-          }
+      const sessionIds = uniqueSessions.map(s => s.id);
+      const { data: allParticipants } = await supabase
+        .from('session_participants')
+        .select('session_id, user_id')
+        .in('session_id', sessionIds);
 
+      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, user_id')
+          .in('user_id', userIds);
+        profiles = profilesData || [];
+      }
+
+      const sessionsWithParticipants = uniqueSessions.map((studySession) => {
+        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+        const participantProfiles = sessionParts.map(sp => {
+          const profile = profiles.find(p => p.user_id === sp.user_id);
           return {
-            ...studySession,
-            session_participants: participantProfiles.map(profile => ({
-              user_id: profile.user_id,
-              profiles: profile
-            }))
+            user_id: sp.user_id,
+            profiles: profile || null
           };
-        })
-      );
+        });
+
+        return {
+          ...studySession,
+          session_participants: participantProfiles
+        };
+      });
 
       return sessionsWithParticipants;
     } catch (error) {
@@ -952,36 +957,39 @@ class StudySessionsService {
         return [];
       }
 
-      if (!sessions) return [];
+      if (!sessions || sessions.length === 0) return [];
 
-      // Get participants for each session separately
-      const sessionsWithParticipants = await Promise.all(
-        sessions.map(async (studySession) => {
-          const { data: participants } = await supabase
-            .from('session_participants')
-            .select('user_id')
-            .eq('session_id', studySession.id);
+      const sessionIds = sessions.map(s => s.id);
+      const { data: allParticipants } = await supabase
+        .from('session_participants')
+        .select('session_id, user_id')
+        .in('session_id', sessionIds);
 
-          // Get profile info for participants
-          let participantProfiles = [];
-          if (participants && participants.length > 0) {
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, display_name, avatar_url, user_id')
-              .in('user_id', participants.map(p => p.user_id));
-            
-            participantProfiles = profiles || [];
-          }
+      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, user_id')
+          .in('user_id', userIds);
+        profiles = profilesData || [];
+      }
 
+      const sessionsWithParticipants = sessions.map((studySession) => {
+        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+        const participantProfiles = sessionParts.map(sp => {
+          const profile = profiles.find(p => p.user_id === sp.user_id);
           return {
-            ...studySession,
-            session_participants: participantProfiles.map(profile => ({
-              user_id: profile.user_id,
-              profiles: profile
-            }))
+            user_id: sp.user_id,
+            profiles: profile || null
           };
-        })
-      );
+        });
+
+        return {
+          ...studySession,
+          session_participants: participantProfiles
+        };
+      });
 
       return sessionsWithParticipants;
     } catch (error) {
@@ -1011,37 +1019,40 @@ class StudySessionsService {
         return [];
       }
 
-      if (!sessions) return [];
+      if (!sessions || sessions.length === 0) return [];
 
-      // Get participants for each session separately
-      const sessionsWithParticipants = await Promise.all(
-        sessions.map(async (studySession) => {
-          const { data: participants } = await supabase
-            .from('session_participants')
-            .select('user_id')
-            .eq('session_id', studySession.id);
+      const sessionIds = sessions.map(s => s.id);
+      const { data: allParticipants } = await supabase
+        .from('session_participants')
+        .select('session_id, user_id')
+        .in('session_id', sessionIds);
 
-          // Get profile info for participants
-          let participantProfiles = [];
-          if (participants && participants.length > 0) {
-            const { data: profiles } = await supabase
-              .from('profiles')
-              .select('id, display_name, avatar_url, user_id')
-              .in('user_id', participants.map(p => p.user_id));
-            
-            participantProfiles = profiles || [];
-          }
+      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, user_id')
+          .in('user_id', userIds);
+        profiles = profilesData || [];
+      }
 
+      const sessionsWithParticipants = sessions.map((studySession) => {
+        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+        const participantProfiles = sessionParts.map(sp => {
+          const profile = profiles.find(p => p.user_id === sp.user_id);
           return {
-            ...studySession,
-            participant_count: participants?.length || 0,
-            session_participants: participantProfiles.map(profile => ({
-              user_id: profile.user_id,
-              profiles: profile
-            }))
+            user_id: sp.user_id,
+            profiles: profile || null
           };
-        })
-      );
+        });
+
+        return {
+          ...studySession,
+          participant_count: sessionParts.length,
+          session_participants: participantProfiles
+        };
+      });
 
       return sessionsWithParticipants;
     } catch (error) {

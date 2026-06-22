@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '@/components/common/layout/Sidebar';
 import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
 import { GlobalTimerIndicator } from '@/components/study/GlobalTimerIndicator';
 import { LeaveSessionDialog } from '@/components/study/LeaveSessionDialog';
 import { useGlobalTimer } from '@/contexts/GlobalTimerContext';
 import { useSession } from '@/contexts/SessionContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardQueryOptions } from '@/hooks/useDashboardData';
+import { getProfileQueryOptions } from '@/hooks/useProfileData';
+import { getStudyEventsQueryOptions } from '@/hooks/useStudyEvents';
 
-// Assuming ThemeContext provides currentTheme, but it might just be local state right now.
-// For now, we will use a basic theme state here as it was in Index.tsx, or we can use the global ThemeProvider.
-// Wait, in Index.tsx, currentTheme was local state. Let's keep it here for now.
 const initialTheme = {
   name: 'Default Blue',
   primary: '#3b82f6',
@@ -20,8 +22,18 @@ const initialTheme = {
 export const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(initialTheme);
+  
+  useEffect(() => {
+    if (user && !authLoading) {
+      queryClient.prefetchQuery(getDashboardQueryOptions(user));
+      queryClient.prefetchQuery(getProfileQueryOptions(user, authLoading));
+      queryClient.prefetchQuery(getStudyEventsQueryOptions(user));
+    }
+  }, [user, authLoading, queryClient]);
   
   const { globalTimer, handleGlobalTimerToggle, handleCancelTimer } = useGlobalTimer();
   const { 
