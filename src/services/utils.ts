@@ -116,4 +116,4 @@ export type Friendship = Database['public']['Tables']['friendships']['Row'];
 export type Message = Database['public']['Tables']['messages']['Row'];
 export type Conversation = Database['public']['Tables']['conversations']['Row'];
 
-// Study Events Service (using study_sessions for calendar events)
+

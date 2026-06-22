@@ -400,4 +400,4 @@ export class NotesService {
   }
 }
 
-// Notifications Service (using messages for notifications since there's no notifications table)
+
