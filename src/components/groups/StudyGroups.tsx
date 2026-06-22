@@ -72,12 +72,12 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">My Groups</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">My Groups</h1>
           {!loading && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
               {studyGroups.length === 0
-                ? 'No groups yet'
-                : `${studyGroups.length} group${studyGroups.length !== 1 ? 's' : ''}`}
+                ? 'No groups yet — create or join one to get started'
+                : `${studyGroups.length} group${studyGroups.length !== 1 ? 's' : ''} you're part of`}
             </p>
           )}
         </div>
@@ -86,12 +86,12 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
       {/* Search */}
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 pointer-events-none" />
         <Input
           placeholder="Search by name, subject, or description…"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 dark:bg-gray-800 dark:border-gray-700"
+          className="pl-10 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-blue-400/20 transition-colors h-10"
         />
       </div>
 

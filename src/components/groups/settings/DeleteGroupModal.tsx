@@ -1,8 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Trash2, X, Loader2 } from 'lucide-react';
 
 interface DeleteGroupModalProps {
   show: boolean;
@@ -28,28 +27,48 @@ export const DeleteGroupModal = ({
   const canDelete = deleteConfirm === groupName;
 
   return (
-    <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="border-red-200 bg-red-50 dark:bg-red-900 dark:border-red-800 max-w-md w-full shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-red-800 dark:text-red-300 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Delete Group
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-red-700 dark:text-red-300">
-            This action cannot be undone. This will permanently delete the group and all associated data including:
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-2xl shadow-2xl dark:shadow-black/40 overflow-hidden border border-red-100 dark:border-red-900/50">
+        {/* Red warning header */}
+        <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+            <AlertTriangle size={20} className="text-white" />
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">Delete Group</h3>
+            <p className="text-red-100 text-xs">This action is permanent</p>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="ml-auto w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-white transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+            This will permanently delete <strong className="text-gray-900 dark:text-white">{groupName}</strong> and all associated data:
           </p>
-          <ul className="list-disc list-inside text-red-700 dark:text-red-300 space-y-1">
-            <li>All group sessions and study materials</li>
-            <li>All member data and progress</li>
-            <li>Group chat history</li>
-            <li>Group notes and documents</li>
-          </ul>
           
-          <div className="space-y-2">
-            <Label htmlFor="deleteConfirm" className="text-red-800 dark:text-red-300">
-              Type the group name <strong>{groupName}</strong> to confirm:
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              'Study sessions & materials',
+              'Member data & progress',
+              'Chat history',
+              'Notes & documents'
+            ].map((item) => (
+              <div key={item} className="flex items-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                <span className="text-xs text-red-700 dark:text-red-300">{item}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="deleteConfirm" className="text-sm text-gray-600 dark:text-gray-400">
+              Type <strong className="text-gray-900 dark:text-white font-semibold">{groupName}</strong> to confirm:
             </Label>
             <Input
               id="deleteConfirm"
@@ -57,30 +76,34 @@ export const DeleteGroupModal = ({
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder={groupName}
               disabled={loading}
-              className="border-red-300 focus:border-red-500 dark:border-red-700 dark:focus:border-red-500"
+              className="rounded-xl border-red-200 dark:border-red-800 focus:border-red-400 dark:focus:border-red-600 focus:ring-red-400/20 bg-white dark:bg-gray-800/60"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-2">
             <Button
               onClick={onDelete}
               disabled={loading || !canDelete}
-              variant="destructive"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl shadow-md shadow-red-500/20 disabled:opacity-40"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {loading ? 'Deleting...' : 'Delete Group Permanently'}
+              {loading ? (
+                <Loader2 size={16} className="mr-2 animate-spin" />
+              ) : (
+                <Trash2 size={16} className="mr-2" />
+              )}
+              {loading ? 'Deleting...' : 'Delete Permanently'}
             </Button>
             <Button
               variant="outline"
               onClick={onClose}
               disabled={loading}
+              className="rounded-xl border-gray-200 dark:border-gray-700"
             >
-              <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

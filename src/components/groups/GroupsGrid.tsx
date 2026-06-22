@@ -1,4 +1,4 @@
-import { Users, Crown, Settings, BookOpen, MessageSquare, UserMinus, Search, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
+import { Users, Crown, Settings, BookOpen, MessageSquare, UserMinus, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
@@ -95,20 +95,30 @@ export const GroupsGrid = ({
     <div>
       
       {loading ? (
-        <div className="flex justify-center items-center py-16">
-          <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="relative w-10 h-10">
+            <div className="absolute inset-0 border-2 border-gray-200 dark:border-gray-700 rounded-full" />
+            <div className="absolute inset-0 border-2 border-transparent border-t-blue-500 rounded-full animate-spin" />
+          </div>
+          <p className="mt-3 text-sm text-gray-400 dark:text-gray-500">Loading your groups…</p>
         </div>
       ) : error ? (
-        <div className="text-center py-20">
-          <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} variant="outline">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-4">
+            <Users className="h-6 w-6 text-red-400" />
+          </div>
+          <p className="text-red-500 dark:text-red-400 mb-1 font-medium">{error}</p>
+          <p className="text-sm text-gray-400 mb-4">Something went wrong loading your groups</p>
+          <Button onClick={() => window.location.reload()} variant="outline" className="rounded-xl">
             Try Again
           </Button>
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Users className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4 border border-gray-100 dark:border-gray-700">
+            <Users className="h-7 w-7 text-gray-300 dark:text-gray-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
             {searchTerm 
               ? 'No groups match your search' 
               : isAnonymousUser
@@ -116,30 +126,30 @@ export const GroupsGrid = ({
                 : 'No study groups yet'
             }
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 max-w-sm">
             {searchTerm 
               ? 'Try adjusting your search terms' 
               : isAnonymousUser
                 ? 'Sign up or log in to create and join study groups with other students'
-                : 'Join or create a study group to get started'
+                : 'Create your first group or browse available groups to get started'
             }
           </p>
           {!searchTerm && !isAnonymousUser && (
             <CreateGroupDialog onGroupCreated={handleCreateGroup} />
           )}
           {isAnonymousUser && (
-            <div className="space-x-3">
-              <Button onClick={() => window.location.href = '/auth'} className="bg-blue-600 hover:bg-blue-700">
+            <div className="flex gap-3">
+              <Button onClick={() => window.location.href = '/auth'} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
                 Sign Up
               </Button>
-              <Button variant="outline" onClick={() => window.location.href = '/auth'}>
+              <Button variant="outline" onClick={() => window.location.href = '/auth'} className="rounded-xl">
                 Log In
               </Button>
             </div>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           {filteredGroups.map((group) => {
             const groupCreatorId = group.created_by;
             const userRole = group.user_role;
@@ -151,112 +161,125 @@ export const GroupsGrid = ({
             return (
             <Card
               key={group.id}
-              className="group border border-gray-100 dark:border-gray-700/60 shadow-none hover:shadow-md transition-shadow duration-200 cursor-pointer bg-white dark:bg-gray-900 overflow-hidden"
+              className="group/card border border-gray-100 dark:border-gray-700/50 shadow-none hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 transition-all duration-300 cursor-pointer bg-white dark:bg-gray-900 overflow-hidden rounded-2xl hover:border-gray-200 dark:hover:border-gray-600"
               onClick={() => openGroupPage(group.id)}
             >
-              <div className={`h-24 bg-gradient-to-br ${normalizeColor(group.color)} to-opacity-80 relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
+              {/* Gradient banner */}
+              <div className={`h-24 bg-gradient-to-br ${normalizeColor(group.color)} relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12)_0%,_transparent_60%)]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
+                
+                {/* Top-right badges */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
                   {isAdmin && (
-                    <div className="bg-yellow-400 p-1.5 rounded-full shadow-lg z-20 border-2 border-yellow-300">
-                      <Crown size={14} className="text-yellow-800" />
+                    <div className="bg-yellow-400/90 backdrop-blur-sm p-1.5 rounded-full shadow-lg border border-yellow-300/50" title="Admin">
+                      <Crown size={12} className="text-yellow-800" />
                     </div>
                   )}
                   {isAdmin && (
                     <button
-                      className="bg-white/30 p-1.5 rounded-full backdrop-blur-sm hover:bg-white/50 transition-all duration-200 z-20 border border-white/20 shadow-lg"
+                      className="bg-white/20 backdrop-blur-md p-1.5 rounded-full hover:bg-white/40 transition-all duration-200 z-20 border border-white/10 shadow-lg"
                       onClick={(e) => {
                         e.stopPropagation();
                         openGroupSettings(group);
                       }}
                       title="Group Settings"
                     >
-                      <Settings size={14} className="text-white drop-shadow-sm" />
+                      <Settings size={12} className="text-white drop-shadow-sm" />
                     </button>
                   )}
                 </div>
-                <div className="absolute bottom-4 left-4 z-10">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg border border-white/20">
-                    {renderGroupIcon(group.icon || 'Users', 20, "text-white drop-shadow-sm")}
+
+                {/* Icon */}
+                <div className="absolute bottom-3 left-4 z-10">
+                  <div className="w-11 h-11 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+                    {renderGroupIcon(group.icon || 'Users', 18, "text-white drop-shadow-sm")}
                   </div>
                 </div>
               </div>
 
-              <CardContent className="p-6">
-                <div className="space-y-4">
+              <CardContent className="p-5">
+                <div className="space-y-3">
+                  {/* Title & subject */}
                   <div>
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white group-hover/card:text-blue-600 dark:group-hover/card:text-blue-400 transition-colors leading-tight">
                       {group.name}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{group.subject}</p>
+                    {group.subject && (
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mt-0.5 uppercase tracking-wide">{group.subject}</p>
+                    )}
                   </div>
 
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
+                  {/* Description */}
+                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed line-clamp-2">
                     {group.description || 'No description available'}
                   </p>
                   
+                  {/* Meta badges */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                      <Users size={12} />
+                    <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-2.5 py-1 rounded-full">
+                      <Users size={11} />
                       {group.members} {group.members === 1 ? 'member' : 'members'}
                     </span>
-                    <span className="text-gray-200 dark:text-gray-700">·</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       group.is_public
                         ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                        : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
                     }`}>
                       {group.is_public ? 'Public' : 'Private'}
                     </span>
                   </div>
                   
+                  {/* Next session */}
                   {group.nextSession && (
-                    <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <Calendar size={16} className="text-blue-500 mr-2 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-800 dark:text-white">Next Session</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-300">
-                          {new Date(group.nextSession).toLocaleDateString()}
+                    <div className="flex items-center gap-2.5 px-3 py-2.5 bg-blue-50/70 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/40">
+                      <Calendar size={14} className="text-blue-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-200">Next Session</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {new Date(group.nextSession).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                         </p>
                       </div>
                     </div>
                   )}
                   
-                  <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border-l-3 border-blue-500">
-                    <div className="flex items-start">
-                      <MessageSquare size={14} className="text-gray-400 mt-0.5 mr-2 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                  {/* Recent activity */}
+                  {group.recentActivity && (
+                    <div className="flex items-start gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                      <MessageSquare size={12} className="text-gray-300 dark:text-gray-600 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-gray-400 dark:text-gray-500 leading-relaxed line-clamp-2">
                         {group.recentActivity}
                       </p>
                     </div>
-                  </div>
+                  )}
                 </div>
                 
-                <div className="mt-6 flex space-x-2">
+                {/* Action buttons */}
+                <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800 flex gap-2">
                   {group.user_role === 'visitor' || group.role === 'visitor' ? (
                     <>
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs h-9"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleJoinGroup(group.id);
                         }}
                       >
-                        <Users size={14} className="mr-1" />
+                        <Users size={13} className="mr-1.5" />
                         Join Group
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        className="border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl text-xs h-9"
                         onClick={(e) => {
                           e.stopPropagation();
                           openGroupDetails(group);
                         }}
                       >
-                        <BookOpen size={14} className="mr-1" />
+                        <BookOpen size={13} className="mr-1.5" />
                         View
                       </Button>
                     </>
@@ -265,27 +288,38 @@ export const GroupsGrid = ({
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        className="flex-1 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl text-xs h-9"
                         onClick={(e) => {
                           e.stopPropagation();
                           openChat(group.name, group.id);
                         }}
                       >
-                        <MessageSquare size={14} className="mr-1" />
+                        <MessageSquare size={13} className="mr-1.5" />
                         Chat
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-xl text-xs h-9 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openGroupPage(group.id);
+                        }}
+                      >
+                        <ArrowRight size={14} />
                       </Button>
                       {!isCreator && (
                         <Button 
-                          variant="outline"
+                          variant="ghost"
                           size="sm" 
-                          className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                          className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-xl text-xs h-9 px-3"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleLeaveGroup(group.id);
                           }}
+                          title="Leave group"
                         >
-                          <UserMinus size={14} className="mr-1" />
-                          Leave
+                          <UserMinus size={14} />
                         </Button>
                       )}
                     </>
