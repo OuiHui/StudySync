@@ -36,6 +36,8 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
     setSessionGoal
   } = useTimer({ onTimerUpdate, globalTimerState });
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
     <div className="p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -68,6 +70,8 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
                   breakDuration={breakDuration}
                   longBreakDuration={longBreakDuration}
                   onSettingsChange={handleSettingsChange}
+                  open={settingsOpen}
+                  onOpenChange={setSettingsOpen}
                 />
               </div>
             </CardHeader>
@@ -93,6 +97,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
               workDuration={workDuration}
               breakDuration={breakDuration}
               longBreakDuration={longBreakDuration}
+              onEdit={() => setSettingsOpen(true)}
             />
           </div>
         </div>

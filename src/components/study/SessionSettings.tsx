@@ -17,20 +17,30 @@ interface SessionSettingsProps {
   breakDuration: number;
   longBreakDuration: number;
   onSettingsChange: (settings: { workDuration: number; breakDuration: number; longBreakDuration: number }) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const SessionSettings = ({ 
   workDuration, 
   breakDuration, 
   longBreakDuration, 
-  onSettingsChange 
+  onSettingsChange,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: SessionSettingsProps) => {
   const [tempSettings, setTempSettings] = useState({
     workDuration: workDuration / 60,
     breakDuration: breakDuration / 60,
     longBreakDuration: longBreakDuration / 60,
   });
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = (val: boolean) => {
+    if (controlledOnOpenChange) controlledOnOpenChange(val);
+    else setInternalOpen(val);
+  };
 
   const handleSave = () => {
     onSettingsChange({
