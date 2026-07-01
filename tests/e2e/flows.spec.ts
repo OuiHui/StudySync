@@ -1,0 +1,199 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('StudySync E2E User Flows', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    
+    // Wait for either dashboard to load or auth page/guest button to be visible
+    const guestBtn = page.getByRole('button', { name: 'Continue as Guest' });
+    const dashboardHeader = page.locator('h1', { hasText: 'Dashboard' });
+    
+    await Promise.race([
+      guestBtn.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {}),
+      dashboardHeader.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
+    ]);
+    
+    if (await guestBtn.isVisible()) {
+      await guestBtn.click();
+    }
+
+    // Assert we land on the dashboard
+    await expect(dashboardHeader).toBeVisible({ timeout: 15000 });
+  });
+
+  test('Flow A: Authentication & Sign Out', async ({ page }) => {
+    // We are already authenticated as Guest from beforeEach.
+    // Let's test signing out.
+    // Click on the user profile button (avatar in sidebar footer)
+    const profileBtn = page.locator('button.relative.h-8.w-8.rounded-full');
+    await expect(profileBtn).toBeVisible();
+    await profileBtn.click();
+
+    // Click Log out button
+    const logoutBtn = page.getByRole('menuitem', { name: 'Log out' });
+    await expect(logoutBtn).toBeVisible();
+    await logoutBtn.click();
+
+    // Verify redirected back to the auth page
+    await expect(page).toHaveURL(/.*#\/auth/);
+  });
+
+  test('Flow B: Dashboard Overview & Notification Management', async ({ page }) => {
+    // Check dashboard statistic cards
+    await expect(page.getByText('Study Hours Today')).toBeVisible();
+    await expect(page.getByText('Active Groups')).toBeVisible();
+    
+    // Open notifications popover
+    const notifBtn = page.getByRole('button', { name: /Notifications/i });
+    await expect(notifBtn).toBeVisible();
+    await notifBtn.click();
+
+    // Check if dialog/popover is visible
+    await expect(page.locator('h3', { hasText: 'Notifications' })).toBeVisible();
+
+    // If there is a Mark all read button, click it
+    const markAllReadBtn = page.getByRole('button', { name: 'Mark all read' });
+    if (await markAllReadBtn.isVisible()) {
+      await markAllReadBtn.click();
+    }
+
+    // Close notifications popover
+    const closeBtn = page.locator('button:has(svg.lucide-x)');
+    await closeBtn.click();
+
+    // Popover should be hidden
+    await expect(page.locator('h3', { hasText: 'Notifications' })).not.toBeVisible();
+  });
+
+  test('Flow C: Solo Pomodoro Study Session', async ({ page }) => {
+    // Navigate to Solo Study
+    await page.getByRole('button', { name: 'Solo Study' }).click();
+    await expect(page.locator('h1', { hasText: 'Study Session' })).toBeVisible();
+
+    // Timer defaults to 25:00
+    await expect(page.getByText('25:00')).toBeVisible();
+
+    // Click settings edit button
+    const settingsBtn = page.getByRole('button', { name: 'Settings', exact: true });
+    if (await settingsBtn.isVisible()) {
+      await settingsBtn.click();
+      
+      // Update durations
+      const workInput = page.locator('input#work-duration');
+      if (await workInput.isVisible()) {
+        await workInput.fill('30');
+        await page.getByRole('button', { name: 'Save Settings', exact: true }).click();
+        await expect(page.getByText('30:00')).toBeVisible();
+      }
+    }
+
+    // Click Start
+    const startBtn = page.getByRole('button', { name: 'Start' });
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    // Verify button changes to Pause
+    await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+
+    // Click Reset
+    const resetBtn = page.getByRole('button', { name: 'Reset' });
+    await expect(resetBtn).toBeVisible();
+    await resetBtn.click();
+
+    // Timer returns to initial paused state
+    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
+  });
+
+  test('Flow D: Study Group Directory & Membership', async ({ page }) => {
+    // Navigate to Browse Groups
+    await page.getByRole('button', { name: 'Browse Groups' }).click();
+    await expect(page.locator('h1', { hasText: 'Browse Study Groups' })).toBeVisible();
+
+    // Perform a search query
+    const searchInput = page.getByPlaceholder('Search groups by name or description...');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill('Calculus');
+
+    // Create a group
+    const createGroupBtn = page.getByRole('button', { name: 'Create Group' });
+    await expect(createGroupBtn).toBeVisible();
+    await createGroupBtn.click();
+
+    // Fill Create Group form
+    await page.locator('input#name').fill('E2E Test Group');
+    await page.locator('input#subject').fill('Computer Science');
+    await page.locator('textarea#description').fill('A temporary group created by Playwright E2E tests.');
+    
+    // Submit Create Group
+    await page.getByRole('button', { name: 'Create Group', exact: true }).click();
+
+    // Wait for dialog to close
+    await expect(page.getByText('Create Study Group')).not.toBeVisible();
+
+    // Search for our newly created group
+    await searchInput.fill('E2E Test Group');
+    await expect(page.getByText('E2E Test Group').first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Flow E: Collaborative & Planned Study Sessions', async ({ page }) => {
+    // Navigate to Group Sessions
+    await page.getByRole('button', { name: 'Group Sessions' }).click();
+    await expect(page.locator('h1', { hasText: 'Study Sessions' })).toBeVisible();
+
+    // Open Create Session Dialog
+    const createSessionBtn = page.getByRole('button', { name: 'Create Session' });
+    await expect(createSessionBtn).toBeVisible();
+    await createSessionBtn.click();
+
+    // Fill out form
+    await page.locator('input#title').fill('E2E Session');
+    await page.locator('textarea#description').fill('Let\'s study together!');
+    
+    // Select dates (tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const startStr = tomorrow.toISOString().slice(0, 16);
+    tomorrow.setHours(tomorrow.getHours() + 2);
+    const endStr = tomorrow.toISOString().slice(0, 16);
+
+    await page.locator('input#scheduledStart').fill(startStr);
+    await page.locator('input#scheduledEnd').fill(endStr);
+
+    // Submit Create Session
+    await page.getByRole('button', { name: 'Create Session', exact: true }).click();
+
+    // Verify session card appears under upcoming/available sessions
+    await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Flow F: Study Notes & Shared Documents', async ({ page }) => {
+    // Navigate to Notes
+    await page.getByRole('button', { name: 'Notes' }).click();
+    await expect(page.locator('h1', { hasText: 'Study Materials' })).toBeVisible();
+
+    // Open Create Note Dialog
+    const createNoteBtn = page.getByRole('button', { name: 'Create Note' });
+    await expect(createNoteBtn).toBeVisible();
+    await createNoteBtn.click();
+
+    // Fill Create Note Form
+    await page.locator('input').first().fill('E2E Test Note');
+    await page.locator('textarea').fill('This is note content written by E2E test.');
+
+    // Save note
+    await page.getByRole('button', { name: 'Create Note', exact: true }).click();
+
+    // Assert note exists in grid
+    await expect(page.getByText('E2E Test Note').first()).toBeVisible({ timeout: 10000 });
+
+    // Delete Note (click the trash button on the E2E Test Note card)
+    const noteCard = page.locator('.group', { hasText: 'E2E Test Note' }).first();
+    // The trash button is the third button in the note card's action row (nth(2))
+    const deleteBtn = noteCard.locator('button').nth(2);
+    await expect(deleteBtn).toBeVisible({ timeout: 10000 });
+    await deleteBtn.click();
+
+    // Verify note is deleted
+    await expect(page.getByText('E2E Test Note').first()).not.toBeVisible();
+  });
+});

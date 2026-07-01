@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:8080",
+      "localStorage": [
+        {
+          "name": "sb-yysdestjdzdmulgatmpc-auth-token",
+          "value": "{\"access_token\":\"eyJhbGciOiJIUzI1NiIsImtpZCI6InFHSmJWaFI5Rm5YREdhblkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3l5c2Rlc3RqZHpkbXVsZ2F0bXBjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIwOTQ3ZjRiYi1kMGUyLTRlZWEtYmQ3ZC1hYzM2ZDg0NDZkMDYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgzMDIyODc2LCJpYXQiOjE3ODI5MzY0NzYsImVtYWlsIjoiIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnt9LCJ1c2VyX21ldGFkYXRhIjp7fSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJhbm9ueW1vdXMiLCJ0aW1lc3RhbXAiOjE3ODI5MzY0NzZ9XSwic2Vzc2lvbl9pZCI6IjllMmQ5ZGVkLWNmNGUtNDZjMy1iYzc3LWYzMGJmMTcwNTQ4ZSIsImlzX2Fub255bW91cyI6dHJ1ZX0.IgUs-SVnDrI3MaxYucCxJIvFWsohLHAZnD1rpIDR7Pc\",\"token_type\":\"bearer\",\"expires_in\":86400,\"expires_at\":1783022876,\"refresh_token\":\"c2genm4csgwm\",\"user\":{\"id\":\"0947f4bb-d0e2-4eea-bd7d-ac36d8446d06\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"\",\"phone\":\"\",\"last_sign_in_at\":\"2026-07-01T20:07:56.497300514Z\",\"app_metadata\":{},\"user_metadata\":{},\"identities\":[],\"created_at\":\"2026-07-01T20:07:56.473774Z\",\"updated_at\":\"2026-07-01T20:07:56.508125Z\",\"is_anonymous\":true}}"
+        }
+      ]
+    }
+  ]
+}

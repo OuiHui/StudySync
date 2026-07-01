@@ -100,7 +100,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.warn('SignOut failed, clearing local session:', error);
+    } finally {
+      setSession(null);
+      setUser(null);
+    }
   };
 
   const value = {

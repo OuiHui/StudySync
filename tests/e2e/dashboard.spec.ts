@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('StudySync E2E Dashboard & Auth Flow', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test('should load the authentication page on first visit', async ({ page }) => {
     // Navigate to root
     await page.goto('/');

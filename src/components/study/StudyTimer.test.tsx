@@ -4,6 +4,7 @@ import { StudyTimer } from './StudyTimer';
 
 describe('StudyTimer Component (Integration)', () => {
   beforeEach(() => {
+    document.body.innerHTML = '';
     vi.useFakeTimers();
   });
 
@@ -21,10 +22,10 @@ describe('StudyTimer Component (Integration)', () => {
   });
 
   it('can edit and update the study topic', () => {
-    render(<StudyTimer />);
+    const { container } = render(<StudyTimer />);
     
-    // Edit button (the first button in the edit section)
-    const editBtn = screen.getAllByRole('button')[0];
+    // Edit button (containing the pen icon)
+    const editBtn = container.querySelector('.lucide-pen')?.closest('button')!;
     fireEvent.click(editBtn);
 
     // Input should be present
