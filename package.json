@@ -67,10 +67,13 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@emnapi/core": "1.11.1",
+    "@emnapi/runtime": "1.11.1",
     "@eslint/js": "^9.9.0",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^6.9.1",
+    "esbuild": "0.28.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.5.5",
