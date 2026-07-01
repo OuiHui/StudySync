@@ -79,38 +79,7 @@ export const useNotes = () => {
     }
   };
 
-  // Mock data fallback omitted here to keep useNotes concise, but we can return notes directly
-  // and handle mock logic inside NotesGrid if we want, or keep it here.
-  // Actually, keeping the mock logic here is fine.
-  const mockNotes = [
-    {
-      id: '1', title: 'Calculus Integration Techniques', subject: 'Mathematics', author: 'Alex Chen',
-      sharedBy: 'me', date: '2024-01-10', downloads: 24, category: 'notes', group: 'Advanced Mathematics',
-      preview: 'Integration by parts, substitution methods, and partial fractions...', isPrivate: false, isMine: true
-    },
-    {
-      id: '2', title: 'Quantum Mechanics Flashcards', subject: 'Physics', author: 'Sarah Johnson',
-      sharedBy: 'Sarah Johnson', date: '2024-01-09', downloads: 18, category: 'flashcards', group: 'Physics Study Circle',
-      preview: 'Wave functions, uncertainty principle, quantum tunneling...', isPrivate: false, isMine: false
-    },
-    {
-      id: '3', title: 'Organic Chemistry Lab Procedures', subject: 'Chemistry', author: 'John Smith',
-      sharedBy: 'John Smith', date: '2024-01-08', downloads: 31, category: 'documents', group: 'Chemistry Lab Prep',
-      preview: 'Step-by-step procedures for synthesis reactions...', isPrivate: false, isMine: false
-    },
-    {
-      id: '4', title: 'Linear Algebra Study Guide', subject: 'Mathematics', author: 'Emma Wilson',
-      sharedBy: 'Emma Wilson', date: '2024-01-07', downloads: 42, category: 'study-guide', group: 'Advanced Mathematics',
-      preview: 'Vectors, matrices, eigenvalues, and transformations...', isPrivate: false, isMine: false
-    },
-    {
-      id: '5', title: 'Personal History Notes', subject: 'History', author: 'You',
-      sharedBy: 'me', date: '2024-01-12', downloads: 0, category: 'notes', group: 'Personal',
-      preview: 'Private notes on World War II timeline...', isPrivate: true, isMine: true
-    }
-  ];
-
-  const displayNotes = notes.length > 0 ? notes.map(note => {
+  const displayNotes = notes.map(note => {
     const hasPDF = note.file_url && note.file_url.toLowerCase().endsWith('.pdf');
     const hasFile = note.file_url && note.file_url.trim() !== '';
     let preview = 'No content preview';
@@ -118,14 +87,30 @@ export const useNotes = () => {
     else if (hasFile) preview = `📎 Attached file: ${note.file_name || 'File available'}`;
     else if (note.content && note.content.trim() !== '') preview = note.content.substring(0, 100) + '...';
     
+    const isMine = note.created_by === user?.id;
     return {
-      id: note.id, title: note.title || 'Untitled', subject: note.subject || 'General', author: 'You',
-      sharedBy: 'me', date: new Date(note.created_at).toLocaleDateString(), downloads: 0,
-      category: 'notes', group: 'Personal', preview, isPrivate: note.permission_level === 'private', isMine: true,
-      user_id: note.created_by, created_by: note.created_by, file_url: note.file_url, file_name: note.file_name,
-      content: note.content, permission_level: note.permission_level, hasPDF, hasFile
+      id: note.id,
+      title: note.title || 'Untitled',
+      subject: note.subject || 'General',
+      author: isMine ? 'You' : 'Shared User',
+      sharedBy: isMine ? 'me' : 'Shared User',
+      date: new Date(note.created_at).toLocaleDateString(),
+      downloads: 0,
+      category: 'notes',
+      group: note.group_id ? 'Group Note' : 'Personal',
+      preview,
+      isPrivate: note.permission_level === 'private',
+      isMine,
+      user_id: note.created_by,
+      created_by: note.created_by,
+      file_url: note.file_url,
+      file_name: note.file_name,
+      content: note.content,
+      permission_level: note.permission_level,
+      hasPDF,
+      hasFile
     };
-  }) : mockNotes;
+  });
 
   const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
   

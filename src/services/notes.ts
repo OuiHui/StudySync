@@ -12,7 +12,6 @@ export class NotesService {
       const { data, error } = await supabase
         .from('notes')
         .select('*')
-        .eq('created_by', session.user.id)
         .order('updated_at', { ascending: false });
 
       if (error) {
