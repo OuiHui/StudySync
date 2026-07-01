@@ -65,7 +65,7 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
       ) : (
         <>
           <DashboardStats stats={userStats} />
-          <TodaySessions sessions={attendingSessions} onJoin={() => handleQuickAction('start-session')} />
+          <TodaySessions sessions={attendingSessions} onJoin={() => handleQuickAction('group-study-session')} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <QuickActions onAction={handleQuickAction} />
             <RecentActivity activity={recentActivity} />

@@ -11,7 +11,7 @@ export const QuickActions = ({ onAction }: { onAction: (action: string) => void 
       <CardContent className="space-y-3">
         <Button 
           className="w-full justify-start bg-blue-500 hover:bg-blue-600 text-white"
-          onClick={() => onAction('start-session')}
+          onClick={() => onAction('study-session')}
         >
           <Play size={16} className="mr-2" />
           Start Study Session
@@ -19,7 +19,7 @@ export const QuickActions = ({ onAction }: { onAction: (action: string) => void 
         <Button 
           variant="outline" 
           className="w-full justify-start dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          onClick={() => onAction('join-group')}
+          onClick={() => onAction('browse-groups')}
         >
           <Users size={16} className="mr-2" />
           Join Study Group
@@ -27,7 +27,7 @@ export const QuickActions = ({ onAction }: { onAction: (action: string) => void 
         <Button 
           variant="outline" 
           className="w-full justify-start dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          onClick={() => onAction('browse-notes')}
+          onClick={() => onAction('notes')}
         >
           <BookOpen size={16} className="mr-2" />
           Browse Notes

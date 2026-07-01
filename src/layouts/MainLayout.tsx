@@ -68,10 +68,13 @@ export const MainLayout = () => {
   const currentPath = location.pathname.substring(1) || 'dashboard';
 
   const handleSidebarNavigation = (newTab: string) => {
-    if (newTab === 'available-sessions' && globalTimer.isActive && !globalTimer.isGroupTimer) {
-      setPendingNavigation('/' + newTab);
-      setShowLeaveSessionDialog(true);
-      return;
+    if (globalTimer.isActive) {
+      const isNotes = newTab === 'notes';
+      const isSoloActive = newTab === 'study-session' && !globalTimer.isGroupTimer;
+      const isGroupActive = newTab === 'available-sessions' && globalTimer.isGroupTimer;
+      if (!isNotes && !isSoloActive && !isGroupActive) {
+        return;
+      }
     }
     const path = newTab === 'dashboard' ? '/' : `/${newTab}`;
     navigate(path);

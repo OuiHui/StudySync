@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './UserMenu';
+import { useGlobalTimer } from '@/contexts/GlobalTimerContext';
 
 interface SidebarProps {
   activeTab: string;
@@ -27,6 +28,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { globalTimer } = useGlobalTimer();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -38,6 +40,21 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'find-friends', label: 'Find Friends', icon: UserPlus },
     { id: 'profile', label: 'Profile', icon: User },
   ];
+
+  const isTabDisabled = (tabId: string) => {
+    if (!globalTimer.isActive) return false;
+    
+    // Notes tab is always enabled
+    if (tabId === 'notes') return false;
+    
+    // Solo Study is enabled if the active timer is a solo study timer
+    if (tabId === 'study-session' && !globalTimer.isGroupTimer) return false;
+    
+    // Group Sessions is enabled if the active timer is a group study timer
+    if (tabId === 'available-sessions' && globalTimer.isGroupTimer) return false;
+    
+    return true;
+  };
 
   return (
     <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ${
@@ -69,13 +86,17 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+            const isDisabled = isTabDisabled(item.id);
             
             return (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
+                  disabled={isDisabled}
+                  onClick={() => !isDisabled && setActiveTab(item.id)}
                   className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
-                    isActive
+                    isDisabled
+                      ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                      : isActive
                       ? 'bg-blue-500 text-white'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
@@ -97,7 +118,10 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
             {!isCollapsed && (
               <span className="text-sm text-gray-600 dark:text-gray-300">Account</span>
             )}
-            <UserMenu onProfileClick={() => setActiveTab('profile')} />
+            <UserMenu 
+              onProfileClick={() => setActiveTab('profile')} 
+              isProfileDisabled={isTabDisabled('profile')}
+            />
           </div>
         </div>
       </div>
