@@ -43,8 +43,8 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
         <CardContent>
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2">Loading calendar...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading calendar...</span>
             </div>
           ) : error ? (
             <div className="text-center py-8">
@@ -54,50 +54,60 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="flex justify-center">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Calendar picker */}
+              <div className="flex-shrink-0 flex justify-center lg:justify-start">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
-                  className={`rounded-md border dark:border-gray-600 ${compact ? 'text-sm' : ''}`}
+                  className={`rounded-lg border dark:border-gray-700 ${compact ? 'text-sm' : ''}`}
                   modifiers={{
                     hasEvent: (date) => hasEvents(date),
                     today: (date) => isToday(date)
                   }}
                   modifiersClassNames={{
-                    hasEvent: 'relative bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold',
-                    today: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400 font-bold ring-2 ring-orange-500'
+                    hasEvent: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold',
+                    today: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300 font-bold ring-1 ring-indigo-400 dark:ring-indigo-600'
                   }}
                   formatters={{
                     formatDay: (date) => {
                       const dayNumber = date.getDate().toString();
-                      const eventExists = hasEvents(date);
-                      const today = isToday(date);
-                      if (eventExists) return `${dayNumber}●`;
+                      if (hasEvents(date)) return `${dayNumber}·`;
                       return dayNumber;
                     }
                   }}
                 />
               </div>
 
-              <div className="flex flex-col">
-                <div className="mb-4">
+              {/* Divider */}
+              <div className="hidden lg:block w-px bg-gray-100 dark:bg-slate-800 self-stretch" />
+
+              {/* Event list for selected date */}
+              <div className="flex-1 min-w-0 flex flex-col">
+                <div className="flex items-baseline justify-between mb-3">
                   <h3 className={`${compact ? 'text-sm' : 'text-base'} font-semibold text-gray-800 dark:text-white`}>
                     {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
                   </h3>
+                  {selectedDateEvents.length > 0 && (
+                    <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
+                      {selectedDateEvents.length} {selectedDateEvents.length === 1 ? 'event' : 'events'}
+                    </span>
+                  )}
                 </div>
-                
-                <div className="flex-1 overflow-y-auto max-h-64">
+
+                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3 max-h-72 pr-0.5">
                   {selectedDateEvents.length > 0 ? (
-                    <div className="space-y-3">
-                      {selectedDateEvents.map((event) => (
-                        <EventItem key={event.id} event={event} compact={compact} onUpdate={loadEvents} />
-                      ))}
-                    </div>
+                    selectedDateEvents.map((event) => (
+                      <EventItem key={event.id} event={event} compact={compact} onUpdate={loadEvents} />
+                    ))
                   ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 dark:text-gray-400 text-sm">No events scheduled for this date</p>
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+                        <span className="text-gray-400 text-lg">📅</span>
+                      </div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No events on this day</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Select another date or create a session</p>
                     </div>
                   )}
                 </div>
