@@ -3,7 +3,6 @@ import { Bell, BellDot, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationCenter } from '@/components/common/notifications/NotificationCenter';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { DashboardStats } from './DashboardStats';
 import { TodaySessions } from './TodaySessions';
 import { QuickActions } from './QuickActions';
 import { RecentActivity } from './RecentActivity';
@@ -64,7 +63,6 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
         </div>
       ) : (
         <>
-          <DashboardStats stats={userStats} />
           <TodaySessions sessions={attendingSessions} onJoin={() => handleQuickAction('group-study-session')} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <QuickActions onAction={handleQuickAction} />

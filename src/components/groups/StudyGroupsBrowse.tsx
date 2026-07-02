@@ -75,7 +75,23 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Browse Study Groups</h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Find and join study groups by subject</p>
+        <p className="text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center gap-x-2">
+          <span>Find and join study groups by subject</span>
+          {!loading && (
+            <>
+              <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">|</span>
+              <span className="flex items-center gap-2 text-sm">
+                <span className="text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredGroups.length}</span> available
+                </span>
+                <span className="text-gray-300 dark:text-gray-700 font-normal">·</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-green-600 dark:text-green-400">{filteredGroups.filter(g => g.isEnlisted).length}</span> joined
+                </span>
+              </span>
+            </>
+          )}
+        </p>
       </div>
 
       {error && (
@@ -123,39 +139,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredGroups.length}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Available Groups</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {filteredGroups.filter(g => g.isEnlisted).length}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Joined</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {subjects.length - 1}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Subjects</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-md dark:bg-gray-800">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {filteredGroups.reduce((sum, g) => sum + g.members, 0)}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">Total Members</div>
-              </CardContent>
-            </Card>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredGroups.map((group) => {
               const isCreator = user?.id === group.created_by;

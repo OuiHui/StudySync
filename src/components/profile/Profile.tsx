@@ -11,13 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfileData } from '@/hooks/useProfileData';
 
 import { ProfileOverview } from './ProfileOverview';
-import { ProfileStats } from './ProfileStats';
 
 import { ProfileSettings } from './ProfileSettings';
 
 export const Profile = () => {
   const { toast } = useToast();
-  const { user, authLoading, loading, userProfile, setUserProfile, userStats } = useProfileData();
+  const { user, authLoading, loading, userProfile, setUserProfile } = useProfileData();
   
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
@@ -87,7 +86,6 @@ export const Profile = () => {
       </div>
 
       <ProfileOverview profile={userProfile} />
-      <ProfileStats stats={userStats} />
 
 
 

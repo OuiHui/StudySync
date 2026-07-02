@@ -8,7 +8,6 @@ import {
   MessageSquare,
   GraduationCap,
   BookOpen,
-  Sparkles,
   Filter,
   X,
 } from 'lucide-react';
@@ -197,7 +196,7 @@ const MOCK_PEOPLE: MockPerson[] = [
   },
 ];
 
-type FilterOption = 'all' | 'suggested' | 'friends' | 'pending';
+type FilterOption = 'all' | 'friends' | 'pending';
 
 export const FindFriendsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -231,9 +230,6 @@ export const FindFriendsPage = () => {
     }
 
     switch (activeFilter) {
-      case 'suggested':
-        filtered = filtered.filter((p) => p.status === 'none' && p.mutualFriends > 0);
-        break;
       case 'friends':
         filtered = filtered.filter((p) => p.status === 'friends');
         break;
@@ -250,14 +246,12 @@ export const FindFriendsPage = () => {
       total: people.length,
       friends: people.filter((p) => p.status === 'friends').length,
       pending: people.filter((p) => p.status === 'pending').length,
-      suggested: people.filter((p) => p.status === 'none' && p.mutualFriends > 0).length,
     }),
     [people]
   );
 
   const filters: { id: FilterOption; label: string; count: number }[] = [
     { id: 'all', label: 'All People', count: stats.total },
-    { id: 'suggested', label: 'Suggested', count: stats.suggested },
     { id: 'friends', label: 'Friends', count: stats.friends },
     { id: 'pending', label: 'Pending', count: stats.pending },
   ];
@@ -270,57 +264,6 @@ export const FindFriendsPage = () => {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Connect with fellow students and build your study network
         </p>
-      </div>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          {
-            label: 'People',
-            value: stats.total,
-            icon: Users,
-            gradient: 'from-blue-500/10 to-indigo-500/10',
-            iconColor: 'text-blue-500',
-            border: 'border-blue-200/60 dark:border-blue-800/40',
-          },
-          {
-            label: 'Friends',
-            value: stats.friends,
-            icon: UserCheck,
-            gradient: 'from-emerald-500/10 to-teal-500/10',
-            iconColor: 'text-emerald-500',
-            border: 'border-emerald-200/60 dark:border-emerald-800/40',
-          },
-          {
-            label: 'Pending',
-            value: stats.pending,
-            icon: Clock,
-            gradient: 'from-amber-500/10 to-orange-500/10',
-            iconColor: 'text-amber-500',
-            border: 'border-amber-200/60 dark:border-amber-800/40',
-          },
-          {
-            label: 'Suggested',
-            value: stats.suggested,
-            icon: Sparkles,
-            gradient: 'from-violet-500/10 to-purple-500/10',
-            iconColor: 'text-violet-500',
-            border: 'border-violet-200/60 dark:border-violet-800/40',
-          },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`rounded-xl border ${stat.border} bg-gradient-to-br ${stat.gradient} dark:bg-gray-900/50 p-4 transition-all hover:scale-[1.02]`}
-          >
-            <div className="flex items-center gap-2.5">
-              <stat.icon size={18} className={stat.iconColor} />
-              <div>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{stat.label}</p>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
 
       {/* Search & Filters */}
