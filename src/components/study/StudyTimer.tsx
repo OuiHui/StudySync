@@ -6,13 +6,53 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SessionProgress } from './SessionProgress';
 import { useTimer } from '@/hooks/useTimer';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { ReflectionDialog } from './ReflectionDialog';
+import { StudySessionsMutations } from '@/services/studySessions/mutations';
 
 interface StudyTimerProps {
-  onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;
+  onTimerUpdate?: (
+    isActive: boolean,
+    timeLeft: number,
+    initialTime?: number,
+    mode?: 'work' | 'break',
+    currentCycle?: number,
+    pauseLogs?: { paused_at: string; resumed_at: string | null }[]
+  ) => void;
   isGroupSession?: boolean;
+  sessionId?: string;
 }
 
-export const StudyTimer = ({ onTimerUpdate, isGroupSession = false }: StudyTimerProps) => {
+export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }: StudyTimerProps) => {
+  const { user } = useAuth();
+  const [isHost, setIsHost] = useState(true);
+  const [sessionSubject, setSessionSubject] = useState<string | null>(null);
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const [savingReflection, setSavingReflection] = useState(false);
+
+  useEffect(() => {
+    const checkHostStatus = async () => {
+      if (!sessionId || !user) return;
+      try {
+        const { data, error } = await supabase
+          .from('study_sessions')
+          .select('created_by, subject')
+          .eq('id', sessionId)
+          .single();
+        if (!error && data) {
+          setIsHost(data.created_by === user.id);
+          if (data.subject) {
+            setSessionSubject(data.subject);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking host status:', err);
+      }
+    };
+    checkHostStatus();
+  }, [sessionId, user]);
+
   // Get global timer state from window object (set by Index.tsx)
   const globalTimerState = (window as any).globalTimerState;
   
@@ -27,13 +67,40 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false }: StudyTimer
     sessions,
     sessionGoal,
     progress,
+    currentCycle,
     toggleTimer,
     resetTimer,
-    setSessionGoal
+    setSessionGoal,
+    workDuration
   } = useTimer({ 
     onTimerUpdate, 
-    globalTimerState: isGroupSession ? globalTimerState : undefined 
+    globalTimerState: isGroupSession ? globalTimerState : undefined,
+    sessionId,
+    isHost
   });
+
+  const handleReflectionSubmit = async (rating: number, notes: string) => {
+    setSavingReflection(true);
+    try {
+      if (sessionId) {
+        await StudySessionsMutations.updateSession(sessionId, {
+          reflection_rating: rating,
+          reflection_notes: notes,
+          status: 'finished',
+          actual_end: new Date().toISOString()
+        });
+      } else {
+        const reflection = { rating, notes, completedAt: new Date().toISOString() };
+        console.log('Saved local reflection:', reflection);
+      }
+      resetTimer();
+    } catch (err) {
+      console.error('Failed to submit reflection:', err);
+      throw err;
+    } finally {
+      setSavingReflection(false);
+    }
+  };
 
   const handleTopicEdit = () => {
     setEditedTopic(currentTopic);
@@ -62,6 +129,8 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false }: StudyTimer
         <CardHeader>
           <CardTitle className="text-center text-xl text-gray-800 dark:text-white">
             {mode === 'work' ? '🍅 Group Study Timer' : '☕ Break Time'}
+            {sessionSubject && <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">Subject: {sessionSubject}</span>}
+            {currentCycle && <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-0.5">Cycle {currentCycle}</span>}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
@@ -100,18 +169,36 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false }: StudyTimer
           </div>
 
           <div className="flex justify-center space-x-4">
-            <Button
-              onClick={toggleTimer}
-              size="lg"
-              className={`${mode === 'work' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
-            >
-              {isActive ? <Pause size={20} /> : <Play size={20} />}
-              <span className="ml-2">{isActive ? 'Pause' : 'Start'}</span>
-            </Button>
-            <Button onClick={resetTimer} variant="outline" size="lg" className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              <RotateCcw size={20} />
-              <span className="ml-2">Reset</span>
-            </Button>
+            {isHost ? (
+              <>
+                <Button
+                  onClick={toggleTimer}
+                  size="lg"
+                  className={`${mode === 'work' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                >
+                  {isActive ? <Pause size={20} /> : <Play size={20} />}
+                  <span className="ml-2">{isActive ? 'Pause' : 'Start'}</span>
+                </Button>
+                <Button onClick={resetTimer} variant="outline" size="lg" className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                  <RotateCcw size={20} />
+                  <span className="ml-2">Reset</span>
+                </Button>
+                {(isActive || timeLeft < workDuration) && (
+                  <Button
+                    onClick={() => setReflectionOpen(true)}
+                    variant="secondary"
+                    size="lg"
+                    className="bg-amber-500 hover:bg-amber-600 text-white"
+                  >
+                    Finish Session
+                  </Button>
+                )}
+              </>
+            ) : (
+              <div className="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 px-4 py-2 rounded-full border border-amber-200 dark:border-amber-900/30">
+                ⏳ Host-controlled session. Syncing timer...
+              </div>
+            )}
           </div>
 
           <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -168,6 +255,13 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false }: StudyTimer
         sessions={sessions}
         sessionGoal={sessionGoal}
         onSessionGoalChange={setSessionGoal}
+      />
+
+      <ReflectionDialog
+        isOpen={reflectionOpen}
+        onClose={() => setReflectionOpen(false)}
+        onSubmit={handleReflectionSubmit}
+        loading={savingReflection}
       />
     </div>
   );

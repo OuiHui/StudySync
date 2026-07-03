@@ -15,15 +15,15 @@ export default function AvailableSessions() {
     }
   }, [isInGroupSession, navigate]);
 
-  const handleJoinSession = () => {
+  const handleJoinSession = (sessionId: string) => {
     if (globalTimer.isActive && !globalTimer.isGroupTimer) {
-      setPendingNavigation('/group-study-session');
+      setPendingNavigation(`/group-study-session?id=${sessionId}`);
       setShowLeaveSessionDialog(true);
       return;
     }
     
     setIsInGroupSession(true);
-    navigate('/group-study-session');
+    navigate(`/group-study-session?id=${sessionId}`);
   };
 
   return <AvailableSessionsList onJoinSession={handleJoinSession} />;

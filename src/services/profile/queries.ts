@@ -27,6 +27,7 @@ export class ProfileQueries {
               .insert({
                 user_id: session.user.id,
                 display_name: session.user.email?.split('@')[0] || 'User',
+                email: session.user.email,
                 bio: null,
                 avatar_url: null
               })

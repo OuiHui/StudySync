@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { GroupStudySession } from '@/components/study/GroupStudySession';
 import { useGlobalTimer } from '@/contexts/GlobalTimerContext';
 import { useSession } from '@/contexts/SessionContext';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 
 export default function GroupSessions() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('id') || undefined;
   const { handleTimerUpdate, handleCancelTimer } = useGlobalTimer();
-  const { setIsInGroupSession } = useSession();
+  const { setIsInGroupSession, setShowLeaveSessionDialog, setPendingNavigation } = useSession();
   const { currentTheme, handleThemeChange } = useOutletContext<any>();
 
   useEffect(() => {
@@ -18,9 +20,8 @@ export default function GroupSessions() {
   }, [setIsInGroupSession]);
 
   const handleLeaveSession = () => {
-    setIsInGroupSession(false);
-    handleCancelTimer();
-    navigate('/available-sessions');
+    setPendingNavigation('/available-sessions');
+    setShowLeaveSessionDialog(true);
   };
 
   return (
@@ -31,6 +32,7 @@ export default function GroupSessions() {
       }
       onThemeChange={handleThemeChange}
       currentTheme={currentTheme}
+      sessionId={sessionId}
     />
   );
 }

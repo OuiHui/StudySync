@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Search,
   UserPlus,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FriendsService } from '@/services/database';
 
 type FriendStatus = 'none' | 'pending' | 'friends';
 
@@ -31,203 +32,105 @@ interface MockPerson {
   status: FriendStatus;
   bio: string;
   topSubjects: string[];
+  friendshipId?: string;
 }
-
-const MOCK_PEOPLE: MockPerson[] = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@gatech.edu',
-    avatar: null,
-    initials: 'SC',
-    gradientFrom: 'from-violet-400',
-    gradientTo: 'to-purple-600',
-    major: 'Computer Science',
-    year: '3rd Year',
-    mutualFriends: 5,
-    studyHours: 142,
-    status: 'none',
-    bio: 'ML enthusiast & coffee lover. Always down for a late-night study session.',
-    topSubjects: ['Machine Learning', 'Algorithms', 'Linear Algebra'],
-  },
-  {
-    id: '2',
-    name: 'Marcus Johnson',
-    email: 'marcus.j@gatech.edu',
-    avatar: null,
-    initials: 'MJ',
-    gradientFrom: 'from-sky-400',
-    gradientTo: 'to-blue-600',
-    major: 'Electrical Engineering',
-    year: '2nd Year',
-    mutualFriends: 3,
-    studyHours: 98,
-    status: 'friends',
-    bio: 'Signal processing nerd. I make circuits and bad puns.',
-    topSubjects: ['Circuits', 'Signals & Systems', 'Physics'],
-  },
-  {
-    id: '3',
-    name: 'Priya Patel',
-    email: 'priya.patel@gatech.edu',
-    avatar: null,
-    initials: 'PP',
-    gradientFrom: 'from-emerald-400',
-    gradientTo: 'to-teal-600',
-    major: 'Biomedical Engineering',
-    year: '4th Year',
-    mutualFriends: 8,
-    studyHours: 210,
-    status: 'none',
-    bio: 'Pre-med track, research assistant at the BME lab. Study group organizer.',
-    topSubjects: ['Organic Chemistry', 'Biomechanics', 'Anatomy'],
-  },
-  {
-    id: '4',
-    name: 'Alex Rivera',
-    email: 'alex.r@gatech.edu',
-    avatar: null,
-    initials: 'AR',
-    gradientFrom: 'from-orange-400',
-    gradientTo: 'to-amber-600',
-    major: 'Industrial Engineering',
-    year: '3rd Year',
-    mutualFriends: 2,
-    studyHours: 76,
-    status: 'pending',
-    bio: 'Optimization is my thing — both in coursework and in life.',
-    topSubjects: ['Operations Research', 'Statistics', 'Supply Chain'],
-  },
-  {
-    id: '5',
-    name: 'Emily Nakamura',
-    email: 'emily.n@gatech.edu',
-    avatar: null,
-    initials: 'EN',
-    gradientFrom: 'from-rose-400',
-    gradientTo: 'to-pink-600',
-    major: 'Computer Science',
-    year: '1st Year',
-    mutualFriends: 1,
-    studyHours: 45,
-    status: 'none',
-    bio: 'Freshman exploring CS! Looking for study partners in intro courses.',
-    topSubjects: ['Intro to CS', 'Discrete Math', 'Calculus'],
-  },
-  {
-    id: '6',
-    name: 'David Kim',
-    email: 'david.kim@gatech.edu',
-    avatar: null,
-    initials: 'DK',
-    gradientFrom: 'from-indigo-400',
-    gradientTo: 'to-indigo-700',
-    major: 'Aerospace Engineering',
-    year: '4th Year',
-    mutualFriends: 4,
-    studyHours: 185,
-    status: 'none',
-    bio: 'Space geek. Currently working on my senior design project for a satellite.',
-    topSubjects: ['Orbital Mechanics', 'Fluid Dynamics', 'Thermodynamics'],
-  },
-  {
-    id: '7',
-    name: 'Jordan Williams',
-    email: 'jordan.w@gatech.edu',
-    avatar: null,
-    initials: 'JW',
-    gradientFrom: 'from-cyan-400',
-    gradientTo: 'to-cyan-700',
-    major: 'Mathematics',
-    year: '2nd Year',
-    mutualFriends: 6,
-    studyHours: 120,
-    status: 'friends',
-    bio: 'Pure math is beautiful. Also TAing for linear algebra this semester.',
-    topSubjects: ['Abstract Algebra', 'Real Analysis', 'Topology'],
-  },
-  {
-    id: '8',
-    name: 'Olivia Thompson',
-    email: 'olivia.t@gatech.edu',
-    avatar: null,
-    initials: 'OT',
-    gradientFrom: 'from-fuchsia-400',
-    gradientTo: 'to-fuchsia-700',
-    major: 'Computer Science',
-    year: '3rd Year',
-    mutualFriends: 7,
-    studyHours: 156,
-    status: 'none',
-    bio: 'Full-stack dev who loves hackathons. Let\'s build something together!',
-    topSubjects: ['Web Dev', 'Databases', 'Software Engineering'],
-  },
-  {
-    id: '9',
-    name: 'Ethan Morales',
-    email: 'ethan.m@gatech.edu',
-    avatar: null,
-    initials: 'EM',
-    gradientFrom: 'from-lime-400',
-    gradientTo: 'to-green-600',
-    major: 'Mechanical Engineering',
-    year: '2nd Year',
-    mutualFriends: 0,
-    studyHours: 62,
-    status: 'none',
-    bio: 'CAD wizard and 3D printing enthusiast. Robotics club member.',
-    topSubjects: ['Statics', 'Dynamics', 'Materials Science'],
-  },
-  {
-    id: '10',
-    name: 'Aisha Rahman',
-    email: 'aisha.r@gatech.edu',
-    avatar: null,
-    initials: 'AR',
-    gradientFrom: 'from-amber-400',
-    gradientTo: 'to-yellow-600',
-    major: 'Chemical Engineering',
-    year: '3rd Year',
-    mutualFriends: 3,
-    studyHours: 130,
-    status: 'pending',
-    bio: 'Research in sustainable energy. Passionate about green chemistry.',
-    topSubjects: ['Thermodynamics', 'Reactor Design', 'Transport Phenomena'],
-  },
-];
 
 type FilterOption = 'all' | 'friends' | 'pending';
 
 export const FindFriendsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [people, setPeople] = useState<MockPerson[]>(MOCK_PEOPLE);
+  const [people, setPeople] = useState<MockPerson[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
 
-  const handleAddFriend = (personId: string) => {
-    setPeople((prev) =>
-      prev.map((p) => (p.id === personId ? { ...p, status: 'pending' as FriendStatus } : p))
-    );
+  useEffect(() => {
+    let active = true;
+    const fetchPeople = async () => {
+      setLoading(true);
+      try {
+        const data = await FriendsService.searchUsers(searchQuery);
+        if (!active) return;
+
+        const mapped: MockPerson[] = data.map((d: any) => {
+          const initials = d.display_name
+            ? d.display_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+            : d.email[0].toUpperCase();
+
+          let status: FriendStatus = 'none';
+          if (d.friendship_status === 'accepted') {
+            status = 'friends';
+          } else if (d.friendship_status === 'pending') {
+            status = 'pending';
+          }
+
+          return {
+            id: d.id,
+            name: d.display_name || d.email.split('@')[0],
+            email: d.email,
+            avatar: d.avatar_url,
+            initials: initials,
+            gradientFrom: d.gradient_from || 'from-blue-400',
+            gradientTo: d.gradient_to || 'to-blue-600',
+            major: d.major || 'Computer Science',
+            year: d.year || '1st Year',
+            mutualFriends: d.mutual_friends || 0,
+            studyHours: d.study_hours || 0,
+            status: status,
+            bio: d.bio || 'No bio yet.',
+            topSubjects: d.top_subjects || [],
+            friendshipId: d.friendship_id
+          };
+        });
+        setPeople(mapped);
+      } catch (err) {
+        console.error('Error loading people:', err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchPeople();
+    return () => {
+      active = false;
+    };
+  }, [searchQuery]);
+
+  const handleAddFriend = async (personId: string) => {
+    try {
+      const result = await FriendsService.sendFriendRequest(personId);
+      setPeople((prev) =>
+        prev.map((p) =>
+          p.id === personId
+            ? { ...p, status: 'pending' as FriendStatus, friendshipId: result?.id }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error('Error adding friend:', err);
+    }
   };
 
-  const handleCancelRequest = (personId: string) => {
-    setPeople((prev) =>
-      prev.map((p) => (p.id === personId ? { ...p, status: 'none' as FriendStatus } : p))
-    );
+  const handleCancelRequest = async (personId: string) => {
+    const person = people.find((p) => p.id === personId);
+    const friendshipId = person?.friendshipId;
+    if (!friendshipId) return;
+
+    try {
+      await FriendsService.cancelFriendRequest(friendshipId);
+      setPeople((prev) =>
+        prev.map((p) =>
+          p.id === personId
+            ? { ...p, status: 'none' as FriendStatus, friendshipId: undefined }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error('Error canceling friend request:', err);
+    }
   };
 
   const filteredPeople = useMemo(() => {
     let filtered = people;
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.email.toLowerCase().includes(q) ||
-          p.major.toLowerCase().includes(q) ||
-          p.topSubjects.some((s) => s.toLowerCase().includes(q))
-      );
-    }
 
     switch (activeFilter) {
       case 'friends':
@@ -239,7 +142,7 @@ export const FindFriendsPage = () => {
     }
 
     return filtered;
-  }, [people, searchQuery, activeFilter]);
+  }, [people, activeFilter]);
 
   const stats = useMemo(
     () => ({
@@ -317,7 +220,11 @@ export const FindFriendsPage = () => {
       </div>
 
       {/* People Grid */}
-      {filteredPeople.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+      ) : filteredPeople.length === 0 ? (
         <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-12 text-center">
           <Users size={32} className="text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-sm text-gray-500 dark:text-gray-400">

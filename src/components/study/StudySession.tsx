@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { ReflectionDialog } from './ReflectionDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SessionSettings } from './SessionSettings';
 import { TimerDisplay } from './TimerDisplay';
@@ -37,6 +38,14 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
   } = useTimer({ onTimerUpdate, globalTimerState });
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const [savingReflection, setSavingReflection] = useState(false);
+
+  const handleReflectionSubmit = async (rating: number, notes: string) => {
+    // For local study sessions, just print/log and reset
+    console.log('Local study session finished. Focus Rating:', rating, 'Reflections:', notes);
+    resetTimer();
+  };
 
   return (
     <div className="p-6 overflow-y-auto">
@@ -83,6 +92,8 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
                 progress={progress}
                 onToggle={toggleTimer}
                 onReset={resetTimer}
+                onFinish={() => setReflectionOpen(true)}
+                showFinishButton={isActive || timeLeft < workDuration}
               />
             </CardContent>
           </Card>
@@ -104,6 +115,13 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
 
         <StudyMaterial />
       </div>
+
+      <ReflectionDialog
+        isOpen={reflectionOpen}
+        onClose={() => setReflectionOpen(false)}
+        onSubmit={handleReflectionSubmit}
+        loading={savingReflection}
+      />
     </div>
   );
 };

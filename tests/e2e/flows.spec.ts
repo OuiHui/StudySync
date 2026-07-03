@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
+import * as fs from 'fs';
 
 test.describe('StudySync E2E User Flows', () => {
   test.beforeEach(async ({ page }) => {
@@ -40,8 +42,8 @@ test.describe('StudySync E2E User Flows', () => {
 
   test('Flow B: Dashboard Overview & Notification Management', async ({ page }) => {
     // Check dashboard statistic cards
-    await expect(page.getByText('Study Hours Today')).toBeVisible();
-    await expect(page.getByText('Active Groups')).toBeVisible();
+    await expect(page.getByText('Study Hours This Week')).toBeVisible();
+    await expect(page.getByText('Sessions Completed')).toBeVisible();
     
     // Open notifications popover
     const notifBtn = page.getByRole('button', { name: /Notifications/i });
@@ -195,5 +197,55 @@ test.describe('StudySync E2E User Flows', () => {
 
     // Verify note is deleted
     await expect(page.getByText('E2E Test Note').first()).not.toBeVisible();
+  });
+
+  test.afterAll(async () => {
+    const SUPABASE_URL = "https://yysdestjdzdmulgatmpc.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5c2Rlc3RqZHpkbXVsZ2F0bXBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5OTM3ODUsImV4cCI6MjA2NDU2OTc4NX0.SQzWV9Vd72zC8J6sSIPsKSsQp90Jte3e_lCMy7eb9_M";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    const authFile = 'playwright/.auth/user.json';
+    if (fs.existsSync(authFile)) {
+      try {
+        const state = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
+        const origin = state.origins?.find((o: any) => 
+          o.localStorage?.some((item: any) => item.name.startsWith('sb-') && item.name.endsWith('-auth-token'))
+        );
+        if (origin) {
+          const tokenItem = origin.localStorage.find((item: any) => 
+            item.name.startsWith('sb-') && item.name.endsWith('-auth-token')
+          );
+          const tokenData = JSON.parse(tokenItem.value);
+          const access_token = tokenData.access_token;
+          const refresh_token = tokenData.refresh_token;
+          if (access_token && refresh_token) {
+            await supabase.auth.setSession({ access_token, refresh_token });
+            console.log('Teardown authenticated successfully using stored session.');
+          }
+        }
+      } catch (e) {
+        console.warn('Teardown failed to authenticate using stored session:', e);
+      }
+    }
+
+    console.log('Cleaning up E2E Test Group and E2E Session...');
+    
+    // Delete E2E groups
+    const { error: groupError } = await supabase
+      .from('study_groups')
+      .delete()
+      .eq('name', 'E2E Test Group');
+    if (groupError) {
+      console.error('Error cleaning up E2E study groups:', groupError);
+    }
+
+    // Delete E2E sessions
+    const { error: sessionError } = await supabase
+      .from('study_sessions')
+      .delete()
+      .eq('title', 'E2E Session');
+    if (sessionError) {
+      console.error('Error cleaning up E2E study sessions:', sessionError);
+    }
   });
 });

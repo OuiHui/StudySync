@@ -9,12 +9,22 @@ export interface GlobalTimerState {
   mode: TimerMode;
   isGroupTimer: boolean;
   formatTime: (seconds: number) => string;
+  currentCycle: number;
+  pauseLogs: { paused_at: string; resumed_at: string | null }[];
 }
 
 export interface GlobalTimerContextType {
   globalTimer: GlobalTimerState;
   setGlobalTimer: React.Dispatch<React.SetStateAction<GlobalTimerState>>;
-  handleTimerUpdate: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: TimerMode, isGroupTimer?: boolean) => void;
+  handleTimerUpdate: (
+    isActive: boolean,
+    timeLeft: number,
+    initialTime?: number,
+    mode?: TimerMode,
+    isGroupTimer?: boolean,
+    currentCycle?: number,
+    pauseLogs?: { paused_at: string; resumed_at: string | null }[]
+  ) => void;
   handleGlobalTimerToggle: () => void;
   handleCancelTimer: () => void;
 }
@@ -32,7 +42,9 @@ export const GlobalTimerProvider = ({ children }: { children: ReactNode }) => {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+    },
+    currentCycle: 1,
+    pauseLogs: []
   });
 
   useEffect(() => {
@@ -53,7 +65,15 @@ export const GlobalTimerProvider = ({ children }: { children: ReactNode }) => {
     (window as any).globalTimerState = globalTimer;
   }, [globalTimer]);
 
-  const handleTimerUpdate = (isActive: boolean, timeLeft: number, initialTime?: number, mode?: TimerMode, isGroupTimer: boolean = false) => {
+  const handleTimerUpdate = (
+    isActive: boolean,
+    timeLeft: number,
+    initialTime?: number,
+    mode?: TimerMode,
+    isGroupTimer: boolean = false,
+    currentCycle?: number,
+    pauseLogs?: { paused_at: string; resumed_at: string | null }[]
+  ) => {
     const shouldUpdate = globalTimer.isGroupTimer === isGroupTimer;
     if (shouldUpdate) {
       setGlobalTimer(prev => ({
@@ -62,7 +82,9 @@ export const GlobalTimerProvider = ({ children }: { children: ReactNode }) => {
         timeLeft,
         initialTime: initialTime !== undefined ? initialTime : prev.initialTime,
         mode: mode !== undefined ? mode : prev.mode,
-        isGroupTimer
+        isGroupTimer,
+        currentCycle: currentCycle !== undefined ? currentCycle : prev.currentCycle,
+        pauseLogs: pauseLogs !== undefined ? pauseLogs : prev.pauseLogs
       }));
     }
   };
@@ -77,7 +99,9 @@ export const GlobalTimerProvider = ({ children }: { children: ReactNode }) => {
       isActive: false,
       timeLeft: 0,
       initialTime: 25 * 60,
-      isGroupTimer: false
+      isGroupTimer: false,
+      currentCycle: 1,
+      pauseLogs: []
     }));
   };
 

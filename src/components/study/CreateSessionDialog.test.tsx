@@ -109,6 +109,8 @@ describe('CreateSessionDialog Component', () => {
         session_id: 'new-session-id',
         user_id: 'creator-user-id',
         is_attending: true,
+        role: 'host',
+        status: 'active'
       });
     });
 

@@ -13,9 +13,10 @@ interface GroupStudySessionProps {
   onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;
   onThemeChange?: (theme: any) => void;
   currentTheme?: any;
+  sessionId?: string;
 }
 
-export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange, currentTheme }: GroupStudySessionProps) => {
+export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange, currentTheme, sessionId }: GroupStudySessionProps) => {
   const [notesOpen, setNotesOpen] = useState(false);
   const [privateChatOpen, setPrivateChatOpen] = useState(false);
   const [privateChatParticipant, setPrivateChatParticipant] = useState<any>(null);
@@ -89,7 +90,7 @@ export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <StudyTimer onTimerUpdate={onTimerUpdate} isGroupSession={true} />
+            <StudyTimer onTimerUpdate={onTimerUpdate} isGroupSession={true} sessionId={sessionId} />
             <SessionStats />
           </div>
 

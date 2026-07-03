@@ -9,6 +9,8 @@ interface TimerDisplayProps {
   progress: number;
   onToggle: () => void;
   onReset: () => void;
+  onFinish?: () => void;
+  showFinishButton?: boolean;
 }
 
 export const TimerDisplay = ({
@@ -17,7 +19,9 @@ export const TimerDisplay = ({
   mode,
   progress,
   onToggle,
-  onReset
+  onReset,
+  onFinish,
+  showFinishButton = false
 }: TimerDisplayProps) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -74,6 +78,11 @@ export const TimerDisplay = ({
           <RotateCcw size={20} />
           <span className="ml-2">Reset</span>
         </Button>
+        {showFinishButton && onFinish && (
+          <Button onClick={onFinish} variant="secondary" size="lg" className="bg-amber-500 hover:bg-amber-600 text-white">
+            Finish Session
+          </Button>
+        )}
       </div>
     </>
   );

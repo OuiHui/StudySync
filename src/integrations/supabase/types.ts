@@ -358,7 +358,9 @@ export type Database = {
           is_attending: boolean | null
           joined_at: string
           left_at: string | null
+          role: string
           session_id: string
+          status: string
           user_id: string
         }
         Insert: {
@@ -366,7 +368,9 @@ export type Database = {
           is_attending?: boolean | null
           joined_at?: string
           left_at?: string | null
+          role?: string
           session_id: string
+          status?: string
           user_id: string
         }
         Update: {
@@ -374,7 +378,9 @@ export type Database = {
           is_attending?: boolean | null
           joined_at?: string
           left_at?: string | null
+          role?: string
           session_id?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -429,14 +435,21 @@ export type Database = {
           actual_start: string | null
           created_at: string
           created_by: string
+          current_cycle: number
           description: string | null
           group_id: string | null
           id: string
           is_public: boolean | null
           max_participants: number | null
+          pause_logs: Json
+          reflection_notes: string | null
+          reflection_rating: number | null
           scheduled_end: string
           scheduled_start: string
           status: Database["public"]["Enums"]["session_status"]
+          subject: string | null
+          target_duration: number | null
+          timer_mode: string
           title: string
           updated_at: string
         }
@@ -445,14 +458,21 @@ export type Database = {
           actual_start?: string | null
           created_at?: string
           created_by: string
+          current_cycle?: number
           description?: string | null
           group_id?: string | null
           id?: string
           is_public?: boolean | null
           max_participants?: number | null
+          pause_logs?: Json
+          reflection_notes?: string | null
+          reflection_rating?: number | null
           scheduled_end: string
           scheduled_start: string
           status?: Database["public"]["Enums"]["session_status"]
+          subject?: string | null
+          target_duration?: number | null
+          timer_mode?: string
           title: string
           updated_at?: string
         }
@@ -461,14 +481,21 @@ export type Database = {
           actual_start?: string | null
           created_at?: string
           created_by?: string
+          current_cycle?: number
           description?: string | null
           group_id?: string | null
           id?: string
           is_public?: boolean | null
           max_participants?: number | null
+          pause_logs?: Json
+          reflection_notes?: string | null
+          reflection_rating?: number | null
           scheduled_end?: string
           scheduled_start?: string
           status?: Database["public"]["Enums"]["session_status"]
+          subject?: string | null
+          target_duration?: number | null
+          timer_mode?: string
           title?: string
           updated_at?: string
         }
@@ -509,7 +536,7 @@ export type Database = {
       group_member_role: "admin" | "moderator" | "member"
       message_type: "text" | "image" | "file" | "system"
       note_permission: "private" | "friends" | "group" | "public"
-      session_status: "scheduled" | "active" | "completed" | "cancelled"
+      session_status: "scheduled" | "active" | "completed" | "cancelled" | "running" | "paused" | "finished"
     }
     CompositeTypes: {
       [_ in never]: never

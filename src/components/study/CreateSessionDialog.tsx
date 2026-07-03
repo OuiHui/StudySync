@@ -29,7 +29,9 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     scheduledStart: '',
     scheduledEnd: '',
     maxParticipants: 20,
-    isPublic: false
+    isPublic: false,
+    subject: '',
+    targetDuration: 25
   });
   
   const { user } = useAuth();
@@ -93,7 +95,9 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           max_participants: formData.maxParticipants,
           is_public: formData.isPublic,
           created_by: user.id,
-          status: 'scheduled'
+          status: 'scheduled',
+          subject: formData.subject.trim() || null,
+          target_duration: formData.targetDuration * 60
         })
         .select()
         .single();
@@ -106,7 +110,9 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
         .insert({
           session_id: session.id,
           user_id: user.id,
-          is_attending: true
+          is_attending: true,
+          role: 'host',
+          status: 'active'
         });
 
       toast({
@@ -121,7 +127,9 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
         scheduledStart: '',
         scheduledEnd: '',
         maxParticipants: 20,
-        isPublic: false
+        isPublic: false,
+        subject: '',
+        targetDuration: 25
       });
       
       setOpen(false);
@@ -197,6 +205,28 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject (Optional)</Label>
+              <Input
+                id="subject"
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="e.g. Mathematics"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="targetDuration">Work Duration (Minutes)</Label>
+              <Input
+                id="targetDuration"
+                type="number"
+                min="1"
+                max="180"
+                value={formData.targetDuration}
+                onChange={(e) => setFormData(prev => ({ ...prev, targetDuration: parseInt(e.target.value) || 25 }))}
+              />
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

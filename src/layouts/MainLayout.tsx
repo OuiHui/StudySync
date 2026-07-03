@@ -27,14 +27,6 @@ export const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(initialTheme);
   
-  useEffect(() => {
-    if (user && !authLoading) {
-      queryClient.prefetchQuery(getDashboardQueryOptions(user));
-      queryClient.prefetchQuery(getProfileQueryOptions(user, authLoading));
-      queryClient.prefetchQuery(getStudyEventsQueryOptions(user));
-    }
-  }, [user, authLoading, queryClient]);
-  
   const { globalTimer, handleGlobalTimerToggle, handleCancelTimer } = useGlobalTimer();
   const { 
     isInGroupSession, 
@@ -44,6 +36,27 @@ export const MainLayout = () => {
     setPendingNavigation,
     setIsInGroupSession
   } = useSession();
+  
+  useEffect(() => {
+    if (user && !authLoading) {
+      queryClient.prefetchQuery(getDashboardQueryOptions(user));
+      queryClient.prefetchQuery(getProfileQueryOptions(user, authLoading));
+      queryClient.prefetchQuery(getStudyEventsQueryOptions(user));
+    }
+  }, [user, authLoading, queryClient]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const isSession = location.pathname.includes('study-session') || location.pathname.includes('group-study-session');
+      if (globalTimer.isActive || isSession) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave your study session? Your progress might not be saved.';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [globalTimer.isActive, location.pathname]);
 
   const handleThemeChange = (theme: typeof currentTheme) => {
     setCurrentTheme(theme);
@@ -63,20 +76,21 @@ export const MainLayout = () => {
   };
 
   const isSessionPage = location.pathname.includes('study-session') || location.pathname.includes('group-study-session');
+  const isGroupSessionPage = location.pathname.includes('group-study-session');
 
   // Convert pathname to the activeTab equivalent for Sidebar
   const currentPath = location.pathname.substring(1) || 'dashboard';
 
   const handleSidebarNavigation = (newTab: string) => {
-    if (globalTimer.isActive) {
-      const isNotes = newTab === 'notes';
-      const isSoloActive = newTab === 'study-session' && !globalTimer.isGroupTimer;
-      const isGroupActive = newTab === 'available-sessions' && globalTimer.isGroupTimer;
-      if (!isNotes && !isSoloActive && !isGroupActive) {
-        return;
-      }
-    }
     const path = newTab === 'dashboard' ? '/' : `/${newTab}`;
+    
+    // Only show leave dialog for active group sessions or group session page
+    if (path !== location.pathname && (isGroupSessionPage || (globalTimer.isActive && globalTimer.isGroupTimer))) {
+      setPendingNavigation(path);
+      setShowLeaveSessionDialog(true);
+      return;
+    }
+    
     navigate(path);
   };
 

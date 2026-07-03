@@ -56,9 +56,17 @@ export class FriendsService {
           : friendship.user_id
       );
 
-      // Get users data
-      const { data: users } = await supabase.auth.admin.listUsers();
-      const friendUsers = users?.users.filter(u => friendUserIds.includes(u.id)) || [];
+      // Get profiles data
+      const { data: friendProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', friendUserIds);
+
+      if (profilesError) {
+        console.error('Error fetching friend profiles:', profilesError);
+      }
+
+      const activeProfiles = friendProfiles || [];
 
       // Combine friendship data with user data
       return (friendships as any[]).map((friendship: any) => {
@@ -66,15 +74,15 @@ export class FriendsService {
           ? friendship.friend_id 
           : friendship.user_id;
         
-        const friendUser = friendUsers.find(u => u.id === friendUserId);
+        const profile = activeProfiles.find(p => p.user_id === friendUserId);
         
         return {
           id: friendship.id,
           friendship_id: friendship.id,
           user_id: friendUserId,
-          display_name: friendUser?.user_metadata?.display_name || friendUser?.email || 'Unknown',
-          email: friendUser?.email || '',
-          avatar_url: friendUser?.user_metadata?.avatar_url || null,
+          display_name: profile?.display_name || profile?.email?.split('@')[0] || 'Unknown',
+          email: profile?.email || '',
+          avatar_url: profile?.avatar_url || null,
           created_at: friendship.created_at
         };
       }).filter(f => f.user_id);
@@ -109,19 +117,27 @@ export class FriendsService {
       // Get sender user IDs
       const senderIds = (requests as any[]).map((r: any) => r.user_id);
       
-      // Get users data
-      const { data: users } = await supabase.auth.admin.listUsers();
-      const senderUsers = users?.users.filter(u => senderIds.includes(u.id)) || [];
+      // Get profiles data
+      const { data: senderProfiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('user_id', senderIds);
+
+      if (profilesError) {
+        console.error('Error fetching sender profiles:', profilesError);
+      }
+
+      const activeProfiles = senderProfiles || [];
 
       // Combine request data with sender data
       return (requests as any[]).map((request: any) => {
-        const senderUser = senderUsers.find(u => u.id === request.user_id);
+        const profile = activeProfiles.find(p => p.user_id === request.user_id);
         return {
           id: request.id,
           user_id: request.user_id,
-          display_name: senderUser?.user_metadata?.display_name || senderUser?.email || 'Unknown',
-          email: senderUser?.email || '',
-          avatar_url: senderUser?.user_metadata?.avatar_url || null,
+          display_name: profile?.display_name || profile?.email?.split('@')[0] || 'Unknown',
+          email: profile?.email || '',
+          avatar_url: profile?.avatar_url || null,
           created_at: request.created_at
         };
       });
@@ -308,5 +324,3 @@ export class FriendsService {
     }
   }
 }
-
-

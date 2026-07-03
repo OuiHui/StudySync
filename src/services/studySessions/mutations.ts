@@ -9,6 +9,8 @@ export class StudySessionsMutations {
     scheduled_end: string;
     group_id?: string;
     max_participants?: number;
+    subject?: string;
+    target_duration?: number;
   }) {
     try {
       const session = await checkAuth();
@@ -30,6 +32,22 @@ export class StudySessionsMutations {
         handleDbError(error, 'create study session');
       }
 
+      // Automatically add the creator as the host participant if it's a group session
+      if (data && sessionData.group_id) {
+        try {
+          await supabase
+            .from('session_participants')
+            .insert({
+              session_id: data.id,
+              user_id: session.user.id,
+              role: 'host',
+              status: 'active'
+            });
+        } catch (joinError) {
+          console.error('Error adding host to session participants:', joinError);
+        }
+      }
+
       return data;
     } catch (error) {
       console.error('Error creating session:', error);
@@ -48,7 +66,9 @@ export class StudySessionsMutations {
         .from('session_participants')
         .insert({
           session_id: sessionId,
-          user_id: session.user.id
+          user_id: session.user.id,
+          role: 'participant',
+          status: 'active'
         })
         .select()
         .single();
@@ -88,18 +108,42 @@ export class StudySessionsMutations {
     }
   }
 
-  static async updateSessionStatus(sessionId: string, status: 'scheduled' | 'active' | 'completed' | 'cancelled') {
+  static async updateSessionStatus(
+    sessionId: string,
+    status: 'scheduled' | 'active' | 'completed' | 'cancelled' | 'running' | 'paused' | 'finished'
+  ) {
     try {
       const session = await checkAuth();
       if (!session) {
         throw new Error('Authentication required to update sessions');
       }
 
+      // Fetch the current session state to get actual_start
+      const { data: currentSession, error: fetchError } = await supabase
+        .from('study_sessions')
+        .select('actual_start')
+        .eq('id', sessionId)
+        .single();
+
+      if (fetchError) {
+        handleDbError(fetchError, 'fetch session for status update');
+      }
+
+      const updates: any = { status };
+      const now = new Date().toISOString();
+
+      if (status === 'running' || status === 'active') {
+        if (!currentSession?.actual_start) {
+          updates.actual_start = now;
+        }
+      } else if (status === 'finished' || status === 'completed' || status === 'cancelled') {
+        updates.actual_end = now;
+      }
+
       const { data, error } = await supabase
         .from('study_sessions')
-        .update({ status })
+        .update(updates)
         .eq('id', sessionId)
-        .eq('created_by', session.user.id)
         .select()
         .single();
 
@@ -110,6 +154,90 @@ export class StudySessionsMutations {
       return data;
     } catch (error) {
       console.error('Error updating session status:', error);
+      throw error;
+    }
+  }
+
+  static async pauseSession(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to pause sessions');
+      }
+
+      const { data: currentSession, error: fetchError } = await supabase
+        .from('study_sessions')
+        .select('pause_logs')
+        .eq('id', sessionId)
+        .single();
+
+      if (fetchError) {
+        handleDbError(fetchError, 'fetch session for pause');
+      }
+
+      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] : [];
+      logs.push({ paused_at: new Date().toISOString(), resumed_at: null });
+
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .update({
+          status: 'paused',
+          pause_logs: logs
+        })
+        .eq('id', sessionId)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'pause session');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error pausing session:', error);
+      throw error;
+    }
+  }
+
+  static async resumeSession(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to resume sessions');
+      }
+
+      const { data: currentSession, error: fetchError } = await supabase
+        .from('study_sessions')
+        .select('pause_logs')
+        .eq('id', sessionId)
+        .single();
+
+      if (fetchError) {
+        handleDbError(fetchError, 'fetch session for resume');
+      }
+
+      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] : [];
+      if (logs.length > 0 && logs[logs.length - 1].resumed_at === null) {
+        logs[logs.length - 1].resumed_at = new Date().toISOString();
+      }
+
+      const { data, error } = await supabase
+        .from('study_sessions')
+        .update({
+          status: 'running',
+          pause_logs: logs
+        })
+        .eq('id', sessionId)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'resume session');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error resuming session:', error);
       throw error;
     }
   }
