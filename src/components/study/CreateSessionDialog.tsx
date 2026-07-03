@@ -84,23 +84,45 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
 
     setLoading(true);
     try {
-      const { data: session, error } = await supabase
+      const basePayload = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        group_id: formData.groupId === 'none' ? null : formData.groupId || null,
+        scheduled_start: formatForDatabase(formData.scheduledStart),
+        scheduled_end: formatForDatabase(formData.scheduledEnd),
+        max_participants: formData.maxParticipants,
+        is_public: formData.isPublic,
+        created_by: user.id,
+        status: 'scheduled' as const
+      };
+
+      let session;
+      let error;
+
+      // Try inserting with the new fields first (subject, target_duration)
+      const { data: mainData, error: mainError } = await supabase
         .from('study_sessions')
         .insert({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          group_id: formData.groupId === 'none' ? null : formData.groupId || null,
-          scheduled_start: formatForDatabase(formData.scheduledStart),
-          scheduled_end: formatForDatabase(formData.scheduledEnd),
-          max_participants: formData.maxParticipants,
-          is_public: formData.isPublic,
-          created_by: user.id,
-          status: 'scheduled',
+          ...basePayload,
           subject: formData.subject.trim() || null,
           target_duration: formData.targetDuration * 60
         })
         .select()
         .single();
+
+      if (mainError && (mainError.message?.includes('column') || mainError.code === 'PGRST204')) {
+        console.warn('New database fields not supported. Retrying insert with fallback payload...');
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('study_sessions')
+          .insert(basePayload)
+          .select()
+          .single();
+        session = fallbackData;
+        error = fallbackError;
+      } else {
+        session = mainData;
+        error = mainError;
+      }
 
       if (error) throw error;
 
