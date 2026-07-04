@@ -13,7 +13,8 @@ import {
   FileText,
   BarChart3,
   Search,
-  UserPlus
+  UserPlus,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './UserMenu';
@@ -32,7 +33,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'study-session', label: 'Solo Study', icon: BookOpen },
-    { id: 'available-sessions', label: 'Group Sessions', icon: Users },
+    { id: 'available-sessions', label: 'Group Sessions', icon: Calendar },
     { id: 'groups', label: 'My Groups', icon: Users },
     { id: 'browse-groups', label: 'Browse Groups', icon: Search },
     { id: 'notes', label: 'Notes', icon: FileText },
@@ -113,9 +114,11 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
       </nav>
 
       {/* Footer - User Menu */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="flex items-center justify-between">
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${
+          isOpen ? 'mx-4 p-3 w-[calc(100%-2rem)]' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
+        }`}>
+          <div className={`flex items-center w-full ${isOpen ? 'justify-between' : 'justify-center'}`}>
             {isOpen && (
               <span className="text-sm text-gray-600 dark:text-gray-300">Account</span>
             )}
