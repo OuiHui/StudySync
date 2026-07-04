@@ -23,7 +23,12 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
       time: sessionDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
       attendees: session.participant_count || 0,
-      type: session.status === 'active' ? 'active' as const : 'planned' as const,
+      type: (
+        ['active', 'running', 'paused'].includes(session.status) ||
+        (session.status === 'scheduled' &&
+         sessionDate <= now &&
+         new Date(session.scheduled_end) >= now)
+      ) ? 'active' as const : 'planned' as const,
       isPast
     };
   });

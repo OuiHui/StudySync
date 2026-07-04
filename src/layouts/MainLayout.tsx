@@ -101,6 +101,7 @@ export const MainLayout = () => {
 
   const handleConfirmLeaveSession = () => {
     handleCancelTimer(); // stops and resets
+    setIsInGroupSession(false);
     if (pendingNavigation) {
       navigate(pendingNavigation);
     }

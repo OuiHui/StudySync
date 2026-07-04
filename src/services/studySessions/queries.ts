@@ -150,7 +150,7 @@ export class StudySessionsQueries {
     try {
       const now = new Date().toISOString();
       
-      // First get available sessions with group info
+      // First get available sessions with group info (active/running/paused, or scheduled sessions)
       const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select(`
@@ -161,8 +161,7 @@ export class StudySessionsQueries {
             subject
           )
         `)
-        .gte('scheduled_start', now)
-        .eq('status', 'scheduled')
+        .in('status', ['scheduled', 'active', 'running', 'paused'])
         .order('scheduled_start', { ascending: true });
 
       if (error) {
@@ -194,6 +193,10 @@ export class StudySessionsQueries {
         .filter(studySession => {
           if (!isAutomation && studySession.title === 'E2E Session') {
             return false;
+          }
+          if (studySession.status === 'scheduled') {
+            // Keep scheduled sessions only if they haven't ended yet
+            return new Date(studySession.scheduled_end) >= new Date();
           }
           return true;
         })

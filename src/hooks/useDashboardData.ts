@@ -69,7 +69,7 @@ export const getDashboardQueryOptions = (user: any) => ({
       weekStart.setHours(0, 0, 0, 0);
       const thisWeekSessions = sessions.filter(session => {
         const sessionDate = new Date(session.scheduled_start);
-        return sessionDate >= weekStart && session.status === 'completed';
+        return sessionDate >= weekStart && (session.status === 'completed' || session.status === 'finished');
       });
       thisWeekSessionsLength = thisWeekSessions.length;
     }

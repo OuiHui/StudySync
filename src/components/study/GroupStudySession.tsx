@@ -6,7 +6,7 @@ import { SessionStats } from './SessionStats';
 import { SessionNotes } from './SessionNotes';
 import { StudyGoals } from './StudyGoals';
 import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { BookOpen, LogOut } from 'lucide-react';
 
 interface GroupStudySessionProps {
   onLeaveSession: () => void;
@@ -52,10 +52,10 @@ export const GroupStudySession = ({ onLeaveSession, onTimerUpdate, onThemeChange
                 variant="ghost"
                 size="sm"
                 onClick={onLeaveSession}
-                className="dark:text-white dark:hover:bg-gray-700"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
               >
-                <ArrowLeft size={16} className="mr-1" />
-                Back
+                <LogOut size={16} className="mr-1" />
+                Leave Session
               </Button>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white truncate">Advanced Mathematics Study Session</h1>

@@ -10,7 +10,7 @@ export const getAvailableSessionsQueryOptions = (user: any) => ({
     return availableSessions || [];
   },
   enabled: !!user,
-  staleTime: 5 * 60 * 1000, // 5 minutes cache
+  staleTime: 0, // always refetch on page load to ensure live updates
 });
 
 export function useAvailableSessions() {

@@ -311,7 +311,7 @@ export class ProfileQueries {
         .from('study_sessions')
         .select('scheduled_start, scheduled_end, actual_start, actual_end, status')
         .eq('created_by', userId)
-        .eq('status', 'completed')
+        .in('status', ['completed', 'finished'])
         .gte('scheduled_start', todayStart.toISOString())
         .lt('scheduled_start', todayEnd.toISOString());
 
@@ -332,7 +332,7 @@ export class ProfileQueries {
         }
       });
 
-      return Math.round(todayHours * 10) / 10; // Round to 1 decimal place
+      return Math.round(todayHours * 100) / 100; // Round to 2 decimal places
     } catch (error) {
       console.error('Error calculating today\'s study hours:', error);
       return 0;
@@ -357,7 +357,7 @@ export class ProfileQueries {
         .from('study_sessions')
         .select('scheduled_start, scheduled_end, actual_start, actual_end, status')
         .eq('created_by', userId)
-        .eq('status', 'completed')
+        .in('status', ['completed', 'finished'])
         .gte('scheduled_start', weekStart.toISOString())
         .lt('scheduled_start', weekEnd.toISOString());
 
@@ -378,7 +378,7 @@ export class ProfileQueries {
         }
       });
 
-      return Math.round(weekHours * 10) / 10; // Round to 1 decimal place
+      return Math.round(weekHours * 100) / 100; // Round to 2 decimal places
     } catch (error) {
       console.error('Error calculating this week\'s study hours:', error);
       return 0;

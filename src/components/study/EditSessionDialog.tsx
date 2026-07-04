@@ -169,7 +169,8 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
 
   // Get current date/time for min values in local timezone
   const now = new Date();
-  const currentDateTime = now.toISOString().slice(0, 16);
+  const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  const currentDateTime = localNow.toISOString().slice(0, 16);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

@@ -47,7 +47,12 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
       hour12: true
     }),
     duration: session.duration_minutes ? `${session.duration_minutes} minutes` : '60 minutes',
-    type: session.status === 'active' ? 'active' as const : 'planned' as const,
+    type: (
+      ['active', 'running', 'paused'].includes(session.status) ||
+      (session.status === 'scheduled' &&
+       new Date(session.scheduled_start) <= new Date() &&
+       new Date(session.scheduled_end) >= new Date())
+    ) ? 'active' as const : 'planned' as const,
     description: session.description || 'Study session',
     title: session.title // Ensure we have the actual session title
   }));
@@ -204,7 +209,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                       <Eye size={14} className="mr-1" />
                       Details
                     </Button>
-                    {session.created_by === user?.id ? (
+                    <Button 
+                      onClick={() => handleJoinSession(session.id)}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                      size="sm"
+                    >
+                      Enter Session
+                    </Button>
+                    {session.created_by === user?.id && (
                       <EditSessionDialog 
                         session={{
                           id: session.id,
@@ -218,20 +230,11 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                         }}
                         onSessionUpdated={loadSessions}
                         trigger={
-                          <Button variant="outline" size="sm" className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-300">
-                            <Edit size={14} className="mr-1" />
-                            Edit
+                          <Button variant="outline" size="icon" className="h-9 w-9 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                            <Edit size={14} />
                           </Button>
                         }
                       />
-                    ) : (
-                      <Button 
-                        onClick={() => handleJoinSession(session.id)}
-                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                        size="sm"
-                      >
-                        Schedule
-                      </Button>
                     )}
                   </div>
                 </CardContent>

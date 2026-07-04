@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { EditSessionDialog } from '@/components/study/EditSessionDialog';
-import { BookOpen, FileText, Users, Edit, Clock } from 'lucide-react';
+import { BookOpen, FileText, Users, Edit, Clock, ExternalLink } from 'lucide-react';
 import { StudyEvent } from '@/hooks/useStudyEvents';
+import { useNavigate } from 'react-router-dom';
 
 export const getEventIcon = (type: string) => {
   switch (type) {
@@ -48,8 +49,12 @@ export const getCategoryLabel = (type: string) => {
 export const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case 'active':
+    case 'running':
       return { text: 'Active', bg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20' };
+    case 'paused':
+      return { text: 'Paused', bg: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20' };
     case 'completed':
+    case 'finished':
       return { text: 'Completed', bg: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 dark:bg-blue-500/20' };
     case 'cancelled':
       return { text: 'Cancelled', bg: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 dark:bg-rose-500/20' };
@@ -65,6 +70,7 @@ interface EventItemProps {
 }
 
 export const EventItem = ({ event, compact, onUpdate }: EventItemProps) => {
+  const navigate = useNavigate();
   const category = getCategoryLabel(event.type);
   const statusInfo = event.status ? getStatusStyle(event.status) : null;
 
@@ -140,6 +146,24 @@ export const EventItem = ({ event, compact, onUpdate }: EventItemProps) => {
           <p className="text-xs text-gray-500 dark:text-gray-500 mt-1.5 line-clamp-2 leading-relaxed italic">
             "{event.description}"
           </p>
+        )}
+
+        {/* Action Button */}
+        {event.group_id && !['completed', 'finished', 'cancelled'].includes(event.status?.toLowerCase() || '') && (
+          <div className="mt-3">
+            <Button
+              onClick={() => navigate(`/group-study-session?id=${event.id}`)}
+              className={`w-full text-white flex items-center justify-center text-xs py-1 h-8 ${
+                ['active', 'running', 'paused'].includes(event.status?.toLowerCase() || '')
+                  ? 'bg-emerald-500 hover:bg-emerald-600'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+              size="sm"
+            >
+              <ExternalLink size={12} className="mr-1" />
+              {['active', 'running', 'paused'].includes(event.status?.toLowerCase() || '') ? 'Join Live Session' : 'Enter Session'}
+            </Button>
+          </div>
         )}
       </div>
     </div>
