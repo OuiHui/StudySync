@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -20,89 +21,76 @@ export interface GroupInfo {
   role?: string; // For visitor/anonymous
 }
 
-export function useUserGroups() {
-  const { user } = useAuth();
-  const [studyGroups, setStudyGroups] = useState<GroupInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const isAnonymousUser = useCallback(() => {
-    return !user || !user.email || user.is_anonymous === true || user.aud === 'anonymous';
-  }, [user]);
-
-  const loadUserGroups = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
+  queryKey: ['user-groups', user?.id, isAnonymous],
+  queryFn: async () => {
+    if (isAnonymous) {
+      // For anonymous users, show public groups
+      const publicGroups = await StudyGroupsService.getPublicGroups();
       
-      const isAnonymous = isAnonymousUser();
-      
-      if (isAnonymous) {
-        // For anonymous users, show public groups
-        const publicGroups = await StudyGroupsService.getPublicGroups();
-        
-        // Transform public groups to match our component structure
-        const transformedGroups = publicGroups.map((group: any) => ({
-          id: group.id,
-          name: group.name,
-          subject: group.subject || 'General',
-          members: group.member_count || 0,
-          role: 'visitor', // Anonymous users are visitors
-          user_role: 'visitor',
-          nextSession: null,
-          description: group.description || '',
-          color: group.color || 'from-blue-500 to-blue-600', // Use database value or default
-          icon: group.icon || 'Users', // Use database value or default
-          recentActivity: 'Public group',
-          created_at: group.created_at,
-          is_public: group.is_public,
-          creator_profile: group.creator_profile
-        }));
-        
-        setStudyGroups(transformedGroups);
-        return;
-      }
-      
-      const data = await StudyGroupsService.getUserGroups();
-      
-      // Transform the data to match our component structure
-      const transformedGroups = data.map((group: any) => ({
+      // Transform public groups to match our component structure
+      return publicGroups.map((group: any) => ({
         id: group.id,
         name: group.name,
         subject: group.subject || 'General',
         members: group.member_count || 0,
-        user_role: group.user_role || 'member', // Keep as user_role for consistency
-        nextSession: null, // This would come from study_sessions
+        role: 'visitor', // Anonymous users are visitors
+        user_role: 'visitor',
+        nextSession: null,
         description: group.description || '',
-        color: group.color || 'from-blue-500 to-blue-600', // Use database value or default
-        icon: group.icon || 'Users', // Use database value or default
-        recentActivity: 'No recent activity',
+        color: group.color || 'from-blue-500 to-blue-600',
+        icon: group.icon || 'Users',
+        recentActivity: 'Public group',
         created_at: group.created_at,
-        created_by: group.created_by, // Include created_by for admin check
-        is_public: group.is_public
+        is_public: group.is_public,
+        creator_profile: group.creator_profile
       }));
-      
-      setStudyGroups(transformedGroups);
-    } catch (err) {
-      console.error('Error loading groups:', err);
-      setError('Unable to load study groups. This might be due to database access restrictions or you may not be a member of any groups yet.');
-    } finally {
-      setLoading(false);
     }
-  }, [isAnonymousUser]);
 
-  useEffect(() => {
-    loadUserGroups();
-  }, [loadUserGroups]);
+    const data = await StudyGroupsService.getUserGroups();
+    
+    // Transform the data to match our component structure
+    return data.map((group: any) => ({
+      id: group.id,
+      name: group.name,
+      subject: group.subject || 'General',
+      members: group.member_count || 0,
+      user_role: group.user_role || 'member',
+      nextSession: null,
+      description: group.description || '',
+      color: group.color || 'from-blue-500 to-blue-600',
+      icon: group.icon || 'Users',
+      recentActivity: 'No recent activity',
+      created_at: group.created_at,
+      created_by: group.created_by,
+      is_public: group.is_public
+    }));
+  },
+  staleTime: 5 * 60 * 1000, // cache for 5 minutes
+});
+
+export function useUserGroups() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const isAnonymous = !user || !user.email || user.is_anonymous === true || user.aud === 'anonymous';
+
+  const { data: studyGroups = [], isLoading: loading, error, refetch: loadUserGroups } = useQuery<GroupInfo[], Error>(
+    getUserGroupsQueryOptions(user, isAnonymous)
+  );
+
+  const isAnonymousUser = useCallback(() => {
+    return isAnonymous;
+  }, [isAnonymous]);
 
   const handleJoinGroup = async (groupId: string) => {
     try {
-      if (isAnonymousUser()) {
+      if (isAnonymous) {
         window.location.href = '/auth';
         return;
       }
       await StudyGroupsService.joinGroup(groupId);
-      loadUserGroups();
+      await queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     } catch (err) {
       console.error('Error joining group:', err);
       throw err;
@@ -112,7 +100,7 @@ export function useUserGroups() {
   const handleLeaveGroup = async (groupId: string) => {
     try {
       await StudyGroupsService.leaveGroup(groupId);
-      loadUserGroups();
+      await queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     } catch (err) {
       console.error('Error leaving group:', err);
       throw err;
@@ -120,8 +108,9 @@ export function useUserGroups() {
   };
 
   const handleGroupUpdated = (updatedGroup: any) => {
-    setStudyGroups(prevGroups => 
-      prevGroups.map(group => 
+    queryClient.setQueryData<GroupInfo[]>(['user-groups', user?.id, isAnonymous], (old) => {
+      if (!old) return old;
+      return old.map(group => 
         group.id === updatedGroup.id 
           ? { 
               ...group, 
@@ -130,20 +119,23 @@ export function useUserGroups() {
               icon: updatedGroup.icon || group.icon || 'Users'
             }
           : group
-      )
-    );
+      );
+    });
   };
 
   const handleGroupDeleted = (groupId: string) => {
-    setStudyGroups(prevGroups => 
-      prevGroups.filter(group => group.id !== groupId)
-    );
+    queryClient.setQueryData<GroupInfo[]>(['user-groups', user?.id, isAnonymous], (old) => {
+      if (!old) return old;
+      return old.filter(group => group.id !== groupId);
+    });
   };
+
+  const errorMessage = error ? 'Unable to load study groups. This might be due to database access restrictions or you may not be a member of any groups yet.' : null;
 
   return {
     studyGroups,
     loading,
-    error,
+    error: errorMessage,
     isAnonymousUser,
     loadUserGroups,
     handleJoinGroup,
