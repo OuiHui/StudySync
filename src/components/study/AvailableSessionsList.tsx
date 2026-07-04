@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Users, Calendar, Clock, Play, Eye, Loader2, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateSessionDialog } from '@/components/study/CreateSessionDialog';
 import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
-import { StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAvailableSessions } from '@/hooks/useAvailableSessions';
 
 interface StudySession {
   id: string;
@@ -28,29 +28,7 @@ interface AvailableSessionsListProps {
 export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListProps) => {
   const { user } = useAuth();
   const [selectedSession, setSelectedSession] = useState<StudySession | null>(null);
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadSessions();
-  }, [user]);
-
-  const loadSessions = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const availableSessions = await StudySessionsService.getAvailableSessions();
-      setSessions(availableSessions);
-    } catch (err) {
-      console.error('Error loading sessions:', err);
-      setError('Unable to load study sessions. Please check your internet connection or try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { sessions, loading, error, loadSessions } = useAvailableSessions();
 
   // Use fetched sessions
   const displaySessions = sessions.map(session => ({
