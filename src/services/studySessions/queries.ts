@@ -114,21 +114,30 @@ export class StudySessionsQueries {
         profiles = profilesData || [];
       }
 
-      const sessionsWithParticipants = uniqueSessions.map((studySession) => {
-        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-        const participantProfiles = sessionParts.map(sp => {
-          const profile = profiles.find(p => p.user_id === sp.user_id);
+      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+
+      const sessionsWithParticipants = uniqueSessions
+        .filter(studySession => {
+          if (!isAutomation && studySession.title === 'E2E Session') {
+            return false;
+          }
+          return true;
+        })
+        .map((studySession) => {
+          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+          const participantProfiles = sessionParts.map(sp => {
+            const profile = profiles.find(p => p.user_id === sp.user_id);
+            return {
+              user_id: sp.user_id,
+              profiles: profile || null
+            };
+          });
+
           return {
-            user_id: sp.user_id,
-            profiles: profile || null
+            ...studySession,
+            session_participants: participantProfiles
           };
         });
-
-        return {
-          ...studySession,
-          session_participants: participantProfiles
-        };
-      });
 
       return sessionsWithParticipants;
     } catch (error) {
@@ -179,21 +188,30 @@ export class StudySessionsQueries {
         profiles = profilesData || [];
       }
 
-      const sessionsWithParticipants = sessions.map((studySession) => {
-        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-        const participantProfiles = sessionParts.map(sp => {
-          const profile = profiles.find(p => p.user_id === sp.user_id);
+      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+
+      const sessionsWithParticipants = sessions
+        .filter(studySession => {
+          if (!isAutomation && studySession.title === 'E2E Session') {
+            return false;
+          }
+          return true;
+        })
+        .map((studySession) => {
+          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+          const participantProfiles = sessionParts.map(sp => {
+            const profile = profiles.find(p => p.user_id === sp.user_id);
+            return {
+              user_id: sp.user_id,
+              profiles: profile || null
+            };
+          });
+
           return {
-            user_id: sp.user_id,
-            profiles: profile || null
+            ...studySession,
+            session_participants: participantProfiles
           };
         });
-
-        return {
-          ...studySession,
-          session_participants: participantProfiles
-        };
-      });
 
       return sessionsWithParticipants;
     } catch (error) {
@@ -241,22 +259,31 @@ export class StudySessionsQueries {
         profiles = profilesData || [];
       }
 
-      const sessionsWithParticipants = sessions.map((studySession) => {
-        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-        const participantProfiles = sessionParts.map(sp => {
-          const profile = profiles.find(p => p.user_id === sp.user_id);
+      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+
+      const sessionsWithParticipants = sessions
+        .filter(studySession => {
+          if (!isAutomation && studySession.title === 'E2E Session') {
+            return false;
+          }
+          return true;
+        })
+        .map((studySession) => {
+          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+          const participantProfiles = sessionParts.map(sp => {
+            const profile = profiles.find(p => p.user_id === sp.user_id);
+            return {
+              user_id: sp.user_id,
+              profiles: profile || null
+            };
+          });
+
           return {
-            user_id: sp.user_id,
-            profiles: profile || null
+            ...studySession,
+            participant_count: sessionParts.length,
+            session_participants: participantProfiles
           };
         });
-
-        return {
-          ...studySession,
-          participant_count: sessionParts.length,
-          session_participants: participantProfiles
-        };
-      });
 
       return sessionsWithParticipants;
     } catch (error) {

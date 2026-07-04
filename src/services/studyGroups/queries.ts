@@ -103,7 +103,15 @@ export class StudyGroupsQueries {
           };
         });
 
-        const filteredGroups = groupsWithDetails.filter(Boolean);
+        const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+        const filteredGroups = groupsWithDetails
+          .filter(Boolean)
+          .filter(group => {
+            if (!isAutomation && group?.name === 'E2E Test Group') {
+              return false;
+            }
+            return true;
+          });
         return filteredGroups;
         
       } catch (error) {
@@ -120,15 +128,23 @@ export class StudyGroupsQueries {
           return [];
         }
 
-        return (createdGroups || []).map(group => ({
-          ...group,
-          // Add fallback values for icon and color if not present in database
-          icon: (group as any).icon || 'Users',
-          color: (group as any).color || 'from-blue-500 to-blue-600',
-          creator_profile: null,
-          user_role: 'admin',
-          joined_at: group.created_at
-        }));
+        const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+        return (createdGroups || [])
+          .filter(group => {
+            if (!isAutomation && group.name === 'E2E Test Group') {
+              return false;
+            }
+            return true;
+          })
+          .map(group => ({
+            ...group,
+            // Add fallback values for icon and color if not present in database
+            icon: (group as any).icon || 'Users',
+            color: (group as any).color || 'from-blue-500 to-blue-600',
+            creator_profile: null,
+            user_role: 'admin',
+            joined_at: group.created_at
+          }));
       }
 
     } catch (error) {
@@ -182,20 +198,29 @@ export class StudyGroupsQueries {
       const creators = creatorsData.data || [];
       const allMembers = membersData.data || [];
 
-      // Get creator profiles and member counts for each group
-      const groupsWithCreators = groups.map((group) => {
-        const creator = creators.find(c => c.user_id === group.created_by);
-        const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
 
-        return {
-          ...group,
-          // Add fallback values for icon and color if not present in database
-          icon: (group as any).icon || 'Users',
-          color: (group as any).color || 'from-blue-500 to-blue-600',
-          creator_profile: creator || null,
-          member_count: memberCount
-        };
-      });
+      // Get creator profiles and member counts for each group
+      const groupsWithCreators = groups
+        .filter(group => {
+          if (!isAutomation && group.name === 'E2E Test Group') {
+            return false;
+          }
+          return true;
+        })
+        .map((group) => {
+          const creator = creators.find(c => c.user_id === group.created_by);
+          const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+
+          return {
+            ...group,
+            // Add fallback values for icon and color if not present in database
+            icon: (group as any).icon || 'Users',
+            color: (group as any).color || 'from-blue-500 to-blue-600',
+            creator_profile: creator || null,
+            member_count: memberCount
+          };
+        });
 
       return groupsWithCreators;
     } catch (error) {
