@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, Loader2, MessageSquare } from 'lucide-react';
+import { LogOut, Loader2, MessageSquare, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +18,7 @@ import { ReflectionDialog } from './ReflectionDialog';
 import { Badge } from '@/components/ui/badge';
 import { useTimer } from '@/hooks/useTimer';
 import { useProfileData } from '@/hooks/useProfileData';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Participant {
   user_id: string;
@@ -540,8 +541,8 @@ export const GroupStudySession = ({
       <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
         {/* Workspace Column (Columns 1-2, taking 2/3 width) */}
         <div className={`${isChatOpen ? 'lg:col-span-2' : 'lg:col-span-3'} flex flex-col gap-4 items-center justify-start pt-2`}>
-          {/* Centered Timer Block */}
-          <div className="w-full flex flex-col items-center py-2 select-none shrink-0">
+          {/* Centered Timer Block with Restored Workspace Cards */}
+          <div className="w-full flex flex-col items-center select-none shrink-0">
             {/* Inline Details Panel */}
             <div className="w-full max-w-xl text-center space-y-2 select-none shrink-0 mb-4 bg-white/40 dark:bg-gray-900/40 p-4 rounded-xl border border-gray-200/10 backdrop-blur-sm shadow-sm">
               <h2 className="text-xl font-extrabold text-gray-800 dark:text-white leading-tight">
@@ -550,47 +551,121 @@ export const GroupStudySession = ({
               
               <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
                 <div className="flex items-center space-x-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Subject:</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Subject:</span>
                   <span className="text-gray-700 dark:text-gray-200">{sessionSubject || 'General'}</span>
                 </div>
                 <div className="h-3 w-[1px] bg-gray-200 dark:bg-gray-800" />
                 <div className="flex items-center space-x-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Host:</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Host:</span>
                   <span className="text-gray-700 dark:text-gray-200">{hostName || 'Anonymous'}</span>
                 </div>
                 <div className="h-3 w-[1px] bg-gray-200 dark:bg-gray-800" />
                 <div className="flex items-center space-x-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Start:</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Start:</span>
                   <span className="text-gray-700 dark:text-gray-200">{formatTimeStr(startTime)}</span>
                 </div>
                 <div className="h-3 w-[1px] bg-gray-200 dark:bg-gray-800" />
                 <div className="flex items-center space-x-1">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Est. End:</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Est. End:</span>
                   <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{getEstimatedEndTime()}</span>
                 </div>
               </div>
             </div>
 
-            <TimerDisplay
-              timeLeft={timeLeft}
-              isActive={isActive}
-              mode={mode}
-              progress={progress}
-              onToggle={toggleTimer}
-              onReset={resetTimer}
-              onFinish={() => setReflectionOpen(true)}
-              showFinishButton={isHost && (isActive || timeLeft < workDuration)}
-              onSettingsClick={isHost ? () => setSettingsOpen(true) : undefined}
-            />
+            {/* Sub-grid of Cards */}
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Work Session Card */}
+              <Card className="md:col-span-2 border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                <CardHeader className="pb-2 border-b dark:border-gray-700/50">
+                  <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
+                    Work Session
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  <TimerDisplay
+                    timeLeft={timeLeft}
+                    isActive={isActive}
+                    mode={mode}
+                    progress={progress}
+                    onToggle={toggleTimer}
+                    onReset={resetTimer}
+                    onFinish={() => setReflectionOpen(true)}
+                    showFinishButton={isHost && (isActive || timeLeft < workDuration)}
+                  />
+                </CardContent>
+              </Card>
 
-            {/* Metric Pills Row */}
-            <div className="flex justify-center space-x-2 mt-4 shrink-0">
-              <Badge variant="secondary" className="px-3 py-1 text-xs border border-gray-250/20 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 text-gray-705 dark:text-gray-300 rounded-full font-medium">
-                {sessions} / {sessionGoal} sessions
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1 text-xs border border-gray-250/20 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 text-gray-705 dark:text-gray-300 rounded-full font-medium">
-                {Math.round(sessions * (workDuration / 60))} minutes studied
-              </Badge>
+              {/* Sidebar Cards */}
+              <div className="md:col-span-1 flex flex-col gap-4">
+                {/* Today's Progress Card */}
+                <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col h-full">
+                  <CardHeader className="pb-2 border-b dark:border-gray-700/50">
+                    <CardTitle className="text-sm font-semibold text-gray-800 dark:text-white">
+                      Today's Progress
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center justify-center py-6 px-4 flex-1">
+                    <div className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
+                      {sessions}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-4">
+                      Sessions Completed
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden mb-3">
+                      <div 
+                        className="bg-indigo-600 dark:bg-indigo-500 h-full transition-all duration-300" 
+                        style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }} 
+                      />
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-305">
+                      <span>Goal: {sessionGoal} sessions</span>
+                      {isHost && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-5 w-5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                          onClick={() => setSettingsOpen(true)}
+                        >
+                          <Pencil size={12} />
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Timer Configuration Card */}
+                <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
+                  <CardHeader className="pb-2 border-b dark:border-gray-700/50 flex flex-row items-center justify-between">
+                    <CardTitle className="text-sm font-semibold text-gray-800 dark:text-white">
+                      Timer Configuration
+                    </CardTitle>
+                    {isHost && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-5 w-5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        onClick={() => setSettingsOpen(true)}
+                      >
+                        <Pencil size={12} />
+                      </Button>
+                    )}
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium">Work Duration</span>
+                      <span className="text-gray-800 dark:text-white font-semibold">{workDuration / 60} min</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium">Break Duration</span>
+                      <span className="text-gray-800 dark:text-white font-semibold">{breakDuration / 60} min</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium">Long Break</span>
+                      <span className="text-gray-800 dark:text-white font-semibold">{longBreakDuration / 60} min</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
 

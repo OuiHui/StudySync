@@ -1,4 +1,4 @@
-import { Users, LogOut, Shield, ShieldAlert, Ban, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Users, LogOut, Shield, ShieldAlert, Ban } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ParticipantHoverCard } from './ParticipantHoverCard';
@@ -107,24 +107,6 @@ export const ParticipantsList = ({
             <span className="text-xs text-gray-500 dark:text-gray-400">
               My Status: <span className="font-semibold capitalize text-gray-700 dark:text-gray-300">{currentUserParticipant.status}</span>
             </span>
-            <Button
-              onClick={onToggleStatus}
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs px-2.5 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-            >
-              {currentUserParticipant.status === 'active' ? (
-                <>
-                  <ToggleRight className="mr-1 text-green-500 h-4 w-4" />
-                  Go Away
-                </>
-              ) : (
-                <>
-                  <ToggleLeft className="mr-1 text-gray-400 h-4 w-4" />
-                  Go Active
-                </>
-              )}
-            </Button>
           </div>
         )}
       </CardContent>

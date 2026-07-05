@@ -34,22 +34,7 @@ describe('GroupStudySession Features Unit Tests', () => {
       expect(screen.getByText('PU')).toBeInTheDocument();
     });
 
-    it('renders status toggle button for the current user and calls callback', () => {
-      const mockToggle = vi.fn();
-      render(
-        <ParticipantsList
-          participants={mockParticipants}
-          currentUserId="host-user-id"
-          isHost={true}
-          onToggleStatus={mockToggle}
-        />
-      );
 
-      const toggleBtn = screen.getByRole('button', { name: /Go Away/i });
-      expect(toggleBtn).toBeInTheDocument();
-      fireEvent.click(toggleBtn);
-      expect(mockToggle).toHaveBeenCalledTimes(1);
-    });
 
     it('renders remove button for non-host participants ONLY if the current user is host', () => {
       const mockKick = vi.fn();
