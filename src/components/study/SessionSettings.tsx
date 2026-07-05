@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { Settings, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,38 +8,44 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 
 interface SessionSettingsProps {
   workDuration: number;
   breakDuration: number;
   longBreakDuration: number;
+  sessionGoal: number;
   onSettingsChange: (settings: { workDuration: number; breakDuration: number; longBreakDuration: number }) => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onSessionGoalChange: (goal: number) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export const SessionSettings = ({ 
   workDuration, 
   breakDuration, 
   longBreakDuration, 
+  sessionGoal,
   onSettingsChange,
-  open: controlledOpen,
-  onOpenChange: controlledOnOpenChange,
+  onSessionGoalChange,
+  open,
+  onOpenChange,
 }: SessionSettingsProps) => {
   const [tempSettings, setTempSettings] = useState({
     workDuration: workDuration / 60,
     breakDuration: breakDuration / 60,
     longBreakDuration: longBreakDuration / 60,
+    sessionGoal: sessionGoal,
   });
-  const [internalOpen, setInternalOpen] = useState(false);
 
-  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const setIsOpen = (val: boolean) => {
-    if (controlledOnOpenChange) controlledOnOpenChange(val);
-    else setInternalOpen(val);
-  };
+  useEffect(() => {
+    setTempSettings({
+      workDuration: workDuration / 60,
+      breakDuration: breakDuration / 60,
+      longBreakDuration: longBreakDuration / 60,
+      sessionGoal: sessionGoal,
+    });
+  }, [workDuration, breakDuration, longBreakDuration, sessionGoal, open]);
 
   const handleSave = () => {
     onSettingsChange({
@@ -48,24 +53,19 @@ export const SessionSettings = ({
       breakDuration: tempSettings.breakDuration * 60,
       longBreakDuration: tempSettings.longBreakDuration * 60,
     });
-    setIsOpen(false);
+    onSessionGoalChange(tempSettings.sessionGoal);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings size={16} className="mr-2" />
-          Settings
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900 border dark:border-gray-800">
         <DialogHeader>
-          <DialogTitle>Session Settings</DialogTitle>
+          <DialogTitle className="text-gray-900 dark:text-white">Session Settings</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="work-duration">Work Duration (minutes)</Label>
+            <Label htmlFor="work-duration" className="text-gray-700 dark:text-gray-300">Work Duration (minutes)</Label>
             <Input
               id="work-duration"
               type="number"
@@ -76,10 +76,11 @@ export const SessionSettings = ({
                 ...prev, 
                 workDuration: parseInt(e.target.value) || 25 
               }))}
+              className="dark:bg-gray-950 dark:border-gray-800"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="break-duration">Break Duration (minutes)</Label>
+            <Label htmlFor="break-duration" className="text-gray-700 dark:text-gray-300">Break Duration (minutes)</Label>
             <Input
               id="break-duration"
               type="number"
@@ -90,10 +91,11 @@ export const SessionSettings = ({
                 ...prev, 
                 breakDuration: parseInt(e.target.value) || 5 
               }))}
+              className="dark:bg-gray-950 dark:border-gray-800"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="long-break-duration">Long Break Duration (minutes)</Label>
+            <Label htmlFor="long-break-duration" className="text-gray-700 dark:text-gray-300">Long Break Duration (minutes)</Label>
             <Input
               id="long-break-duration"
               type="number"
@@ -104,9 +106,25 @@ export const SessionSettings = ({
                 ...prev, 
                 longBreakDuration: parseInt(e.target.value) || 15 
               }))}
+              className="dark:bg-gray-950 dark:border-gray-800"
             />
           </div>
-          <Button onClick={handleSave} className="w-full">
+          <div className="space-y-2">
+            <Label htmlFor="session-goal" className="text-gray-700 dark:text-gray-300">Daily Session Goal</Label>
+            <Input
+              id="session-goal"
+              type="number"
+              min="1"
+              max="24"
+              value={tempSettings.sessionGoal}
+              onChange={(e) => setTempSettings(prev => ({ 
+                ...prev, 
+                sessionGoal: parseInt(e.target.value) || 8 
+              }))}
+              className="dark:bg-gray-950 dark:border-gray-800"
+            />
+          </div>
+          <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
             <Save size={16} className="mr-2" />
             Save Settings
           </Button>

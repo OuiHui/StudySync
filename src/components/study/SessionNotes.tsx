@@ -1,42 +1,327 @@
-
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Trash2, X, Save } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ImportNoteDialog } from './ImportNoteDialog';
 
-interface SessionNotesProps {
-  isOpen: boolean;
-  onClose: () => void;
+export interface NoteItem {
+  id: string;
+  title: string;
+  content: string | null;
+  subject?: string | null;
+  created_at: string;
+  created_by: string;
+  profiles?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
-export const SessionNotes = ({ isOpen, onClose }: SessionNotesProps) => {
-  if (!isOpen) return null;
+interface SessionNotesProps {
+  notes: NoteItem[];
+  loading?: boolean;
+  currentUserId?: string;
+  isHost: boolean;
+  groupId?: string;
+  onAddNote?: (title: string, content: string, subject?: string) => Promise<void>;
+  onDeleteNote?: (noteId: string) => Promise<void>;
+}
+
+export const SessionNotes = ({
+  notes,
+  loading = false,
+  currentUserId,
+  isHost,
+  groupId,
+  onAddNote,
+  onDeleteNote
+}: SessionNotesProps) => {
+  const [isCreating, setIsCreating] = useState(false);
+  const [activeNote, setActiveNote] = useState<NoteItem | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  // New Note fields
+  const [newTitle, setNewTitle] = useState('');
+  const [newSubject, setNewSubject] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Collapsed subjects tracking
+  const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setSubmitting(true);
+    try {
+      if (onAddNote) {
+        await onAddNote(newTitle.trim(), newContent.trim(), newSubject.trim() || undefined);
+        setNewTitle('');
+        setNewSubject('');
+        setNewContent('');
+        setIsCreating(false);
+      }
+    } catch (err) {
+      console.error('Failed to add note:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleNoteSelect = (note: NoteItem) => {
+    setActiveNote(note);
+    setIsCreating(false);
+  };
+
+  const handleDelete = async (noteId: string) => {
+    try {
+      if (onDeleteNote) {
+        await onDeleteNote(noteId);
+        if (activeNote?.id === noteId) {
+          setActiveNote(null);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+    }
+  };
+
+  const handleImportSelect = async (importedNote: { title: string; content: string; subject?: string }) => {
+    if (onAddNote) {
+      await onAddNote(importedNote.title, importedNote.content, importedNote.subject);
+    }
+  };
+
+  const groupedNotes = notes.reduce((acc, note) => {
+    const subjectName = note.subject?.trim() || 'General';
+    if (!acc[subjectName]) {
+      acc[subjectName] = [];
+    }
+    acc[subjectName].push(note);
+    return acc;
+  }, {} as Record<string, NoteItem[]>);
+
+  const excludeNoteTitles = notes.map(n => n.title);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-4xl mx-4 border-0 shadow-xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="dark:text-white">Shared Study Notes</CardTitle>
+    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
+      <CardHeader className="py-3 shrink-0 flex flex-row items-center justify-between border-b dark:border-gray-700/50">
+        <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
+          <BookOpen size={16} className="mr-2 text-indigo-500" />
+          {isCreating
+            ? 'Create Shared Note'
+            : activeNote
+            ? 'View Shared Note'
+            : 'Shared Study Materials'}
+        </CardTitle>
+        {!isCreating && !activeNote && (
+          <div className="flex items-center space-x-1.5">
             <Button
-              variant="ghost"
               size="sm"
-              onClick={onClose}
-              className="dark:text-gray-300 dark:hover:bg-gray-700"
+              variant="outline"
+              onClick={() => setImportOpen(true)}
+              className="h-7 text-xs flex items-center"
             >
-              ✕
+              <span>Add Existing</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsCreating(true)}
+              className="h-7 text-xs bg-indigo-650 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700 flex items-center space-x-1"
+            >
+              <Plus size={13} />
+              <span>New Note</span>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h3 className="font-medium text-gray-800 dark:text-white mb-2">Integration Techniques Summary</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Key formulas and methods for integration by parts...
-              </p>
-            </div>
+        )}
+      </CardHeader>
+      
+      <CardContent className="p-3 flex flex-col flex-1 min-h-0 justify-between">
+        {loading ? (
+          <div className="flex items-center justify-center flex-1 py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        ) : isCreating ? (
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 space-y-3 justify-between">
+            <div className="space-y-2 flex-1 overflow-y-auto pr-1">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-0.5">
+                  Title *
+                </label>
+                <Input
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Enter note title..."
+                  className="h-7 text-xs dark:bg-gray-900"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-0.5">
+                  Subject
+                </label>
+                <Input
+                  value={newSubject}
+                  onChange={(e) => setNewSubject(e.target.value)}
+                  placeholder="e.g. Mathematics, Physics..."
+                  className="h-7 text-xs dark:bg-gray-900"
+                />
+              </div>
+              <div className="flex-1 flex flex-col min-h-0">
+                <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-0.5">
+                  Content
+                </label>
+                <Textarea
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder="Write your note content here..."
+                  className="text-xs flex-1 resize-none min-h-[60px] dark:bg-gray-900 font-sans"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-2 border-t dark:border-gray-750 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setIsCreating(false)}
+                disabled={submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submitting || !newTitle.trim()}
+                className="h-7 text-xs bg-green-600 hover:bg-green-700 text-white"
+              >
+                {submitting ? (
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                ) : (
+                  <Save size={12} className="mr-1" />
+                )}
+                Share Note
+              </Button>
+            </div>
+          </form>
+        ) : activeNote ? (
+          <div className="flex-1 flex flex-col min-h-0 justify-between">
+            <div className="flex items-center justify-between border-b pb-2 dark:border-gray-700/50 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <Badge variant="secondary" className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-750 dark:text-indigo-350 text-[10px] py-0">
+                  {activeNote.subject || 'General'}
+                </Badge>
+                <h3 className="font-bold text-xs text-gray-900 dark:text-white mt-1 break-words leading-none">
+                  {activeNote.title}
+                </h3>
+                <span className="text-[9px] text-gray-400 mt-1 block">
+                  By {activeNote.profiles?.display_name || 'Anonymous'}
+                </span>
+              </div>
+              <div className="flex items-center space-x-1.5 flex-shrink-0">
+                {(activeNote.created_by === currentUserId || isHost) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDelete(activeNote.id)}
+                    className="h-7 px-2 text-xs text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  >
+                    <Trash2 size={12} className="mr-1" />
+                    Delete
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setActiveNote(null)}
+                  className="h-7 w-7 p-0"
+                >
+                  <X size={14} />
+                </Button>
+              </div>
+            </div>
+
+            <ScrollArea className="h-[200px] my-2 bg-gray-50/50 dark:bg-gray-900/50 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
+              <div className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed font-sans">
+                {activeNote.content || <span className="text-gray-400 italic">No content in this note.</span>}
+              </div>
+            </ScrollArea>
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center flex-1 text-center py-6">
+            <BookOpen size={30} className="text-gray-400 mb-1.5" />
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">No shared study materials yet</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5">Click "New Note" or "Add Existing" to share a note</p>
+          </div>
+        ) : (
+          <ScrollArea className="h-[250px] pr-1">
+            <div className="space-y-1.5">
+              {Object.keys(groupedNotes).map((subject) => {
+                const isExpanded = expandedSubject === subject;
+                const subjectNotes = groupedNotes[subject];
+
+                return (
+                  <div
+                    key={subject}
+                    className="border border-gray-100 dark:border-gray-800 rounded-lg overflow-hidden transition-all"
+                  >
+                    <button
+                      onClick={() => setExpandedSubject(isExpanded ? null : subject)}
+                      className="w-full flex items-center justify-between p-2.5 bg-gray-50/50 hover:bg-gray-100/70 dark:bg-gray-800/30 dark:hover:bg-gray-800/50 transition-colors text-left"
+                    >
+                      <span className="font-semibold text-xs text-gray-700 dark:text-gray-200">
+                        {subject}
+                      </span>
+                      <div className="flex items-center space-x-1.5 text-gray-500 dark:text-gray-400">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-200/50 dark:bg-gray-700 rounded-full font-medium">
+                          {subjectNotes.length} {subjectNotes.length === 1 ? 'note' : 'notes'}
+                        </span>
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </div>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-850">
+                        {subjectNotes.map((note) => (
+                          <button
+                            key={note.id}
+                            onClick={() => handleNoteSelect(note)}
+                            className="w-full text-left p-2 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/10 transition-colors pl-4"
+                          >
+                            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-250 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                              {note.title || 'Untitled note'}
+                            </h4>
+                            {note.content && (
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                                {note.content}
+                              </p>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+
+      <ImportNoteDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImport={handleImportSelect}
+        groupId={groupId}
+        excludeNoteTitles={excludeNoteTitles}
+      />
+    </Card>
   );
 };

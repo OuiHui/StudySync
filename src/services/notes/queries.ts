@@ -175,4 +175,44 @@ export class NotesQueries {
       return [];
     }
   }
+
+  static async getSessionNotes(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data: notes, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        handleDbError(error, 'fetch session notes');
+      }
+
+      if (!notes || notes.length === 0) return [];
+
+      const userIds = [...new Set(notes.map(n => n.created_by))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', userIds);
+
+      const notesWithProfiles = notes.map(note => {
+        const profile = profiles?.find(p => p.user_id === note.created_by);
+        return {
+          ...note,
+          profiles: profile || null
+        };
+      });
+
+      return notesWithProfiles;
+    } catch (error) {
+      console.error('Error fetching session notes:', error);
+      return [];
+    }
+  }
 }

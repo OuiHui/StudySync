@@ -41,15 +41,24 @@ export class StudyGroupsQueries {
             return [];
           }
 
-          return (createdGroups || []).map(group => ({
-            ...group,
-            // Add fallback values for icon and color if not present in database
-            icon: (group as any).icon || 'Users',
-            color: (group as any).color || 'from-blue-500 to-blue-600',
-            creator_profile: null,
-            user_role: 'admin',
-            joined_at: group.created_at
-          }));
+          const fallbackGroupIds = (createdGroups || []).map(g => g.id);
+          const { data: fallbackMembers } = await supabase
+            .from('group_members')
+            .select('id, group_id')
+            .in('group_id', fallbackGroupIds);
+
+          return (createdGroups || []).map(group => {
+            const memberCount = (fallbackMembers || []).filter(m => m.group_id === group.id).length || 1;
+            return {
+              ...group,
+              icon: (group as any).icon || 'Users',
+              color: (group as any).color || 'from-blue-500 to-blue-600',
+              creator_profile: null,
+              user_role: 'admin',
+              joined_at: group.created_at,
+              member_count: memberCount
+            };
+          });
         }
 
         if (!memberships || memberships.length === 0) {
@@ -128,6 +137,12 @@ export class StudyGroupsQueries {
           return [];
         }
 
+        const fallbackGroupIds = (createdGroups || []).map(g => g.id);
+        const { data: fallbackMembers } = await supabase
+          .from('group_members')
+          .select('id, group_id')
+          .in('group_id', fallbackGroupIds);
+
         const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
         return (createdGroups || [])
           .filter(group => {
@@ -136,15 +151,18 @@ export class StudyGroupsQueries {
             }
             return true;
           })
-          .map(group => ({
-            ...group,
-            // Add fallback values for icon and color if not present in database
-            icon: (group as any).icon || 'Users',
-            color: (group as any).color || 'from-blue-500 to-blue-600',
-            creator_profile: null,
-            user_role: 'admin',
-            joined_at: group.created_at
-          }));
+          .map(group => {
+            const memberCount = (fallbackMembers || []).filter(m => m.group_id === group.id).length || 1;
+            return {
+              ...group,
+              icon: (group as any).icon || 'Users',
+              color: (group as any).color || 'from-blue-500 to-blue-600',
+              creator_profile: null,
+              user_role: 'admin',
+              joined_at: group.created_at,
+              member_count: memberCount
+            };
+          });
       }
 
     } catch (error) {

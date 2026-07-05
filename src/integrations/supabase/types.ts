@@ -393,6 +393,47 @@ export type Database = {
           },
         ]
       }
+      session_goals: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string | null
+          id: string
+          progress: number
+          session_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          progress?: number
+          session_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          progress?: number
+          session_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_goals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       study_groups: {
         Row: {
           created_at: string

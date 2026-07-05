@@ -11,11 +11,17 @@ export default function AvailableSessions() {
 
   useEffect(() => {
     if (isInGroupSession) {
-      navigate('/group-study-session');
+      const savedSessionId = localStorage.getItem('active_group_session_id');
+      if (savedSessionId) {
+        navigate(`/group-study-session?id=${savedSessionId}`);
+      } else {
+        navigate('/group-study-session');
+      }
     }
   }, [isInGroupSession, navigate]);
 
   const handleJoinSession = (sessionId: string) => {
+    localStorage.setItem('active_group_session_id', sessionId);
     if (globalTimer.isActive && !globalTimer.isGroupTimer) {
       setPendingNavigation(`/group-study-session?id=${sessionId}`);
       setShowLeaveSessionDialog(true);

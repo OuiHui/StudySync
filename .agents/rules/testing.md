@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: manual
 description: This rule should be applied when adding/removing features.
 ---
 

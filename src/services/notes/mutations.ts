@@ -11,6 +11,7 @@ export class NotesMutations {
     permission_level?: 'private' | 'friends' | 'group' | 'public';
     file_url?: string | null;
     file_name?: string | null;
+    session_id?: string | null;
   }) {
     try {
       const session = await checkAuth();

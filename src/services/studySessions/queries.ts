@@ -294,4 +294,100 @@ export class StudySessionsQueries {
       return [];
     }
   }
+
+  static async getSession(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { data: studySession, error: sessionError } = await supabase
+        .from('study_sessions')
+        .select(`
+          *,
+          study_groups (
+            id,
+            name,
+            subject
+          )
+        `)
+        .eq('id', sessionId)
+        .single();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const { data: participants, error: participantsError } = await supabase
+        .from('session_participants')
+        .select('*')
+        .eq('session_id', sessionId);
+
+      if (participantsError) {
+        throw participantsError;
+      }
+
+      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+      let participantProfiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('user_id', userIds);
+        participantProfiles = profilesData || [];
+      }
+
+      const participantsWithProfiles = participants.map(p => {
+        const profile = participantProfiles.find(prof => prof.user_id === p.user_id);
+        return {
+          ...p,
+          profiles: profile || null
+        };
+      });
+
+      return {
+        ...studySession,
+        session_participants: participantsWithProfiles
+      };
+    } catch (error) {
+      console.error('Error fetching session:', error);
+      throw error;
+    }
+  }
+
+  static async getParticipants(sessionId: string) {
+    try {
+      const { data: participants, error: participantsError } = await supabase
+        .from('session_participants')
+        .select('user_id, role, status')
+        .eq('session_id', sessionId);
+
+      if (participantsError) throw participantsError;
+      if (!participants || participants.length === 0) return [];
+
+      const userIds = participants.map(p => p.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url')
+        .in('user_id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching participant profiles:', profilesError);
+        return participants.map(p => ({ ...p, profiles: null }));
+      }
+
+      return participants.map(p => {
+        const profile = (profiles || []).find(prof => prof.user_id === p.user_id);
+        return {
+          ...p,
+          profiles: profile || null
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching participants:', error);
+      return [];
+    }
+  }
 }
+

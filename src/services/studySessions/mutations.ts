@@ -378,4 +378,54 @@ export class StudySessionsMutations {
       throw error;
     }
   }
+
+  static async updateParticipantStatus(sessionId: string, userId: string, status: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { data, error } = await supabase
+        .from('session_participants')
+        .update({ status })
+        .eq('session_id', sessionId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'update participant status');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating participant status:', error);
+      throw error;
+    }
+  }
+
+  static async removeParticipant(sessionId: string, userId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('session_participants')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', userId);
+
+      if (error) {
+        handleDbError(error, 'remove participant');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error removing participant:', error);
+      throw error;
+    }
+  }
 }

@@ -20,14 +20,12 @@ export const ParticipantHoverCard = ({ participant, onChatClick }: ParticipantHo
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <div className="cursor-pointer text-center">
-          <div className={`w-12 h-12 ${participant.avatar} rounded-full mx-auto mb-2 flex items-center justify-center hover:ring-2 hover:ring-blue-500 transition-all`}>
-            <span className="text-white font-medium text-sm">
-              {participant.name.split(' ').map(n => n[0]).join('')}
+        <div className="cursor-pointer">
+          <div className={`w-9 h-9 ${participant.avatar} rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-500 transition-all shadow-sm`}>
+            <span className="text-white font-semibold text-xs">
+              {participant.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </span>
           </div>
-          <p className="text-sm font-medium text-gray-800 dark:text-white">{participant.name}</p>
-          <p className="text-xs text-gray-600 dark:text-gray-300">{participant.status}</p>
         </div>
       </HoverCardTrigger>
       <HoverCardContent className="w-80 dark:bg-gray-800 dark:border-gray-700">

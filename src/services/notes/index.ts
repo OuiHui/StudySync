@@ -9,6 +9,7 @@ export class NotesService {
   static getUserSubjects = NotesQueries.getUserSubjects;
   static getNoteSharedGroups = NotesQueries.getNoteSharedGroups;
   static getGroupSharedNotes = NotesQueries.getGroupSharedNotes;
+  static getSessionNotes = NotesQueries.getSessionNotes;
 
   // Mutations
   static createNote = NotesMutations.createNote;

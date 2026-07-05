@@ -84,16 +84,18 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
     };
   }, [isActive, timeLeft]);
 
+  const onTimerUpdateRef = useRef(onTimerUpdate);
+  useEffect(() => {
+    onTimerUpdateRef.current = onTimerUpdate;
+  }, [onTimerUpdate]);
+
   // Report timer updates to parent
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (onTimerUpdate) {
-        onTimerUpdate(isActive, timeLeft, workDuration, mode, currentCycle, pauseLogs);
-      }
-    }, 0);
+    if (onTimerUpdateRef.current) {
+      onTimerUpdateRef.current(isActive, timeLeft, workDuration, mode, currentCycle, pauseLogs);
+    }
+  }, [isActive, timeLeft, mode, workDuration, currentCycle, pauseLogs]);
 
-    return () => clearTimeout(timer);
-  }, [isActive, timeLeft, mode, workDuration, currentCycle, pauseLogs, onTimerUpdate]);
 
   // Handle timer completion
   useEffect(() => {
