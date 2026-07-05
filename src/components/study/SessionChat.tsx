@@ -13,6 +13,16 @@ interface SessionChatProps {
   groupName: string;
 }
 
+const getOrdinalSuffix = (day: number) => {
+  if (day > 3 && day < 21) return 'th';
+  switch (day % 10) {
+    case 1:  return "st";
+    case 2:  return "nd";
+    case 3:  return "rd";
+    default: return "th";
+  }
+};
+
 export const SessionChat = ({ groupId, groupName }: SessionChatProps) => {
   const { user } = useAuth();
   const [message, setMessage] = useState('');
@@ -30,55 +40,56 @@ export const SessionChat = ({ groupId, groupName }: SessionChatProps) => {
   }, [messages]);
 
   useEffect(() => {
-    if (groupId) {
-      loadMessages();
-    } else {
-      setMessages([]);
-      setLoading(false);
-    }
+    let activeConversationId: string | null = null;
 
-    return () => {
-      if (conversationId) {
-        RealtimeService.unsubscribe(`messages:${conversationId}`);
+    const setupChat = async () => {
+      if (!groupId) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const conversation = await ChatService.getOrCreateGroupConversation(groupId);
+        setConversationId(conversation.id);
+        activeConversationId = conversation.id;
+
+        const groupMessages = await ChatService.getMessages(conversation.id);
+        setMessages(groupMessages);
+
+        RealtimeService.subscribeToMessages(
+          conversation.id,
+          (newMessage: RealtimeMessage) => {
+            setMessages(prev => {
+              if (prev.some(msg => msg.id === newMessage.id)) return prev;
+              return [...prev, newMessage];
+            });
+          },
+          (updatedMessage: RealtimeMessage) => {
+            setMessages(prev =>
+              prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
+            );
+          },
+          (deletedMessageId: string) => {
+            setMessages(prev => prev.filter(msg => msg.id !== deletedMessageId));
+          }
+        );
+      } catch (err) {
+        console.error('Error loading session chat:', err);
+      } finally {
+        setLoading(false);
       }
     };
-  }, [groupId, conversationId]);
 
-  const loadMessages = async () => {
-    try {
-      setLoading(true);
-      if (!groupId) return;
+    setupChat();
 
-      const conversation = await ChatService.getOrCreateGroupConversation(groupId);
-      setConversationId(conversation.id);
-
-      const groupMessages = await ChatService.getMessages(conversation.id);
-      setMessages(groupMessages);
-
-      // Subscribe to real-time messages
-      RealtimeService.subscribeToMessages(
-        conversation.id,
-        (newMessage: RealtimeMessage) => {
-          setMessages(prev => {
-            if (prev.some(msg => msg.id === newMessage.id)) return prev;
-            return [...prev, newMessage];
-          });
-        },
-        (updatedMessage: RealtimeMessage) => {
-          setMessages(prev =>
-            prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
-          );
-        },
-        (deletedMessageId: string) => {
-          setMessages(prev => prev.filter(msg => msg.id !== deletedMessageId));
-        }
-      );
-    } catch (err) {
-      console.error('Error loading session chat:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => {
+      if (activeConversationId) {
+        RealtimeService.unsubscribe(`messages:${activeConversationId}`);
+      }
+    };
+  }, [groupId]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +99,13 @@ export const SessionChat = ({ groupId, groupName }: SessionChatProps) => {
     setMessage('');
 
     try {
-      await ChatService.sendMessage(conversationId, content);
+      const sentMsg = await ChatService.sendMessage(conversationId, content);
+      if (sentMsg) {
+        setMessages(prev => {
+          if (prev.some(msg => msg.id === sentMsg.id)) return prev;
+          return [...prev, sentMsg];
+        });
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
     }
@@ -118,33 +135,59 @@ export const SessionChat = ({ groupId, groupName }: SessionChatProps) => {
           ) : (
             <ScrollArea className="h-full pr-2">
               <div className="space-y-3">
-                {messages.map((msg) => {
+                {messages.map((msg, index) => {
                   const isSelf = msg.sender_id === user?.id;
                   const senderName = msg.profiles?.display_name || 'Anonymous';
-                  const timestamp = new Date(msg.created_at).toLocaleTimeString([], {
+                  const msgDate = new Date(msg.created_at);
+                  const timestamp = msgDate.toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit'
                   });
 
+                  // Check if we need to show a date separator
+                  let showDateSeparator = false;
+                  if (index === 0) {
+                    showDateSeparator = true;
+                  } else {
+                    const prevMsgDate = new Date(messages[index - 1].created_at);
+                    showDateSeparator = msgDate.toDateString() !== prevMsgDate.toDateString();
+                  }
+
+                  const dateSeparatorText = (() => {
+                    const day = msgDate.getDate();
+                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    const month = monthNames[msgDate.getMonth()];
+                    const year = msgDate.getFullYear();
+                    return `${month} ${day}${getOrdinalSuffix(day)}, ${year}`;
+                  })();
+
                   return (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col max-w-[85%] ${isSelf ? 'ml-auto items-end' : 'mr-auto items-start'}`}
-                    >
-                      <div className="flex items-center space-x-1.5 mb-0.5">
-                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
-                          {senderName}
-                        </span>
-                        <span className="text-[8px] text-gray-400">{timestamp}</span>
-                      </div>
+                    <div key={msg.id} className="space-y-3">
+                      {showDateSeparator && (
+                        <div className="flex justify-center my-4 select-none">
+                          <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+                            {dateSeparatorText}
+                          </p>
+                        </div>
+                      )}
                       <div
-                        className={`p-2.5 rounded-2xl text-xs leading-relaxed ${
-                          isSelf
-                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                            : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200/20'
-                        }`}
+                        className={`flex flex-col max-w-[85%] ${isSelf ? 'ml-auto items-end' : 'mr-auto items-start'}`}
                       >
-                        {msg.content}
+                        <div className="flex items-center space-x-1.5 mb-0.5">
+                          <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+                            {senderName}
+                          </span>
+                          <span className="text-[8px] text-gray-400">{timestamp}</span>
+                        </div>
+                        <div
+                          className={`p-2.5 rounded-2xl text-xs leading-relaxed ${
+                            isSelf
+                              ? 'bg-indigo-600 text-white rounded-tr-none'
+                              : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200/20'
+                          }`}
+                        >
+                          {msg.content}
+                        </div>
                       </div>
                     </div>
                   );

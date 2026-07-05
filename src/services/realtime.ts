@@ -69,8 +69,8 @@ export class RealtimeService {
           // Fetch the sender's profile
           const { data: profile } = await supabase
             .from('profiles')
-            .select('id, display_name, avatar_url')
-            .eq('id', payload.new.sender_id)
+            .select('id, display_name, avatar_url, user_id')
+            .eq('user_id', payload.new.sender_id)
             .single();
 
           const messageWithProfile = {
@@ -96,8 +96,8 @@ export class RealtimeService {
             // Fetch the sender's profile
             const { data: profile } = await supabase
               .from('profiles')
-              .select('id, display_name, avatar_url')
-              .eq('id', payload.new.sender_id)
+              .select('id, display_name, avatar_url, user_id')
+              .eq('user_id', payload.new.sender_id)
               .single();
 
             const messageWithProfile = {

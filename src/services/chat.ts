@@ -97,8 +97,8 @@ export class ChatService {
       // Fetch profiles for all senders
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url')
-        .in('id', senderIds);
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', senderIds);
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
@@ -106,8 +106,8 @@ export class ChatService {
         return messages;
       }
 
-      // Create a map of profiles by ID for quick lookup
-      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      // Create a map of profiles by user_id for quick lookup
+      const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
       // Merge profile data with messages
       const messagesWithProfiles = messages.map(message => ({
@@ -209,8 +209,8 @@ export class ChatService {
       // Fetch the sender's profile separately
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url')
-        .eq('id', session.user.id)
+        .select('id, display_name, avatar_url, user_id')
+        .eq('user_id', session.user.id)
         .single();
 
       // Combine message with profile
@@ -321,4 +321,4 @@ const testRLSPolicies = async () => {
   }
 };
 
-
+
