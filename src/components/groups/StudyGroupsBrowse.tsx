@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Users, Search, BookOpen, ArrowRight, UserPlus, UserMinus, Loader2, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, Crown } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePublicGroups } from '@/hooks/usePublicGroups';
+import { GroupCard } from './GroupCard';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
@@ -28,28 +28,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
     handleLeaveGroup,
     handleCreateGroup,
   } = usePublicGroups(groupEnrollments, onUpdateEnrollment);
-
-  const getIconComponent = (iconName: string) => {
-    const iconMap: { [key: string]: any } = {
-      Users, BookOpen, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap
-    };
-    return iconMap[iconName] || BookOpen;
-  };
-
-  const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
-    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
-      return (
-        <img 
-          src={iconValue} 
-          alt="Group icon" 
-          className="object-cover rounded"
-          style={{ width: `${size}px`, height: `${size}px` }}
-        />
-      );
-    }
-    const IconComponent = getIconComponent(iconValue);
-    return <IconComponent size={size} className={className} />;
-  };
 
   const subjects = [
     'all',
@@ -140,98 +118,15 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGroups.map((group) => {
-              const isCreator = user?.id === group.created_by;
-              
-              return (
-                <Card 
-                  key={group.id}
-                  className="border-0 shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer dark:bg-gray-800"
-                  onClick={() => onSelectGroup(group.id)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className={`w-12 h-12 ${group.color.includes('bg-gradient') ? group.color : group.color} rounded-lg flex items-center justify-center mb-3`}>
-                        {renderGroupIcon(group.icon, 24, "text-white")}
-                      </div>
-                      {group.isEnlisted && (
-                        <span className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full">
-                          Joined
-                        </span>
-                      )}
-                      {isCreator && (
-                        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 text-xs rounded-full flex items-center">
-                          <Crown size={12} className="mr-1" />
-                          Creator
-                        </span>
-                      )}
-                    </div>
-                    <CardTitle className="text-lg text-gray-800 dark:text-white">{group.name}</CardTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{group.subject}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">{group.description}</p>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Members</span>
-                        <span className="font-medium text-gray-800 dark:text-white">{group.members}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Sessions</span>
-                        <span className="font-medium text-gray-800 dark:text-white">{group.sessions}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-300">Admin</span>
-                        <span className="font-medium text-gray-800 dark:text-white">{group.admin}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 flex space-x-2">
-                      <Button 
-                        variant="outline"
-                        className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectGroup(group.id);
-                        }}
-                      >
-                        <ArrowRight size={14} className="mr-1" />
-                        View Details
-                      </Button>
-                      {!isCreator && (
-                        group.isEnlisted ? (
-                          <Button 
-                            variant="outline"
-                            className="text-red-600 border-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-900/20"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLeaveGroup(group.id);
-                            }}
-                          >
-                            <UserMinus size={14} className="mr-1" />
-                            Leave
-                          </Button>
-                        ) : (
-                          <Button 
-                            className="bg-blue-500 hover:bg-blue-600 text-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleJoinGroup(group.id);
-                            }}
-                          >
-                            <UserPlus size={14} className="mr-1" />
-                            Join
-                          </Button>
-                        )
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {filteredGroups.map((group) => (
+              <GroupCard
+                key={group.id}
+                group={group}
+                isMyGroupPage={false}
+                currentUserId={user?.id}
+                onClick={() => onSelectGroup(group.id)}
+              />
+            ))}
           </div>
 
           {filteredGroups.length === 0 && !loading && (

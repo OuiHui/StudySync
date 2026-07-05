@@ -37,9 +37,9 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<any | null>(null);
 
   const filteredGroups = studyGroups.filter(group =>
-    group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    group.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (group.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (group.subject || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (group.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openGroupDetails = (group: any) => {
@@ -136,7 +136,10 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
       <ChatPopup
         isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
+        onClose={() => {
+          setChatOpen(false);
+          loadUserGroups();
+        }}
         groupName={selectedGroupName}
         groupId={selectedGroupId}
       />

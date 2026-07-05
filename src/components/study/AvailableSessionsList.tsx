@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Users, Calendar, Clock, Play, Eye, Loader2, Edit } from 'lucide-react';
+import { Users, Calendar, Clock, Play, Eye, Loader2, Edit, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -43,6 +43,24 @@ interface AvailableSessionsListProps {
 const getInitials = (name?: string | null) => {
   if (!name) return 'U';
   return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+};
+
+const getAvatarColorClass = (name: string) => {
+  const colors = [
+    'bg-indigo-500 text-white',
+    'bg-emerald-500 text-white',
+    'bg-amber-500 text-white',
+    'bg-rose-500 text-white',
+    'bg-sky-500 text-white',
+    'bg-violet-500 text-white',
+    'bg-orange-500 text-white'
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
 };
 
 const formatCardTime = (dateStr: string) => {
@@ -195,21 +213,21 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                           Live
                         </span>
-                      </div>
-
-                      {/* Host display */}
+                      </div>                      {/* Host display */}
                       <div className="flex items-center space-x-2 mt-3 select-none">
                         <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10">
                           {session.hostInitials}
-                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border border-white dark:border-gray-800"></span>
+                          <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
+                            <Star size={8} fill="currentColor" />
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-600 dark:text-gray-305 font-medium">
+                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">
                           Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
                         </span>
                       </div>
                       
                       {session.description && (
-                        <p className="text-xs text-gray-700 dark:text-gray-300 mt-3 leading-relaxed">
+                        <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">
                           {session.description}
                         </p>
                       )}
@@ -225,36 +243,43 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           <Clock size={13} className="text-gray-400 shrink-0" />
                           <span>{session.duration}</span>
                         </div>
-                      </div>
-
-                      {/* Overlapping participants group */}
-                      {session.participantList.length > 0 && (
-                        <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none">
-                          <div className="flex -space-x-1.5 overflow-hidden">
-                            {session.participantList.slice(0, 3).map((p: any) => {
-                              const pName = p.profiles?.display_name || 'Anonymous';
-                              const pInitials = getInitials(pName);
-                              return (
-                                <div 
-                                  key={p.user_id} 
-                                  className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-400 dark:bg-gray-600 text-white flex items-center justify-center text-[9px] font-bold z-10"
-                                  title={pName}
-                                >
-                                  {pInitials}
+                      </div>                      {/* Overlapping participants group */}
+                      <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
+                        {session.participantList.length > 0 ? (
+                          <>
+                            <div className="flex -space-x-1.5 overflow-hidden">
+                              {session.participantList.slice(0, 3).map((p: any) => {
+                                const pName = p.profiles?.display_name || 'Anonymous';
+                                const pInitials = getInitials(pName);
+                                return (
+                                  <div 
+                                    key={p.user_id} 
+                                    className={`inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-[9px] font-bold z-10 ${getAvatarColorClass(pName)}`}
+                                    title={pName}
+                                  >
+                                    {pInitials}
+                                  </div>
+                                );
+                              })}
+                              {session.participantList.length > 3 && (
+                                <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
+                                  +{session.participantList.length - 3}
                                 </div>
-                              );
-                            })}
-                            {session.participantList.length > 3 && (
-                              <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
-                                +{session.participantList.length - 3}
-                              </div>
-                            )}
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                              {session.participants} active
+                            </span>
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-500 dark:text-gray-400">
+                            <Users size={14} className="mr-1.5 shrink-0" />
+                            <span className="text-xs font-medium">
+                              No Active Participants
+                            </span>
                           </div>
-                          <span className="text-xs text-gray-505 dark:text-gray-400 font-medium">
-                            {session.participants} active
-                          </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       
                       <div className="flex space-x-2">
                         <Button 
@@ -347,15 +372,17 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                       <div className="flex items-center space-x-2 mt-3 select-none">
                         <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10">
                           {session.hostInitials}
-                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-500 border border-white dark:border-gray-800"></span>
+                          <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
+                            <Star size={8} fill="currentColor" />
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-600 dark:text-gray-305 font-medium">
+                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">
                           Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
                         </span>
                       </div>
                       
                       {session.description && (
-                        <p className="text-xs text-gray-700 dark:text-gray-305 mt-3 leading-relaxed">
+                        <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">
                           {session.description}
                         </p>
                       )}
@@ -371,6 +398,43 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           <Clock size={13} className="text-gray-400 shrink-0" />
                           <span>{session.duration}</span>
                         </div>
+                      </div>
+                                          {/* Overlapping participants group */}
+                      <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
+                        {session.participantList.length > 0 ? (
+                          <>
+                            <div className="flex -space-x-1.5 overflow-hidden">
+                              {session.participantList.slice(0, 3).map((p: any) => {
+                                const pName = p.profiles?.display_name || 'Anonymous';
+                                const pInitials = getInitials(pName);
+                                return (
+                                  <div 
+                                    key={p.user_id} 
+                                    className={`inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-[9px] font-bold z-10 ${getAvatarColorClass(pName)}`}
+                                    title={pName}
+                                  >
+                                    {pInitials}
+                                  </div>
+                                );
+                              })}
+                              {session.participantList.length > 3 && (
+                                <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
+                                  +{session.participantList.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                              {session.participants} active
+                            </span>
+                          </>
+                        ) : (
+                          <div className="flex items-center text-gray-500 dark:text-gray-400">
+                            <Users size={14} className="mr-1.5 shrink-0" />
+                            <span className="text-xs font-medium">
+                              No Active Participants
+                            </span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex space-x-2">

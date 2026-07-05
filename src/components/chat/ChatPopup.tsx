@@ -99,6 +99,9 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
       convId,
       (newMessage: RealtimeMessage) => {
         setMessages(prev => [...prev, newMessage]);
+        if (groupId) {
+          localStorage.setItem(`studysync_chat_last_read_${groupId}`, newMessage.id);
+        }
         
         // Show toast notification for messages from other users
         if (newMessage.sender_id !== user?.id) {
@@ -142,6 +145,11 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
       // Then load messages for that conversation
       const groupMessages = await ChatService.getMessages(conversation.id);
       setMessages(groupMessages);
+      
+      if (groupMessages && groupMessages.length > 0 && groupId) {
+        const latestMsg = groupMessages[groupMessages.length - 1];
+        localStorage.setItem(`studysync_chat_last_read_${groupId}`, latestMsg.id);
+      }
       
       // Set up real-time message subscription
       setupMessageSubscription(conversation.id);

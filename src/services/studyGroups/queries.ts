@@ -21,52 +21,34 @@ export class StudyGroupsQueries {
       }
 
       try {
-        // Try the proper approach first - get user's group memberships
+        // Fetch groups the user is a member of
         const { data: memberships, error: membershipsError } = await supabase
           .from('group_members')
           .select('group_id, role, joined_at')
           .eq('user_id', userId);
 
         if (membershipsError) {
-          console.warn('Could not fetch group memberships, falling back to created groups only:', membershipsError);
-          
-          // Fallback: get groups created by user
-          const { data: createdGroups, error: createdError } = await supabase
-            .from('study_groups')
-            .select('*')
-            .eq('created_by', userId);
-
-          if (createdError) {
-            console.error('Error fetching user-created groups:', createdError);
-            return [];
-          }
-
-          const fallbackGroupIds = (createdGroups || []).map(g => g.id);
-          const { data: fallbackMembers } = await supabase
-            .from('group_members')
-            .select('id, group_id')
-            .in('group_id', fallbackGroupIds);
-
-          return (createdGroups || []).map(group => {
-            const memberCount = (fallbackMembers || []).filter(m => m.group_id === group.id).length || 1;
-            return {
-              ...group,
-              icon: (group as any).icon || 'Users',
-              color: (group as any).color || 'from-blue-500 to-blue-600',
-              creator_profile: null,
-              user_role: 'admin',
-              joined_at: group.created_at,
-              member_count: memberCount
-            };
-          });
+          console.warn('Error fetching group memberships:', membershipsError);
         }
 
-        if (!memberships || memberships.length === 0) {
+        // Fetch groups created by the user
+        const { data: createdGroups, error: createdError } = await supabase
+          .from('study_groups')
+          .select('id')
+          .eq('created_by', userId);
+
+        if (createdError) {
+          console.warn('Error fetching user-created groups:', createdError);
+        }
+
+        const membershipIds = (memberships || []).map(m => m.group_id);
+        const createdIds = (createdGroups || []).map(g => g.id);
+        const groupIds = [...new Set([...membershipIds, ...createdIds])];
+
+        if (groupIds.length === 0) {
           return [];
         }
 
-        // Get group details for each membership
-        const groupIds = memberships.map(m => m.group_id);
         const { data: groups, error: groupsError } = await supabase
           .from('study_groups')
           .select('*')
@@ -79,26 +61,39 @@ export class StudyGroupsQueries {
 
         // Get creator profiles
         const creatorIds = [...new Set((groups || []).map(g => g.created_by))];
-        const { data: creators } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, user_id')
-          .in('user_id', creatorIds);
+        const [creatorsData, allMembersData, sessionsDataRes, conversationsRes] = await Promise.all([
+          supabase.from('profiles').select('id, display_name, avatar_url, user_id').in('user_id', creatorIds),
+          supabase.from('group_members').select('id, group_id').in('group_id', groupIds),
+          supabase.from('study_sessions').select('id, group_id').in('group_id', groupIds),
+          supabase.from('conversations').select('id, group_id').in('group_id', groupIds).eq('is_group_chat', true)
+        ]);
 
-        const { data: allMembersData } = await supabase
-          .from('group_members')
-          .select('id, group_id')
-          .in('group_id', groupIds);
+        const creators = creatorsData.data || [];
+        const allMembers = allMembersData.data || [];
+        const sessionsData = sessionsDataRes.data || [];
+        const conversations = conversationsRes.data || [];
+        const convIds = conversations.map(c => c.id);
 
-        const allMembers = allMembersData || [];
+        let latestMessages: any[] = [];
+        if (convIds.length > 0) {
+          const { data: msgs } = await supabase
+            .from('messages')
+            .select('id, conversation_id, content, created_at, sender_id')
+            .in('conversation_id', convIds)
+            .order('created_at', { ascending: false });
+          latestMessages = msgs || [];
+        }
 
         // Combine membership data with group details
-        const groupsWithDetails = memberships.map(membership => {
-          const group = groups?.find(g => g.id === membership.group_id);
-          const creator = creators?.find(c => c.user_id === group?.created_by);
+        const groupsWithDetails = groups.map(group => {
+          const creator = creators?.find(c => c.user_id === group.created_by);
+          const membership = memberships?.find(m => m.group_id === group.id);
+          const isCreator = group.created_by === userId;
           
-          if (!group) return null;
-
           const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const sessionsCount = sessionsData.filter(s => s.group_id === group.id).length;
+          const conversation = conversations.find(c => c.group_id === group.id);
+          const latestMsg = conversation ? latestMessages.find(m => m.conversation_id === conversation.id) : null;
           
           return {
             ...group,
@@ -106,9 +101,16 @@ export class StudyGroupsQueries {
             icon: (group as any).icon || 'Users',
             color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: creator,
-            user_role: membership.role,
-            joined_at: membership.joined_at,
-            member_count: memberCount
+            user_role: membership?.role || (isCreator ? 'admin' : 'member'),
+            joined_at: membership?.joined_at || group.created_at,
+            member_count: memberCount,
+            sessions_count: sessionsCount,
+            latest_message: latestMsg ? {
+              id: latestMsg.id,
+              content: latestMsg.content,
+              created_at: latestMsg.created_at,
+              sender_id: latestMsg.sender_id
+            } : null
           };
         });
 
@@ -124,50 +126,11 @@ export class StudyGroupsQueries {
         return filteredGroups;
         
       } catch (error) {
-        console.error('Error fetching user groups, trying fallback:', error);
-        
-        // Final fallback: get groups created by user
-        const { data: createdGroups, error: createdError } = await supabase
-          .from('study_groups')
-          .select('*')
-          .eq('created_by', userId);
-
-        if (createdError) {
-          console.error('Error fetching user-created groups:', createdError);
-          return [];
-        }
-
-        const fallbackGroupIds = (createdGroups || []).map(g => g.id);
-        const { data: fallbackMembers } = await supabase
-          .from('group_members')
-          .select('id, group_id')
-          .in('group_id', fallbackGroupIds);
-
-        const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-        return (createdGroups || [])
-          .filter(group => {
-            if (!isAutomation && group.name === 'E2E Test Group') {
-              return false;
-            }
-            return true;
-          })
-          .map(group => {
-            const memberCount = (fallbackMembers || []).filter(m => m.group_id === group.id).length || 1;
-            return {
-              ...group,
-              icon: (group as any).icon || 'Users',
-              color: (group as any).color || 'from-blue-500 to-blue-600',
-              creator_profile: null,
-              user_role: 'admin',
-              joined_at: group.created_at,
-              member_count: memberCount
-            };
-          });
+        console.error('Error fetching user groups:', error);
+        return [];
       }
-
     } catch (error) {
-      console.error('Unexpected error fetching user groups:', error);
-      return [];
+      return handleDbError(error, 'fetch user groups');
     }
   }
 
@@ -208,13 +171,15 @@ export class StudyGroupsQueries {
       const creatorIds = [...new Set(groups.map(g => g.created_by))];
       const groupIds = groups.map(g => g.id);
 
-      const [creatorsData, membersData] = await Promise.all([
+      const [creatorsData, membersData, sessionsData] = await Promise.all([
         supabase.from('profiles').select('id, display_name, avatar_url, user_id').in('user_id', creatorIds),
-        supabase.from('group_members').select('id, group_id').in('group_id', groupIds)
+        supabase.from('group_members').select('id, group_id').in('group_id', groupIds),
+        supabase.from('study_sessions').select('id, group_id').in('group_id', groupIds)
       ]);
 
       const creators = creatorsData.data || [];
       const allMembers = membersData.data || [];
+      const allSessions = sessionsData.data || [];
 
       const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
 
@@ -229,6 +194,7 @@ export class StudyGroupsQueries {
         .map((group) => {
           const creator = creators.find(c => c.user_id === group.created_by);
           const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const sessionsCount = allSessions.filter(s => s.group_id === group.id).length;
 
           return {
             ...group,
@@ -236,7 +202,8 @@ export class StudyGroupsQueries {
             icon: (group as any).icon || 'Users',
             color: (group as any).color || 'from-blue-500 to-blue-600',
             creator_profile: creator || null,
-            member_count: memberCount
+            member_count: memberCount,
+            sessions_count: sessionsCount
           };
         });
 

@@ -79,13 +79,14 @@ export function usePublicGroups(
       description: group.description || 'No description available',
       members: group.member_count || 0,
       admin: group.creator_profile?.display_name || 'Group Admin',
-      sessions: 0,
+      sessions: group.sessions_count || 0,
       isEnlisted: groupEnrollments[group.id] || false,
       color: normalizeColor((group as any).color) || getSubjectColor(group.subject || 'General'),
       icon: (group as any).icon || 'BookOpen',
       created_at: group.created_at,
       max_members: group.max_members,
-      created_by: group.created_by
+      created_by: group.created_by,
+      is_public: group.is_public ?? true
     }));
   }, [rawGroups, groupEnrollments]);
 

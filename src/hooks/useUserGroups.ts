@@ -19,6 +19,9 @@ export interface GroupInfo {
   is_public: boolean;
   creator_profile?: any;
   role?: string; // For visitor/anonymous
+  sessions?: number;
+  admin?: string;
+  latest_message?: any;
 }
 
 export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
@@ -43,7 +46,10 @@ export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
         recentActivity: 'Public group',
         created_at: group.created_at,
         is_public: group.is_public,
-        creator_profile: group.creator_profile
+        creator_profile: group.creator_profile,
+        sessions: group.sessions_count || 0,
+        admin: group.creator_profile?.display_name || 'Group Admin',
+        latest_message: null
       }));
     }
 
@@ -63,7 +69,11 @@ export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
       recentActivity: 'No recent activity',
       created_at: group.created_at,
       created_by: group.created_by,
-      is_public: group.is_public
+      is_public: group.is_public,
+      creator_profile: group.creator_profile,
+      sessions: group.sessions_count || 0,
+      admin: group.creator_profile?.display_name || 'Group Admin',
+      latest_message: group.latest_message
     }));
   },
   staleTime: 5 * 60 * 1000, // cache for 5 minutes

@@ -141,6 +141,7 @@ export class StudySessionsQueries {
 
           return {
             ...studySession,
+            participant_count: sessionParts.length,
             session_participants: participantProfiles,
             profiles: hostProfile
           };
@@ -225,6 +226,7 @@ export class StudySessionsQueries {
 
           return {
             ...studySession,
+            participant_count: sessionParts.length,
             session_participants: participantProfiles,
             profiles: hostProfile
           };
