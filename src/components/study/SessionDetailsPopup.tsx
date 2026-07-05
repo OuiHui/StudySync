@@ -9,7 +9,7 @@ interface SessionDetailsPopupProps {
   session: {
     id: string;
     groupName: string;
-    subject: string;
+    course: string;
     participants: number;
     startTime: string;
     duration: string;
@@ -39,7 +39,7 @@ export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }:
           {/* Session Header */}
           <div className="text-center">
             <h3 className="text-xl font-bold text-gray-800 dark:text-white">{session.groupName}</h3>
-            <p className="text-gray-600 dark:text-gray-300">{session.subject}</p>
+            <p className="text-gray-600 dark:text-gray-300">{session.course}</p>
             <Badge variant={session.type === 'active' ? 'default' : 'secondary'} className="mt-2">
               {session.type === 'active' ? 'LIVE' : 'SCHEDULED'}
             </Badge>
@@ -48,7 +48,7 @@ export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }:
           {/* Description */}
           <div>
             <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Description</h4>
-            <p className="text-sm text-gray-700 dark:text-gray-300">{session.description}</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">{session.description || <span className="text-gray-400 dark:text-gray-500 italic">No description</span>}</p>
           </div>
 
           {/* Session Info */}

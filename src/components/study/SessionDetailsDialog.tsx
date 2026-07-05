@@ -10,7 +10,7 @@ import {
 
 interface SessionDetailsDialogProps {
   title?: string;
-  subject?: string | null;
+  course?: string | null;
   hostName?: string;
   startTime?: string | null;
   sessionGoal?: number;
@@ -21,7 +21,7 @@ interface SessionDetailsDialogProps {
 
 export const SessionDetailsDialog = ({
   title = "Study Session",
-  subject,
+  course,
   hostName,
   startTime,
   sessionGoal = 4,
@@ -69,8 +69,8 @@ export const SessionDetailsDialog = ({
           </div>
 
           <div className="grid grid-cols-3 gap-2 border-b dark:border-gray-800 pb-2">
-            <span className="font-semibold text-gray-500 dark:text-gray-400">Subject:</span>
-            <span className="col-span-2">{subject || 'General'}</span>
+            <span className="font-semibold text-gray-500 dark:text-gray-400">Course:</span>
+            <span className="col-span-2">{course || 'General'}</span>
           </div>
 
           {isGroupSession && (

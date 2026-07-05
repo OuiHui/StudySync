@@ -5,7 +5,7 @@ import { SessionDetailsDialog } from './SessionDetailsDialog';
 describe('SessionDetailsDialog Component', () => {
   const defaultProps = {
     title: 'Midterm Review Session',
-    subject: 'Biology 101',
+    course: 'Biology 101',
     hostName: 'Dr. Smith',
     startTime: '2026-07-05T12:00:00.000Z',
     sessionGoal: 4,

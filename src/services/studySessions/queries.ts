@@ -104,7 +104,11 @@ export class StudySessionsQueries {
         .select('session_id, user_id')
         .in('session_id', sessionIdsForParticipants);
 
-      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      const creatorIds = uniqueSessions.map(s => s.created_by).filter(Boolean);
+      const userIds = [...new Set([
+        ...(allParticipants?.map(p => p.user_id) || []),
+        ...creatorIds
+      ])];
       let profiles: any[] = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -133,9 +137,12 @@ export class StudySessionsQueries {
             };
           });
 
+          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
+
           return {
             ...studySession,
-            session_participants: participantProfiles
+            session_participants: participantProfiles,
+            profiles: hostProfile
           };
         });
 
@@ -177,7 +184,11 @@ export class StudySessionsQueries {
         .select('session_id, user_id')
         .in('session_id', sessionIds);
 
-      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
+      const userIds = [...new Set([
+        ...(allParticipants?.map(p => p.user_id) || []),
+        ...creatorIds
+      ])];
       let profiles: any[] = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -210,9 +221,12 @@ export class StudySessionsQueries {
             };
           });
 
+          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
+
           return {
             ...studySession,
-            session_participants: participantProfiles
+            session_participants: participantProfiles,
+            profiles: hostProfile
           };
         });
 
@@ -252,7 +266,11 @@ export class StudySessionsQueries {
         .select('session_id, user_id')
         .in('session_id', sessionIds);
 
-      const userIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
+      const userIds = [...new Set([
+        ...(allParticipants?.map(p => p.user_id) || []),
+        ...creatorIds
+      ])];
       let profiles: any[] = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -281,10 +299,13 @@ export class StudySessionsQueries {
             };
           });
 
+          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
+
           return {
             ...studySession,
             participant_count: sessionParts.length,
-            session_participants: participantProfiles
+            session_participants: participantProfiles,
+            profiles: hostProfile
           };
         });
 
@@ -328,7 +349,11 @@ export class StudySessionsQueries {
         throw participantsError;
       }
 
-      const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+      const userIds = [...new Set([
+        ...(participants?.map(p => p.user_id) || []),
+        studySession.created_by
+      ].filter(Boolean))];
+      
       let participantProfiles: any[] = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -346,9 +371,12 @@ export class StudySessionsQueries {
         };
       });
 
+      const hostProfile = participantProfiles.find(prof => prof.user_id === studySession.created_by) || null;
+
       return {
         ...studySession,
-        session_participants: participantsWithProfiles
+        session_participants: participantsWithProfiles,
+        profiles: hostProfile
       };
     } catch (error) {
       console.error('Error fetching session:', error);

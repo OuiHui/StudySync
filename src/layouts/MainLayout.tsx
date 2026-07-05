@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getDashboardQueryOptions } from '@/hooks/useDashboardData';
 import { getProfileQueryOptions } from '@/hooks/useProfileData';
 import { getStudyEventsQueryOptions } from '@/hooks/useStudyEvents';
+import { StudySessionsService } from '@/services/database';
 
 const initialTheme = {
   name: 'Default Blue',
@@ -99,8 +100,20 @@ export const MainLayout = () => {
     setPendingNavigation(null);
   };
 
-  const handleConfirmLeaveSession = () => {
+  const handleConfirmLeaveSession = async () => {
     handleCancelTimer(); // stops and resets
+    
+    // Call leaveSession if we were in a group study session
+    const savedSessionId = localStorage.getItem('active_group_session_id');
+    if (savedSessionId && user) {
+      try {
+        await StudySessionsService.leaveSession(savedSessionId);
+      } catch (err) {
+        console.error("Failed to leave session from layout:", err);
+      }
+      localStorage.removeItem('active_group_session_id');
+    }
+
     setIsInGroupSession(false);
     if (pendingNavigation) {
       navigate(pendingNavigation);

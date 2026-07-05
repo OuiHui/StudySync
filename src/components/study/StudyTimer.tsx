@@ -27,7 +27,7 @@ interface StudyTimerProps {
 export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }: StudyTimerProps) => {
   const { user } = useAuth();
   const [isHost, setIsHost] = useState(true);
-  const [sessionSubject, setSessionSubject] = useState<string | null>(null);
+  const [sessionCourse, setSessionCourse] = useState<string | null>(null);
   const [sessionTitle, setSessionTitle] = useState<string>('Group Study Session');
   const [hostName, setHostName] = useState<string>('');
   const [startTime, setStartTime] = useState<string | null>(null);
@@ -46,17 +46,14 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
             created_by, 
             subject, 
             actual_start, 
-            title,
-            profiles:created_by (
-              display_name
-            )
+            title
           `)
           .eq('id', sessionId)
           .single();
         if (!error && data) {
           setIsHost(data.created_by === user.id);
           if (data.subject) {
-            setSessionSubject(data.subject);
+            setSessionCourse(data.subject);
           }
           if (data.title) {
             setSessionTitle(data.title);
@@ -64,9 +61,16 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
           if (data.actual_start) {
             setStartTime(data.actual_start);
           }
-          const profileData = data.profiles as any;
-          if (profileData?.display_name) {
-            setHostName(profileData.display_name);
+          
+          if (data.created_by) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('user_id', data.created_by)
+              .maybeSingle();
+            if (profileData?.display_name) {
+              setHostName(profileData.display_name);
+            }
           }
         }
       } catch (err) {
@@ -130,12 +134,12 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
         <CardHeader className="py-2.5 flex flex-row items-center justify-between border-b dark:border-gray-700/50 shrink-0">
           <CardTitle className="text-xs font-semibold text-gray-800 dark:text-white">
             {mode === 'work' ? 'Group Focus Session' : 'Break Time'}
-            {sessionSubject && <span className="block text-[10px] font-normal text-gray-500 dark:text-gray-400 mt-0.5">Subject: {sessionSubject}</span>}
-            {currentCycle && <span className="block text-[9px] font-normal text-gray-400 dark:text-gray-500 mt-0.5">Cycle {currentCycle}</span>}
+            {sessionCourse && <span className="block text-[10px] font-normal text-gray-500 dark:text-gray-400 mt-0.5">Course: {sessionCourse}</span>}
+            {currentCycle && <span className="block text-[9px] font-normal text-gray-400 dark:text-gray-555 mt-0.5">Cycle {currentCycle}</span>}
           </CardTitle>
           <SessionDetailsDialog
             title={sessionTitle}
-            subject={sessionSubject}
+            course={sessionCourse}
             hostName={hostName}
             startTime={startTime}
             sessionGoal={sessionGoal}
