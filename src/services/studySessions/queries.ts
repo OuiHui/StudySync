@@ -40,7 +40,11 @@ export class StudySessionsQueries {
       profiles = profilesData || [];
     }
 
-    const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+    const isAutomation = typeof window !== 'undefined' && (
+      window.navigator.webdriver || 
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1'
+    );
 
     return sessions
       .filter(studySession => {
@@ -144,7 +148,7 @@ export class StudySessionsQueries {
         index === self.findIndex(s => s.id === session.id)
       );
 
-      return this.enrichSessionsWithParticipants(uniqueSessions);
+      return StudySessionsQueries.enrichSessionsWithParticipants(uniqueSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       return [];
@@ -164,7 +168,7 @@ export class StudySessionsQueries {
         return [];
       }
 
-      return this.enrichSessionsWithParticipants(sessions, (studySession) => {
+      return StudySessionsQueries.enrichSessionsWithParticipants(sessions, (studySession) => {
         if (studySession.status === 'scheduled') {
           return new Date(studySession.scheduled_end) >= new Date();
         }
@@ -189,7 +193,7 @@ export class StudySessionsQueries {
         return [];
       }
 
-      return this.enrichSessionsWithParticipants(sessions);
+      return StudySessionsQueries.enrichSessionsWithParticipants(sessions);
     } catch (error) {
       console.error('Error fetching group sessions:', error);
       return [];

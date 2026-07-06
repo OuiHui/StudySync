@@ -184,9 +184,9 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
 
         {/* Inline Details Panel */}
         <div className="w-full max-w-xl text-center space-y-2 select-none shrink-0 bg-white/40 dark:bg-gray-900/40 p-4 rounded-xl border border-gray-200/10 backdrop-blur-sm shadow-sm">
-          <h2 className="text-xl font-extrabold text-gray-800 dark:text-white leading-tight">
+          <h1 className="text-xl font-extrabold text-gray-800 dark:text-white leading-tight">
             Solo Study Session
-          </h2>
+          </h1>
           
           <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
             <div className="flex items-center space-x-1">
