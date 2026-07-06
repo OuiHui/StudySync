@@ -1,6 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth, handleDbError, StudySession } from '../utils';
 
+const isRlsRecursionError = (error: any): boolean => {
+  return error && (error.code === '42P17' || error.message?.includes('infinite recursion'));
+};
+
 export class StudySessionsMutations {
   static async createSession(sessionData: {
     title: string;
@@ -261,7 +265,7 @@ export class StudySessionsMutations {
 
         if (error) {
           // Check if it's RLS recursion specifically
-          if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          if (isRlsRecursionError(error)) {
             console.warn('RLS recursion detected in updateSession, trying alternative approach...');
             
             // Try updating without the select to avoid potential RLS issues
@@ -297,7 +301,7 @@ export class StudySessionsMutations {
         return data;
       } catch (directError: any) {
         // If it's RLS recursion, try a simpler approach
-        if (directError.code === '42P17' || directError.message?.includes('infinite recursion')) {
+        if (isRlsRecursionError(directError)) {
           console.warn('RLS recursion in updateSession, attempting minimal update...');
           
           // Try updating without any complex where clauses that might trigger RLS
@@ -337,7 +341,7 @@ export class StudySessionsMutations {
 
         if (error) {
           // Handle RLS recursion specifically for delete operations
-          if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          if (isRlsRecursionError(error)) {
             console.warn('RLS recursion detected in deleteSession, trying alternative approach...');
             
             // Try delete without the created_by constraint that might trigger RLS
@@ -356,7 +360,7 @@ export class StudySessionsMutations {
 
         return true;
       } catch (directError: any) {
-        if (directError.code === '42P17' || directError.message?.includes('infinite recursion')) {
+        if (isRlsRecursionError(directError)) {
           console.warn('RLS recursion in deleteSession, attempting minimal delete...');
           
           const { error: simpleDeleteError } = await supabase

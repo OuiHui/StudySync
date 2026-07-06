@@ -1,7 +1,78 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth } from '../utils';
 
+const STUDY_SESSION_SELECT = `
+  *,
+  study_groups (
+    id,
+    name,
+    subject
+  )
+`;
+
 export class StudySessionsQueries {
+  private static async enrichSessionsWithParticipants(
+    sessions: any[],
+    additionalFilter?: (session: any) => boolean
+  ) {
+    if (!sessions || sessions.length === 0) {
+      return [];
+    }
+
+    const sessionIds = sessions.map(s => s.id);
+    const { data: allParticipants } = await supabase
+      .from('session_participants')
+      .select('session_id, user_id')
+      .in('session_id', sessionIds);
+
+    const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
+    const userIds = [...new Set([
+      ...(allParticipants?.map(p => p.user_id) || []),
+      ...creatorIds
+    ])];
+    
+    let profiles: any[] = [];
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, user_id')
+        .in('user_id', userIds);
+      profiles = profilesData || [];
+    }
+
+    const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
+
+    return sessions
+      .filter(studySession => {
+        if (!isAutomation && studySession.title === 'E2E Session') {
+          return false;
+        }
+        if (additionalFilter && !additionalFilter(studySession)) {
+          return false;
+        }
+        return true;
+      })
+      .map((studySession) => {
+        const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
+        const participantProfiles = sessionParts.map(sp => {
+          const profile = profiles.find(p => p.user_id === sp.user_id);
+          return {
+            user_id: sp.user_id,
+            profiles: profile || null
+          };
+        });
+
+        const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
+
+        return {
+          ...studySession,
+          participant_count: sessionParts.length,
+          session_participants: participantProfiles,
+          profiles: hostProfile
+        };
+      });
+  }
+
   static async getSessions() {
     try {
       const session = await checkAuth();
@@ -12,17 +83,9 @@ export class StudySessionsQueries {
       const userId = session.user.id;
 
       // Get sessions the user created OR sessions they're participating in
-      // First get sessions the user created
       const { data: createdSessions, error: createdError } = await supabase
         .from('study_sessions')
-        .select(`
-          *,
-          study_groups (
-            id,
-            name,
-            subject
-          )
-        `)
+        .select(STUDY_SESSION_SELECT)
         .eq('created_by', userId)
         .order('scheduled_start', { ascending: true });
 
@@ -41,14 +104,7 @@ export class StudySessionsQueries {
         const sessionIds = participations.map(p => p.session_id);
         const { data: sessions, error: sessionsError } = await supabase
           .from('study_sessions')
-          .select(`
-            *,
-            study_groups (
-              id,
-              name,
-              subject
-            )
-          `)
+          .select(STUDY_SESSION_SELECT)
           .in('id', sessionIds)
           .order('scheduled_start', { ascending: true });
 
@@ -68,14 +124,7 @@ export class StudySessionsQueries {
         const groupIds = groupMemberships.map(m => m.group_id);
         const { data: sessions, error: groupSessionsError } = await supabase
           .from('study_sessions')
-          .select(`
-            *,
-            study_groups (
-              id,
-              name,
-              subject
-            )
-          `)
+          .select(STUDY_SESSION_SELECT)
           .in('group_id', groupIds)
           .order('scheduled_start', { ascending: true });
 
@@ -91,63 +140,11 @@ export class StudySessionsQueries {
         ...groupSessions
       ];
 
-      // Remove duplicates by session ID
       const uniqueSessions = allSessions.filter((session, index, self) => 
         index === self.findIndex(s => s.id === session.id)
       );
 
-      if (!uniqueSessions || uniqueSessions.length === 0) return [];
-
-      const sessionIdsForParticipants = uniqueSessions.map(s => s.id);
-      const { data: allParticipants } = await supabase
-        .from('session_participants')
-        .select('session_id, user_id')
-        .in('session_id', sessionIdsForParticipants);
-
-      const creatorIds = uniqueSessions.map(s => s.created_by).filter(Boolean);
-      const userIds = [...new Set([
-        ...(allParticipants?.map(p => p.user_id) || []),
-        ...creatorIds
-      ])];
-      let profiles: any[] = [];
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, user_id')
-          .in('user_id', userIds);
-        profiles = profilesData || [];
-      }
-
-      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-
-      const sessionsWithParticipants = uniqueSessions
-        .filter(studySession => {
-          if (!isAutomation && studySession.title === 'E2E Session') {
-            return false;
-          }
-          return true;
-        })
-        .map((studySession) => {
-          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-          const participantProfiles = sessionParts.map(sp => {
-            const profile = profiles.find(p => p.user_id === sp.user_id);
-            return {
-              user_id: sp.user_id,
-              profiles: profile || null
-            };
-          });
-
-          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
-
-          return {
-            ...studySession,
-            participant_count: sessionParts.length,
-            session_participants: participantProfiles,
-            profiles: hostProfile
-          };
-        });
-
-      return sessionsWithParticipants;
+      return this.enrichSessionsWithParticipants(uniqueSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       return [];
@@ -156,19 +153,9 @@ export class StudySessionsQueries {
 
   static async getAvailableSessions() {
     try {
-      const now = new Date().toISOString();
-      
-      // First get available sessions with group info (active/running/paused, or scheduled sessions)
       const { data: sessions, error } = await supabase
         .from('study_sessions')
-        .select(`
-          *,
-          study_groups (
-            id,
-            name,
-            subject
-          )
-        `)
+        .select(STUDY_SESSION_SELECT)
         .in('status', ['scheduled', 'active', 'running', 'paused'])
         .order('scheduled_start', { ascending: true });
 
@@ -177,62 +164,12 @@ export class StudySessionsQueries {
         return [];
       }
 
-      if (!sessions || sessions.length === 0) return [];
-
-      const sessionIds = sessions.map(s => s.id);
-      const { data: allParticipants } = await supabase
-        .from('session_participants')
-        .select('session_id, user_id')
-        .in('session_id', sessionIds);
-
-      const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
-      const userIds = [...new Set([
-        ...(allParticipants?.map(p => p.user_id) || []),
-        ...creatorIds
-      ])];
-      let profiles: any[] = [];
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, user_id')
-          .in('user_id', userIds);
-        profiles = profilesData || [];
-      }
-
-      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-
-      const sessionsWithParticipants = sessions
-        .filter(studySession => {
-          if (!isAutomation && studySession.title === 'E2E Session') {
-            return false;
-          }
-          if (studySession.status === 'scheduled') {
-            // Keep scheduled sessions only if they haven't ended yet
-            return new Date(studySession.scheduled_end) >= new Date();
-          }
-          return true;
-        })
-        .map((studySession) => {
-          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-          const participantProfiles = sessionParts.map(sp => {
-            const profile = profiles.find(p => p.user_id === sp.user_id);
-            return {
-              user_id: sp.user_id,
-              profiles: profile || null
-            };
-          });
-
-          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
-
-          return {
-            ...studySession,
-            participant_count: sessionParts.length,
-            session_participants: participantProfiles,
-            profiles: hostProfile
-          };
-        });
-
-      return sessionsWithParticipants;
+      return this.enrichSessionsWithParticipants(sessions, (studySession) => {
+        if (studySession.status === 'scheduled') {
+          return new Date(studySession.scheduled_end) >= new Date();
+        }
+        return true;
+      });
     } catch (error) {
       console.error('Error fetching available sessions:', error);
       return [];
@@ -241,17 +178,9 @@ export class StudySessionsQueries {
 
   static async getSessionsByGroup(groupId: string) {
     try {
-      // Get all sessions for this group
       const { data: sessions, error } = await supabase
         .from('study_sessions')
-        .select(`
-          *,
-          study_groups (
-            id,
-            name,
-            subject
-          )
-        `)
+        .select(STUDY_SESSION_SELECT)
         .eq('group_id', groupId)
         .order('scheduled_start', { ascending: true });
 
@@ -260,58 +189,7 @@ export class StudySessionsQueries {
         return [];
       }
 
-      if (!sessions || sessions.length === 0) return [];
-
-      const sessionIds = sessions.map(s => s.id);
-      const { data: allParticipants } = await supabase
-        .from('session_participants')
-        .select('session_id, user_id')
-        .in('session_id', sessionIds);
-
-      const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
-      const userIds = [...new Set([
-        ...(allParticipants?.map(p => p.user_id) || []),
-        ...creatorIds
-      ])];
-      let profiles: any[] = [];
-      if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, user_id')
-          .in('user_id', userIds);
-        profiles = profilesData || [];
-      }
-
-      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-
-      const sessionsWithParticipants = sessions
-        .filter(studySession => {
-          if (!isAutomation && studySession.title === 'E2E Session') {
-            return false;
-          }
-          return true;
-        })
-        .map((studySession) => {
-          const sessionParts = allParticipants?.filter(p => p.session_id === studySession.id) || [];
-          const participantProfiles = sessionParts.map(sp => {
-            const profile = profiles.find(p => p.user_id === sp.user_id);
-            return {
-              user_id: sp.user_id,
-              profiles: profile || null
-            };
-          });
-
-          const hostProfile = profiles.find(p => p.user_id === studySession.created_by) || null;
-
-          return {
-            ...studySession,
-            participant_count: sessionParts.length,
-            session_participants: participantProfiles,
-            profiles: hostProfile
-          };
-        });
-
-      return sessionsWithParticipants;
+      return this.enrichSessionsWithParticipants(sessions);
     } catch (error) {
       console.error('Error fetching group sessions:', error);
       return [];
@@ -327,14 +205,7 @@ export class StudySessionsQueries {
 
       const { data: studySession, error: sessionError } = await supabase
         .from('study_sessions')
-        .select(`
-          *,
-          study_groups (
-            id,
-            name,
-            subject
-          )
-        `)
+        .select(STUDY_SESSION_SELECT)
         .eq('id', sessionId)
         .single();
 

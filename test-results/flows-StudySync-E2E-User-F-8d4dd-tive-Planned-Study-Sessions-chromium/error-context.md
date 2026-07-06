@@ -6,22 +6,22 @@
 
 # Test info
 
-- Name: flows.spec.ts >> StudySync E2E User Flows >> Flow C: Solo Pomodoro Study Session
-- Location: tests\e2e\flows.spec.ts:70:3
+- Name: flows.spec.ts >> StudySync E2E User Flows >> Flow E: Collaborative & Planned Study Sessions
+- Location: tests\e2e\flows.spec.ts:140:3
 
 # Error details
 
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: locator('h1').filter({ hasText: 'Study Session' })
+Locator: getByText('E2E Session').first()
 Expected: visible
-Timeout: 5000ms
+Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 5000ms
-  - waiting for locator('h1').filter({ hasText: 'Study Session' })
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByText('E2E Session').first()
 
 ```
 
@@ -69,127 +69,37 @@ Call log:
 - text: Account
 - button "U"
 - main:
-  - heading "Solo Study Session" [level=2]
-  - text: "Subject: Solo Study Start: 07:44 PM Est. End: 11:44 PM"
-  - heading "Work Session" [level=3]
+  - button "Customize Colors":
+    - img
+    - text: Customize Colors
+  - heading "Study Sessions" [level=1]
+  - paragraph: Join or create collaborative study sessions
+  - button "Create Session":
+    - img
+    - text: Create Session
+  - heading "Live Sessions (0)" [level=3]:
+    - img
+    - text: Live Sessions (0)
   - img
-  - text: 25:00 work time
-  - button "start":
+  - heading "No Live Sessions" [level=3]
+  - paragraph: No active study sessions at the moment
+  - heading "Upcoming Sessions (0)" [level=3]:
     - img
-    - text: start
-  - button "Reset timer":
-    - img
-  - heading "Today's Progress" [level=3]
-  - text: "0 Sessions Completed Goal: 8 sessions"
-  - button:
-    - img
-  - heading "Timer Configuration" [level=3]
-  - button:
-    - img
-  - text: Work Duration 25 min Break Duration 5 min Long Break 15 min
-  - heading "Today's Study Goals" [level=3]:
-    - img
-    - text: Today's Study Goals
-  - checkbox "Review lecture notes"
-  - text: Review lecture notes
-  - button:
-    - img
-  - checkbox "Solve practice problems"
-  - text: Solve practice problems
-  - button:
-    - img
-  - textbox "Add a new goal..."
-  - button [disabled]:
-    - img
-  - heading "Study Materials" [level=3]
-  - button "New Note":
-    - img
-    - text: New Note
-  - button "CS 1332 1 note":
-    - text: CS 1332 1 note
-    - img
-  - button "Operating Systems 2 notes":
-    - text: Operating Systems 2 notes
-    - img
+    - text: Upcoming Sessions (0)
+  - img
+  - heading "No Upcoming Sessions" [level=3]
+  - paragraph: No scheduled study sessions
 ```
 
 # Test source
 
 ```ts
-  1   | import { test, expect } from '@playwright/test';
-  2   | import { createClient } from '@supabase/supabase-js';
-  3   | import * as fs from 'fs';
-  4   | 
-  5   | test.describe('StudySync E2E User Flows', () => {
-  6   |   test.beforeEach(async ({ page }) => {
-  7   |     await page.goto('/');
-  8   |     
-  9   |     // Wait for either dashboard to load or auth page/guest button to be visible
-  10  |     const guestBtn = page.getByRole('button', { name: 'Continue as Guest' });
-  11  |     const dashboardHeader = page.locator('h1', { hasText: 'Dashboard' });
-  12  |     
-  13  |     await Promise.race([
-  14  |       guestBtn.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {}),
-  15  |       dashboardHeader.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
-  16  |     ]);
-  17  |     
-  18  |     if (await guestBtn.isVisible()) {
-  19  |       await guestBtn.click();
-  20  |     }
-  21  | 
-  22  |     // Assert we land on the dashboard
-  23  |     await expect(dashboardHeader).toBeVisible({ timeout: 15000 });
-  24  |   });
-  25  | 
-  26  |   test('Flow A: Authentication & Sign Out', async ({ page }) => {
-  27  |     // We are already authenticated as Guest from beforeEach.
-  28  |     // Let's test signing out.
-  29  |     // Click on the user profile button (avatar in sidebar footer)
-  30  |     const profileBtn = page.locator('button.relative.h-8.w-8.rounded-full');
-  31  |     await expect(profileBtn).toBeVisible();
-  32  |     await profileBtn.click();
-  33  | 
-  34  |     // Click Log out button
-  35  |     const logoutBtn = page.getByRole('menuitem', { name: 'Log out' });
-  36  |     await expect(logoutBtn).toBeVisible();
-  37  |     await logoutBtn.click();
-  38  | 
-  39  |     // Verify redirected back to the auth page
-  40  |     await expect(page).toHaveURL(/.*#\/auth/);
-  41  |   });
-  42  | 
-  43  |   test('Flow B: Dashboard Overview & Notification Management', async ({ page }) => {
-  44  |     // Check dashboard statistic cards
-  45  |     await expect(page.getByText('Study Hours This Week')).toBeVisible();
-  46  |     await expect(page.getByText('Sessions Completed')).toBeVisible();
-  47  |     
-  48  |     // Open notifications popover
-  49  |     const notifBtn = page.getByRole('button', { name: /Notifications/i });
-  50  |     await expect(notifBtn).toBeVisible();
-  51  |     await notifBtn.click();
-  52  | 
-  53  |     // Check if dialog/popover is visible
-  54  |     await expect(page.locator('h3', { hasText: 'Notifications' })).toBeVisible();
-  55  | 
-  56  |     // If there is a Mark all read button, click it
-  57  |     const markAllReadBtn = page.getByRole('button', { name: 'Mark all read' });
-  58  |     if (await markAllReadBtn.isVisible()) {
-  59  |       await markAllReadBtn.click();
-  60  |     }
-  61  | 
-  62  |     // Close notifications popover
-  63  |     const closeBtn = page.locator('button:has(svg.lucide-x)');
-  64  |     await closeBtn.click();
-  65  | 
-  66  |     // Popover should be hidden
-  67  |     await expect(page.locator('h3', { hasText: 'Notifications' })).not.toBeVisible();
   68  |   });
   69  | 
   70  |   test('Flow C: Solo Pomodoro Study Session', async ({ page }) => {
   71  |     // Navigate to Solo Study
   72  |     await page.getByRole('button', { name: 'Solo Study' }).click();
-> 73  |     await expect(page.locator('h1', { hasText: 'Study Session' })).toBeVisible();
-      |                                                                    ^ Error: expect(locator).toBeVisible() failed
+  73  |     await expect(page.locator('h1', { hasText: 'Study Session' })).toBeVisible();
   74  | 
   75  |     // Timer defaults to 25:00
   76  |     await expect(page.getByText('25:00')).toBeVisible();
@@ -284,10 +194,90 @@ Call log:
   165 |     await page.getByRole('button', { name: 'Create Session', exact: true }).click();
   166 | 
   167 |     // Verify session card appears under upcoming/available sessions
-  168 |     await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 10000 });
+> 168 |     await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 10000 });
+      |                                                         ^ Error: expect(locator).toBeVisible() failed
   169 |   });
   170 | 
   171 |   test('Flow F: Study Notes & Shared Documents', async ({ page }) => {
   172 |     // Navigate to Notes
   173 |     await page.getByRole('button', { name: 'Notes' }).click();
+  174 |     await expect(page.locator('h1', { hasText: 'Study Materials' })).toBeVisible();
+  175 | 
+  176 |     // Open Create Note Dialog
+  177 |     const createNoteBtn = page.getByRole('button', { name: 'Create Note' });
+  178 |     await expect(createNoteBtn).toBeVisible();
+  179 |     await createNoteBtn.click();
+  180 | 
+  181 |     // Fill Create Note Form
+  182 |     await page.locator('input').first().fill('E2E Test Note');
+  183 |     await page.locator('textarea').fill('This is note content written by E2E test.');
+  184 | 
+  185 |     // Save note
+  186 |     await page.getByRole('button', { name: 'Create Note', exact: true }).click();
+  187 | 
+  188 |     // Assert note exists in grid
+  189 |     await expect(page.getByText('E2E Test Note').first()).toBeVisible({ timeout: 10000 });
+  190 | 
+  191 |     // Delete Note (click the trash button on the E2E Test Note card)
+  192 |     const noteCard = page.locator('.group', { hasText: 'E2E Test Note' }).first();
+  193 |     // The trash button is the third button in the note card's action row (nth(2))
+  194 |     const deleteBtn = noteCard.locator('button').nth(2);
+  195 |     await expect(deleteBtn).toBeVisible({ timeout: 10000 });
+  196 |     await deleteBtn.click();
+  197 | 
+  198 |     // Verify note is deleted
+  199 |     await expect(page.getByText('E2E Test Note').first()).not.toBeVisible();
+  200 |   });
+  201 | 
+  202 |   test.afterAll(async () => {
+  203 |     const SUPABASE_URL = "https://yysdestjdzdmulgatmpc.supabase.co";
+  204 |     const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5c2Rlc3RqZHpkbXVsZ2F0bXBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5OTM3ODUsImV4cCI6MjA2NDU2OTc4NX0.SQzWV9Vd72zC8J6sSIPsKSsQp90Jte3e_lCMy7eb9_M";
+  205 |     const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  206 | 
+  207 |     const authFile = 'playwright/.auth/user.json';
+  208 |     if (fs.existsSync(authFile)) {
+  209 |       try {
+  210 |         const state = JSON.parse(fs.readFileSync(authFile, 'utf-8'));
+  211 |         const origin = state.origins?.find((o: any) => 
+  212 |           o.localStorage?.some((item: any) => item.name.startsWith('sb-') && item.name.endsWith('-auth-token'))
+  213 |         );
+  214 |         if (origin) {
+  215 |           const tokenItem = origin.localStorage.find((item: any) => 
+  216 |             item.name.startsWith('sb-') && item.name.endsWith('-auth-token')
+  217 |           );
+  218 |           const tokenData = JSON.parse(tokenItem.value);
+  219 |           const access_token = tokenData.access_token;
+  220 |           const refresh_token = tokenData.refresh_token;
+  221 |           if (access_token && refresh_token) {
+  222 |             await supabase.auth.setSession({ access_token, refresh_token });
+  223 |             console.log('Teardown authenticated successfully using stored session.');
+  224 |           }
+  225 |         }
+  226 |       } catch (e) {
+  227 |         console.warn('Teardown failed to authenticate using stored session:', e);
+  228 |       }
+  229 |     }
+  230 | 
+  231 |     console.log('Cleaning up E2E Test Group and E2E Session...');
+  232 |     
+  233 |     // Delete E2E groups
+  234 |     const { error: groupError } = await supabase
+  235 |       .from('study_groups')
+  236 |       .delete()
+  237 |       .eq('name', 'E2E Test Group');
+  238 |     if (groupError) {
+  239 |       console.error('Error cleaning up E2E study groups:', groupError);
+  240 |     }
+  241 | 
+  242 |     // Delete E2E sessions
+  243 |     const { error: sessionError } = await supabase
+  244 |       .from('study_sessions')
+  245 |       .delete()
+  246 |       .eq('title', 'E2E Session');
+  247 |     if (sessionError) {
+  248 |       console.error('Error cleaning up E2E study sessions:', sessionError);
+  249 |     }
+  250 |   });
+  251 | });
+  252 | 
 ```

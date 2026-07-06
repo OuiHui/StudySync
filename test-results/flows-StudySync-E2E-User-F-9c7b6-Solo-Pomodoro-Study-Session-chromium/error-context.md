@@ -70,7 +70,7 @@ Call log:
 - button "U"
 - main:
   - heading "Solo Study Session" [level=2]
-  - text: "Subject: Solo Study Start: 07:42 PM Est. End: 11:42 PM"
+  - text: "Subject: Solo Study Start: 08:04 PM Est. End: 12:04 AM"
   - heading "Work Session" [level=3]
   - img
   - text: 25:00 work time
@@ -105,6 +105,9 @@ Call log:
   - button "New Note":
     - img
     - text: New Note
+  - button "CS 1332 1 note":
+    - text: CS 1332 1 note
+    - img
   - button "Operating Systems 2 notes":
     - text: Operating Systems 2 notes
     - img
