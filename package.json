@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "test": "vitest run && playwright test",
     "test:run": "vitest run",
+    "test:cleanup": "node scripts/cleanup-e2e.js",
+    "pretest:e2e": "node scripts/cleanup-e2e.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {
