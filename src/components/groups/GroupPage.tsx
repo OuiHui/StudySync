@@ -70,41 +70,49 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
         group={group} 
         enrolled={enrolled} 
         onBack={onBack} 
-        onChatOpen={() => setChatOpen(true)} 
+        chatOpen={chatOpen}
+        onChatToggle={() => setChatOpen(prev => !prev)}
         onSettingsOpen={() => setSettingsOpen(true)} 
         onLeaveGroup={handleLeaveGroup} 
         onJoinGroup={handleJoinGroup} 
+        members={members}
       />
-
-      <Card className="border-0 shadow-md dark:bg-gray-800">
-        <CardContent className="p-6">
-          <p className="text-gray-700 dark:text-gray-300">{group.description}</p>
-        </CardContent>
-      </Card>
       
-      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-        {['sessions', 'notes', 'members'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex-1 min-w-0 w-full">
+          <div className="flex space-x-6 border-b dark:border-gray-800 pb-3 mb-6">
+            {['sessions', 'notes', 'members'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`relative pb-3 text-sm font-semibold transition-colors ${
+                  activeTab === tab
+                    ? 'text-blue-500 dark:text-blue-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === 'sessions' && (
+            <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />
+          )}
+          {activeTab === 'notes' && <CollaborativeNotes groupId={group.id} groupName={group.name} />}
+          {activeTab === 'members' && <GroupMembersTab members={members} />}
+        </div>
+
+        {chatOpen && (
+          <div className="w-full lg:w-80 shrink-0 sticky top-6 border-l dark:border-gray-700 pl-6 h-[600px]">
+            <ChatPopup isOpen={chatOpen} onClose={() => setChatOpen(false)} groupName={group.name} groupId={group.id} isInline={true} />
+          </div>
+        )}
       </div>
 
-      {activeTab === 'sessions' && (
-        <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />
-      )}
-      {activeTab === 'notes' && <CollaborativeNotes groupId={group.id} groupName={group.name} />}
-      {activeTab === 'members' && <GroupMembersTab members={members} />}
-
-      <ChatPopup isOpen={chatOpen} onClose={() => setChatOpen(false)} groupName={group.name} groupId={group.id} />
       <GroupSettingsDialog group={group} open={settingsOpen} onOpenChange={setSettingsOpen} onGroupUpdated={() => {}} onGroupDeleted={onBack} />
     </div>
   );

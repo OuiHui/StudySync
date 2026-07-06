@@ -25,9 +25,10 @@ interface ChatPopupProps {
   onClose: () => void;
   groupName: string;
   groupId?: string;
+  isInline?: boolean;
 }
 
-export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProps) => {
+export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = false }: ChatPopupProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [message, setMessage] = useState('');
@@ -176,7 +177,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     };
   });
 
-  // Helper function to check if we need a date separator
+  // Helper function to check if we need a date separator (iMessage style: different day or > 5 min gap)
   const shouldShowDateSeparator = (currentIndex: number) => {
     if (currentIndex === 0) return true; // Always show for first message
     
@@ -186,11 +187,15 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     // Check if dates are different
     const currentDate = currentMsg.fullDate.toDateString();
     const previousDate = previousMsg.fullDate.toDateString();
+    if (currentDate !== previousDate) return true;
     
-    return currentDate !== previousDate;
+    // Check if time gap is more than 5 minutes (300000ms)
+    const currentMs = currentMsg.fullDate.getTime();
+    const previousMs = previousMsg.fullDate.getTime();
+    return (currentMs - previousMs) > 5 * 60 * 1000;
   };
 
-  // Helper function to format date separator
+  // Helper function to format date separator with time (iMessage style)
   const formatDateSeparator = (date: Date) => {
     const today = new Date();
     const yesterday = new Date(today);
@@ -200,15 +205,18 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
     const todayDate = today.toDateString();
     const yesterdayDate = yesterday.toDateString();
     
-    if (messageDate === todayDate) return 'Today';
-    if (messageDate === yesterdayDate) return 'Yesterday';
+    const timeString = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     
-    return date.toLocaleDateString('en-US', { 
+    if (messageDate === todayDate) return `Today ${timeString}`;
+    if (messageDate === yesterdayDate) return `Yesterday ${timeString}`;
+    
+    const datePart = date.toLocaleDateString('en-US', { 
       weekday: 'long',
-      month: 'long', 
+      month: 'short', 
       day: 'numeric',
       year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
     });
+    return `${datePart} ${timeString}`;
   };
 
   const sendMessage = async () => {
@@ -243,6 +251,99 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
   };
 
   if (!isOpen) return null;
+
+  if (isInline) {
+    return (
+      <div className="flex flex-col h-full w-full min-h-0">
+        <div className="flex items-center justify-between pb-3">
+          <h3 className="text-base font-bold text-gray-800 dark:text-gray-200">Group chat</h3>
+        </div>
+        
+        {error && (
+          <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 mb-3">
+            <AlertDescription className="text-red-800 dark:text-red-200 text-xs">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin">
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+            </div>
+          ) : displayMessages.length === 0 ? (
+            <div className="flex justify-center items-center h-full text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
+            </div>
+          ) : (
+            displayMessages.map((msg, index) => {
+              const isSelf = msg.userId === user?.id;
+              return (
+                <div key={msg.id} className="space-y-1">
+                  {shouldShowDateSeparator(index) && (
+                    <div className="flex justify-center my-3 select-none">
+                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2.5 py-0.5 rounded-full">
+                        {formatDateSeparator(msg.fullDate)}
+                      </span>
+                    </div>
+                  )}
+                  <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
+                      {!isSelf && (
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-0.5 ml-1">
+                          {msg.userName}
+                        </span>
+                      )}
+                      <div
+                        className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                          isSelf
+                            ? 'bg-blue-600 dark:bg-blue-500 text-white rounded-tr-none'
+                            : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-tl-none border dark:border-gray-800'
+                        }`}
+                      >
+                        <p className="break-words">{msg.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        <div className="pt-4 border-t dark:border-gray-700">
+          <div className="flex items-center gap-2">
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Message the group"
+              className="flex-1 min-h-[40px] max-h-[80px] bg-transparent border dark:border-gray-700 text-sm rounded-lg p-2.5 resize-none text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              rows={1}
+              disabled={loading}
+            />
+            <Button
+              onClick={sendMessage}
+              size="icon"
+              className="h-10 w-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full"
+              disabled={!message.trim() || !conversationId || loading}
+            >
+              <Send size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -314,11 +415,6 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId }: ChatPopupProp
                           </div>
                         )}
                         <p className="text-sm">{msg.message}</p>
-                        <p className={`text-xs mt-1 ${
-                          msg.userId === user?.id ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                        }`}>
-                          {msg.timestamp}
-                        </p>
                       </div>
                     </div>
                     {msg.userId !== user?.id && (

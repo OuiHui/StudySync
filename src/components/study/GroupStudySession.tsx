@@ -5,7 +5,7 @@ import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
 import { ParticipantsList } from './ParticipantsList';
 import { StudyGoals } from './StudyGoals';
 import { SessionNotes } from './SessionNotes';
-import { SessionChat } from './SessionChat';
+import { ChatPopup } from '@/components/chat/ChatPopup';
 import { TimerDisplay } from './TimerDisplay';
 import { SessionSettings } from './SessionSettings';
 import { SessionInfoPanel } from './SessionInfoPanel';
@@ -291,10 +291,13 @@ export const GroupStudySession = ({
 
         {/* Group Chat Column (Column 3, taking 1/3 width, full height) */}
         {isChatOpen && (
-          <div className="lg:col-span-1 flex flex-col h-full min-h-0">
-            <SessionChat
-              groupId={sessionData?.group_id || undefined}
+          <div className="lg:col-span-1 flex flex-col h-full min-h-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border dark:border-gray-700">
+            <ChatPopup
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
               groupName={sessionData?.study_groups?.name || "Session Chat"}
+              groupId={sessionData?.group_id}
+              isInline={true}
             />
           </div>
         )}

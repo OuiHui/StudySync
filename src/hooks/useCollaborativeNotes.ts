@@ -15,6 +15,8 @@ export interface CollaborativeNote {
   updated_at: string;
   is_collaborative: boolean;
   permission_level: string;
+  file_url?: string;
+  file_name?: string;
   profiles?: {
     display_name: string;
     avatar_url?: string;
