@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { CollaborativeNotes } from '@/components/notes/CollaborativeNotes';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
+import { StudySessionsService } from '@/services/database';
+import { useAuth } from '@/contexts/AuthContext';
 import { useGroupData } from '@/hooks/useGroupData';
 import { GroupPageHeader } from './GroupPageHeader';
 import { GroupSessionsTab } from './GroupSessionsTab';
@@ -20,10 +22,19 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
   const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('sessions');
   const [enrolled, setEnrolled] = useState(isEnlisted);
-  const [attendingSessions, setAttendingSessions] = useState<string[]>(['1']);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { group, members, sessions, loading, error } = useGroupData(groupId);
+
+  // Derive attending sessions from live DB data instead of local state
+  const attendingSessions = useMemo(() => {
+    if (!user) return [];
+    return sessions
+      .filter(s => s.session_participants?.some((p: any) => p.user_id === user.id))
+      .map(s => s.id);
+  }, [sessions, user]);
 
   const handleLeaveGroup = () => {
     setEnrolled(false);
@@ -35,18 +46,28 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
     onUpdateEnrollment?.(groupId, true);
   };
 
-  const handleAttendSession = (sessionId: string) => {
-    setAttendingSessions(prev => [...prev, sessionId]);
-    window.dispatchEvent(new CustomEvent('sessionAttendanceChanged', {
-      detail: { sessionId, groupName: group?.name, attending: true }
-    }));
+  const handleAttendSession = async (sessionId: string) => {
+    try {
+      await StudySessionsService.joinSession(sessionId);
+      await queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      window.dispatchEvent(new CustomEvent('sessionAttendanceChanged', {
+        detail: { sessionId, groupName: group?.name, attending: true }
+      }));
+    } catch (err) {
+      console.error('Error attending session:', err);
+    }
   };
 
-  const handleCancelSession = (sessionId: string) => {
-    setAttendingSessions(prev => prev.filter(id => id !== sessionId));
-    window.dispatchEvent(new CustomEvent('sessionAttendanceChanged', {
-      detail: { sessionId, groupName: group?.name, attending: false }
-    }));
+  const handleCancelSession = async (sessionId: string) => {
+    try {
+      await StudySessionsService.leaveSession(sessionId);
+      await queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      window.dispatchEvent(new CustomEvent('sessionAttendanceChanged', {
+        detail: { sessionId, groupName: group?.name, attending: false }
+      }));
+    } catch (err) {
+      console.error('Error cancelling session attendance:', err);
+    }
   };
 
   if (loading) {
