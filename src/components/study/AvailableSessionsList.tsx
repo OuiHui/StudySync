@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Calendar, Clock, Play, Eye, Loader2, Edit, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableSessions } from '@/hooks/useAvailableSessions';
+import { StudySessionsService } from '@/services/database';
 
 interface StudySession {
   id: string;
@@ -144,6 +145,32 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
 
   const activeSessions = displaySessions.filter(s => s.type === 'active');
   const plannedSessions = displaySessions.filter(s => s.type === 'planned');
+
+  useEffect(() => {
+    if (selectedSession) {
+      const updated = displaySessions.find(s => s.id === selectedSession.id);
+      if (updated) {
+        setSelectedSession(updated);
+      }
+    }
+  }, [sessions]);
+
+  const handleTogglePlanToAttend = async (sessionId: string) => {
+    if (!user) return;
+    const session = displaySessions.find(s => s.id === sessionId);
+    if (!session) return;
+    const isParticipant = session.participantList.some((p: any) => p.user_id === user.id);
+    try {
+      if (isParticipant) {
+        await StudySessionsService.leaveSession(sessionId);
+      } else {
+        await StudySessionsService.joinSession(sessionId);
+      }
+      await loadSessions();
+    } catch (err) {
+      console.error('Error toggling plan to attend:', err);
+    }
+  };
 
   const handleJoinSession = (sessionId: string) => {
     console.log('Joining session:', sessionId);
@@ -424,14 +451,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                               )}
                             </div>
                             <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              {session.participants} active
+                              {session.participants} planning to attend
                             </span>
                           </>
                         ) : (
                           <div className="flex items-center text-gray-500 dark:text-gray-400">
                             <Users size={14} className="mr-1.5 shrink-0" />
                             <span className="text-xs font-medium">
-                              No Active Participants
+                              No one planning to attend yet
                             </span>
                           </div>
                         )}
@@ -441,19 +468,29 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                         <Button 
                           variant="outline"
                           size="sm"
-                          className="flex-1 dark:border-gray-600 dark:text-gray-305 dark:hover:bg-gray-700"
+                          className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                           onClick={() => setSelectedSession(session)}
                         >
                           <Eye size={14} className="mr-1.5" />
                           Details
                         </Button>
-                        <Button 
-                          onClick={() => handleJoinSession(session.id)}
-                          className="flex-[2] bg-blue-500 hover:bg-blue-600 text-white font-medium"
-                          size="sm"
-                        >
-                          Enter session
-                        </Button>
+                        {session.participantList.some((p: any) => p.user_id === user?.id) ? (
+                          <Button 
+                            onClick={() => handleTogglePlanToAttend(session.id)}
+                            className="flex-[2] bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-650 text-gray-800 dark:text-gray-100 font-medium"
+                            size="sm"
+                          >
+                            Cancel plan
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleTogglePlanToAttend(session.id)}
+                            className="flex-[2] bg-blue-500 hover:bg-blue-600 text-white font-medium"
+                            size="sm"
+                          >
+                            Plan to attend
+                          </Button>
+                        )}
                         {session.isHost && (
                           <EditSessionDialog 
                             session={{
@@ -494,6 +531,8 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
           onClose={() => setSelectedSession(null)}
           session={selectedSession}
           onJoinSession={onJoinSession}
+          onTogglePlanToAttend={handleTogglePlanToAttend}
+          currentUser={user}
         />
       )}
     </div>

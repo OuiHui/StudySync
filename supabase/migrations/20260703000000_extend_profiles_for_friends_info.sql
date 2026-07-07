@@ -107,7 +107,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'sarah.chen@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Sarah Chen"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000001' OR user_id = '10000000-0000-0000-0000-000000000001') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000001') THEN
+        UPDATE public.profiles SET display_name = 'Sarah Chen', email = 'sarah.chen@gatech.edu', bio = 'ML enthusiast & coffee lover. Always down for a late-night study session.', major = 'Computer Science', year = '3rd Year', top_subjects = ARRAY['Machine Learning', 'Algorithms', 'Linear Algebra'], gradient_from = 'from-violet-400', gradient_to = 'to-purple-600', study_hours = 142 WHERE user_id = '10000000-0000-0000-0000-000000000001';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'Sarah Chen', 'sarah.chen@gatech.edu', NULL, 'ML enthusiast & coffee lover. Always down for a late-night study session.', 'Computer Science', '3rd Year', ARRAY['Machine Learning', 'Algorithms', 'Linear Algebra'], 'from-violet-400', 'to-purple-600', 142);
     END IF;
@@ -117,7 +119,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'marcus.j@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Marcus Johnson"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000002' OR user_id = '10000000-0000-0000-0000-000000000002') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000002') THEN
+        UPDATE public.profiles SET display_name = 'Marcus Johnson', email = 'marcus.j@gatech.edu', bio = 'Signal processing nerd. I make circuits and bad puns.', major = 'Electrical Engineering', year = '2nd Year', top_subjects = ARRAY['Circuits', 'Signals & Systems', 'Physics'], gradient_from = 'from-sky-400', gradient_to = 'to-blue-600', study_hours = 98 WHERE user_id = '10000000-0000-0000-0000-000000000002';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000002', 'Marcus Johnson', 'marcus.j@gatech.edu', NULL, 'Signal processing nerd. I make circuits and bad puns.', 'Electrical Engineering', '2nd Year', ARRAY['Circuits', 'Signals & Systems', 'Physics'], 'from-sky-400', 'to-blue-600', 98);
     END IF;
@@ -127,7 +131,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'priya.patel@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Priya Patel"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000003' OR user_id = '10000000-0000-0000-0000-000000000003') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000003') THEN
+        UPDATE public.profiles SET display_name = 'Priya Patel', email = 'priya.patel@gatech.edu', bio = 'Pre-med track, research assistant at the BME lab. Study group organizer.', major = 'Biomedical Engineering', year = '4th Year', top_subjects = ARRAY['Organic Chemistry', 'Biomechanics', 'Anatomy'], gradient_from = 'from-emerald-400', gradient_to = 'to-teal-600', study_hours = 210 WHERE user_id = '10000000-0000-0000-0000-000000000003';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003', 'Priya Patel', 'priya.patel@gatech.edu', NULL, 'Pre-med track, research assistant at the BME lab. Study group organizer.', 'Biomedical Engineering', '4th Year', ARRAY['Organic Chemistry', 'Biomechanics', 'Anatomy'], 'from-emerald-400', 'to-teal-600', 210);
     END IF;
@@ -137,7 +143,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'alex.r@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Alex Rivera"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000004' OR user_id = '10000000-0000-0000-0000-000000000004') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000004') THEN
+        UPDATE public.profiles SET display_name = 'Alex Rivera', email = 'alex.r@gatech.edu', bio = 'Optimization is my thing — both in coursework and in life.', major = 'Industrial Engineering', year = '3rd Year', top_subjects = ARRAY['Operations Research', 'Statistics', 'Supply Chain'], gradient_from = 'from-orange-400', gradient_to = 'to-amber-600', study_hours = 76 WHERE user_id = '10000000-0000-0000-0000-000000000004';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000004', 'Alex Rivera', 'alex.r@gatech.edu', NULL, 'Optimization is my thing — both in coursework and in life.', 'Industrial Engineering', '3rd Year', ARRAY['Operations Research', 'Statistics', 'Supply Chain'], 'from-orange-400', 'to-amber-600', 76);
     END IF;
@@ -147,7 +155,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'emily.n@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Emily Nakamura"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000005' OR user_id = '10000000-0000-0000-0000-000000000005') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000005') THEN
+        UPDATE public.profiles SET display_name = 'Emily Nakamura', email = 'emily.n@gatech.edu', bio = 'Freshman exploring CS! Looking for study partners in intro courses.', major = 'Computer Science', year = '1st Year', top_subjects = ARRAY['Intro to CS', 'Discrete Math', 'Calculus'], gradient_from = 'from-rose-400', gradient_to = 'to-pink-600', study_hours = 45 WHERE user_id = '10000000-0000-0000-0000-000000000005';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000005', 'Emily Nakamura', 'emily.n@gatech.edu', NULL, 'Freshman exploring CS! Looking for study partners in intro courses.', 'Computer Science', '1st Year', ARRAY['Intro to CS', 'Discrete Math', 'Calculus'], 'from-rose-400', 'to-pink-600', 45);
     END IF;
@@ -157,7 +167,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'david.kim@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "David Kim"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000006' OR user_id = '10000000-0000-0000-0000-000000000006') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000006') THEN
+        UPDATE public.profiles SET display_name = 'David Kim', email = 'david.kim@gatech.edu', bio = 'Space geek. Currently working on my senior design project for a satellite.', major = 'Aerospace Engineering', year = '4th Year', top_subjects = ARRAY['Orbital Mechanics', 'Fluid Dynamics', 'Thermodynamics'], gradient_from = 'from-indigo-400', gradient_to = 'to-indigo-700', study_hours = 185 WHERE user_id = '10000000-0000-0000-0000-000000000006';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000006', 'David Kim', 'david.kim@gatech.edu', NULL, 'Space geek. Currently working on my senior design project for a satellite.', 'Aerospace Engineering', '4th Year', ARRAY['Orbital Mechanics', 'Fluid Dynamics', 'Thermodynamics'], 'from-indigo-400', 'to-indigo-700', 185);
     END IF;
@@ -167,7 +179,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'jordan.w@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Jordan Williams"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000007' OR user_id = '10000000-0000-0000-0000-000000000007') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000007') THEN
+        UPDATE public.profiles SET display_name = 'Jordan Williams', email = 'jordan.w@gatech.edu', bio = 'Pure math is beautiful. Also TAing for linear algebra this semester.', major = 'Mathematics', year = '2nd Year', top_subjects = ARRAY['Abstract Algebra', 'Real Analysis', 'Topology'], gradient_from = 'from-cyan-400', gradient_to = 'to-cyan-700', study_hours = 120 WHERE user_id = '10000000-0000-0000-0000-000000000007';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000007', 'Jordan Williams', 'jordan.w@gatech.edu', NULL, 'Pure math is beautiful. Also TAing for linear algebra this semester.', 'Mathematics', '2nd Year', ARRAY['Abstract Algebra', 'Real Analysis', 'Topology'], 'from-cyan-400', 'to-cyan-700', 120);
     END IF;
@@ -177,7 +191,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000000', 'olivia.t@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Olivia Thompson"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000008' OR user_id = '10000000-0000-0000-0000-000000000008') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000008') THEN
+        UPDATE public.profiles SET display_name = 'Olivia Thompson', email = 'olivia.t@gatech.edu', bio = 'Full-stack dev who loves hackathons. Let''s build something together!', major = 'Computer Science', year = '3rd Year', top_subjects = ARRAY['Web Dev', 'Databases', 'Software Engineering'], gradient_from = 'from-fuchsia-400', gradient_to = 'to-fuchsia-700', study_hours = 156 WHERE user_id = '10000000-0000-0000-0000-000000000008';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000008', 'Olivia Thompson', 'olivia.t@gatech.edu', NULL, 'Full-stack dev who loves hackathons. Let''s build something together!', 'Computer Science', '3rd Year', ARRAY['Web Dev', 'Databases', 'Software Engineering'], 'from-fuchsia-400', 'to-fuchsia-700', 156);
     END IF;
@@ -187,7 +203,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000000', 'ethan.m@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Ethan Morales"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000009' OR user_id = '10000000-0000-0000-0000-000000000009') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000009') THEN
+        UPDATE public.profiles SET display_name = 'Ethan Morales', email = 'ethan.m@gatech.edu', bio = 'CAD wizard and 3D printing enthusiast. Robotics club member.', major = 'Mechanical Engineering', year = '2nd Year', top_subjects = ARRAY['Statics', 'Dynamics', 'Materials Science'], gradient_from = 'from-lime-400', gradient_to = 'to-green-600', study_hours = 62 WHERE user_id = '10000000-0000-0000-0000-000000000009';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000009', 'Ethan Morales', 'ethan.m@gatech.edu', NULL, 'CAD wizard and 3D printing enthusiast. Robotics club member.', 'Mechanical Engineering', '2nd Year', ARRAY['Statics', 'Dynamics', 'Materials Science'], 'from-lime-400', 'to-green-600', 62);
     END IF;
@@ -197,7 +215,9 @@ BEGIN
         INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
         VALUES ('10000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000000', 'aisha.r@gatech.edu', password_hash, now(), '{"provider": "email", "providers": ["email"]}', '{"display_name": "Aisha Rahman"}', now(), now(), 'authenticated', 'authenticated');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = '20000000-0000-0000-0000-000000000010' OR user_id = '10000000-0000-0000-0000-000000000010') THEN
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = '10000000-0000-0000-0000-000000000010') THEN
+        UPDATE public.profiles SET display_name = 'Aisha Rahman', email = 'aisha.r@gatech.edu', bio = 'Research in sustainable energy. Passionate about green chemistry.', major = 'Chemical Engineering', year = '3rd Year', top_subjects = ARRAY['Thermodynamics', 'Reactor Design', 'Transport Phenomena'], gradient_from = 'from-amber-400', gradient_to = 'to-yellow-600', study_hours = 130 WHERE user_id = '10000000-0000-0000-0000-000000000010';
+    ELSE
         INSERT INTO public.profiles (id, user_id, display_name, email, avatar_url, bio, major, year, top_subjects, gradient_from, gradient_to, study_hours)
         VALUES ('20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000010', 'Aisha Rahman', 'aisha.r@gatech.edu', NULL, 'Research in sustainable energy. Passionate about green chemistry.', 'Chemical Engineering', '3rd Year', ARRAY['Thermodynamics', 'Reactor Design', 'Transport Phenomena'], 'from-amber-400', 'to-yellow-600', 130);
     END IF;

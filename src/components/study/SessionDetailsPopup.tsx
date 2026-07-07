@@ -15,14 +15,55 @@ interface SessionDetailsPopupProps {
     duration: string;
     type: 'active' | 'planned';
     description: string;
+    participantList?: any[];
   };
   onJoinSession: (sessionId: string) => void;
+  onTogglePlanToAttend?: (sessionId: string) => Promise<void> | void;
+  currentUser?: any;
 }
 
-export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }: SessionDetailsPopupProps) => {
+const getAvatarColorClass = (name: string) => {
+  const colors = [
+    'bg-indigo-500 text-white',
+    'bg-emerald-500 text-white',
+    'bg-amber-500 text-white',
+    'bg-rose-500 text-white',
+    'bg-sky-500 text-white',
+    'bg-violet-500 text-white',
+    'bg-orange-500 text-white'
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+export const SessionDetailsPopup = ({ 
+  isOpen, 
+  onClose, 
+  session, 
+  onJoinSession, 
+  onTogglePlanToAttend, 
+  currentUser 
+}: SessionDetailsPopupProps) => {
   const handleJoin = () => {
     onJoinSession(session.id);
     onClose();
+  };
+
+  const handlePlanClick = async () => {
+    if (onTogglePlanToAttend) {
+      await onTogglePlanToAttend(session.id);
+    }
+  };
+
+  const isParticipant = session.participantList?.some((p: any) => p.user_id === currentUser?.id);
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   return (
@@ -54,10 +95,6 @@ export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }:
           {/* Session Info */}
           <div className="space-y-3">
             <div className="flex items-center text-sm">
-              <Users size={16} className="mr-2 text-gray-400" />
-              <span className="text-gray-700 dark:text-gray-300">{session.participants} participants</span>
-            </div>
-            <div className="flex items-center text-sm">
               <Clock size={16} className="mr-2 text-gray-400" />
               <span className="text-gray-700 dark:text-gray-300">{session.duration} duration</span>
             </div>
@@ -69,24 +106,34 @@ export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }:
             )}
           </div>
 
-          {/* Study Topics */}
-          <div>
-            <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Study Topics</h4>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Integration Techniques</Badge>
-              <Badge variant="outline">Vector Spaces</Badge>
-              <Badge variant="outline">Linear Transformations</Badge>
-            </div>
-          </div>
-
-          {/* Requirements */}
-          <div>
-            <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Requirements</h4>
-            <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-              <li>• Basic calculus knowledge</li>
-              <li>• Textbook: Advanced Mathematics 3rd Ed.</li>
-              <li>• Calculator recommended</li>
-            </ul>
+          {/* People Planning to Attend / Active Participants */}
+          <div className="border-t dark:border-gray-700 pt-4">
+            <h4 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm flex items-center">
+              <Users size={16} className="mr-1.5 text-gray-400" />
+              {session.type === 'active' ? 'Active Participants' : 'People Planning to Attend'} ({session.participantList?.length || 0})
+            </h4>
+            {session.participantList && session.participantList.length > 0 ? (
+              <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                {session.participantList.map((p: any) => {
+                  const pName = p.profiles?.display_name || 'Anonymous User';
+                  const pInitials = getInitials(pName);
+                  return (
+                    <div key={p.user_id} className="flex items-center space-x-2">
+                      <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold ${getAvatarColorClass(pName)}`}>
+                        {pInitials}
+                      </div>
+                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                        {pName} {p.user_id === currentUser?.id ? ' (you)' : ''}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                {session.type === 'active' ? 'No active participants' : 'No one planning to attend yet'}
+              </p>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -94,12 +141,25 @@ export const SessionDetailsPopup = ({ isOpen, onClose, session, onJoinSession }:
             <Button variant="outline" onClick={onClose} className="flex-1">
               Close
             </Button>
-            <Button 
-              onClick={handleJoin}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              {session.type === 'active' ? 'Join Now' : 'Schedule'}
-            </Button>
+            {session.type === 'active' ? (
+              <Button 
+                onClick={handleJoin}
+                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Join Now
+              </Button>
+            ) : (
+              <Button 
+                onClick={handlePlanClick}
+                className={`flex-1 ${
+                  isParticipant 
+                    ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-650 text-gray-800 dark:text-gray-100' 
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                } font-medium`}
+              >
+                {isParticipant ? 'Cancel Plan' : 'Plan to Attend'}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

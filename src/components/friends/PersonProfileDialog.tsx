@@ -117,7 +117,7 @@ export const PersonProfileDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-gray-900 border-gray-100 dark:border-white/[0.08]">
+      <DialogContent className="max-w-md p-0 overflow-hidden">
         <div className="overflow-y-auto max-h-[85vh] p-5">
           {view === 'profile' ? (
             <ProfileView

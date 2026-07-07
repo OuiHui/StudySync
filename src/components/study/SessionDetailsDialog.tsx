@@ -55,7 +55,7 @@ export const SessionDetailsDialog = ({
           <span>Details</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px] bg-white dark:bg-gray-900 border dark:border-gray-800">
+      <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center">
             <Info className="mr-2 text-indigo-500" size={18} />
