@@ -31,7 +31,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
   return (
     <div 
       onClick={() => onViewProfile(person)}
-      className="flex flex-col rounded-xl border border-gray-200 dark:border-white/[0.12] bg-white dark:bg-gray-900 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-white/20 cursor-pointer max-w-sm sm:max-w-[320px] w-full mx-auto"
+      className="flex flex-col rounded-xl border border-gray-200 dark:border-white/[0.12] bg-white dark:bg-gray-800 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-white/25 cursor-pointer max-w-sm sm:max-w-[320px] w-full mx-auto"
     >
       {/* Header: avatar + name/email + friends badge */}
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
@@ -92,7 +92,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
       </div>
 
       {/* Footer */}
-      <div className="mt-auto px-4 py-3 border-t border-gray-100 dark:border-white/[0.08] flex items-center justify-between bg-gray-50/50 dark:bg-black/10">
+      <div className="mt-auto px-4 py-3 border-t border-gray-100 dark:border-white/[0.08] flex items-center justify-between bg-gray-50/50 dark:bg-black/20">
         <div className="flex items-center gap-1 text-[11px] text-gray-700 dark:text-gray-200 font-semibold">
           <Clock size={11} className="text-violet-500 dark:text-violet-400" />
           {person.studyHours}h studied
