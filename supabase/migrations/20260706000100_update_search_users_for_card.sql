@@ -100,6 +100,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.search_users(TEXT, UUID) TO authenticated;
 
 -- Returns the friends list of a target user, with a flag indicating if the current user is also friends with each person
+DROP FUNCTION IF EXISTS public.get_user_friends(UUID, UUID);
 CREATE OR REPLACE FUNCTION public.get_user_friends(
     target_user_id UUID,
     current_user_id UUID

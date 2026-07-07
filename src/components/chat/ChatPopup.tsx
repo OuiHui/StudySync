@@ -268,7 +268,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin">
+        <div className="flex-1 min-h-0 mb-4">
           {loading ? (
             <div className="flex justify-center items-center h-full">
               <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
@@ -278,40 +278,42 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
               <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
             </div>
           ) : (
-            displayMessages.map((msg, index) => {
-              const isSelf = msg.userId === user?.id;
-              return (
-                <div key={msg.id} className="space-y-1">
-                  {shouldShowDateSeparator(index) && (
-                    <div className="flex justify-center my-3 select-none">
-                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2.5 py-0.5 rounded-full">
-                        {formatDateSeparator(msg.fullDate)}
-                      </span>
-                    </div>
-                  )}
-                  <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-                      {!isSelf && (
-                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-0.5 ml-1">
-                          {msg.userName}
+            <div className="h-full overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              {displayMessages.map((msg, index) => {
+                const isSelf = msg.userId === user?.id;
+                return (
+                  <div key={msg.id} className="space-y-1">
+                    {shouldShowDateSeparator(index) && (
+                      <div className="flex justify-center my-3 select-none">
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 px-2.5 py-0.5 rounded-full">
+                          {formatDateSeparator(msg.fullDate)}
                         </span>
-                      )}
-                      <div
-                        className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
-                          isSelf
-                            ? 'bg-blue-600 dark:bg-blue-500 text-white rounded-tr-none'
-                            : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-tl-none border dark:border-gray-800'
-                        }`}
-                      >
-                        <p className="break-words">{msg.message}</p>
+                      </div>
+                    )}
+                    <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
+                        {!isSelf && (
+                          <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-0.5 ml-1">
+                            {msg.userName}
+                          </span>
+                        )}
+                        <div
+                          className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                            isSelf
+                              ? 'bg-blue-600 dark:bg-blue-500 text-white rounded-tr-none'
+                              : 'bg-gray-100 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 rounded-tl-none border dark:border-gray-800'
+                          }`}
+                        >
+                          <p className="break-words">{msg.message}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Message Input */}

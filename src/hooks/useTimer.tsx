@@ -21,9 +21,10 @@ interface UseTimerProps {
   };
   sessionId?: string;
   isHost?: boolean;
+  sessionData?: any;
 }
 
-export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = true }: UseTimerProps) => {
+export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = true, sessionData }: UseTimerProps) => {
   const initialWorkDuration = 25 * 60;
   const [workDuration, setWorkDuration] = useState(initialWorkDuration);
   const [breakDuration, setBreakDuration] = useState(5 * 60);
@@ -62,6 +63,60 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
       hasInitialized.current = false;
     }
   }, [globalTimerState]);
+
+  // Sync non-host participants with the database timer state from host
+  useEffect(() => {
+    if (isHost || !sessionData) return;
+
+    const dbIsActive = sessionData.status === 'running' || sessionData.status === 'active';
+    setIsActive(dbIsActive);
+
+    if (sessionData.timer_mode) {
+      setMode(sessionData.timer_mode as 'work' | 'break');
+    }
+    if (sessionData.current_cycle) {
+      setCurrentCycle(sessionData.current_cycle);
+    }
+
+    const cycleDur = sessionData.timer_mode === 'break'
+      ? (sessionData.current_cycle % 4 === 0 ? longBreakDuration : breakDuration)
+      : workDuration;
+
+    if (!sessionData.actual_start) {
+      setTimeLeft(cycleDur);
+      setIsActive(false);
+      return;
+    }
+
+    let calculationEndMs = Date.now();
+    if (!dbIsActive) {
+      const logs = sessionData.pause_logs || [];
+      if (logs.length > 0 && logs[logs.length - 1].paused_at) {
+        calculationEndMs = new Date(logs[logs.length - 1].paused_at).getTime();
+      }
+    }
+
+    const startMs = new Date(sessionData.actual_start).getTime();
+    let totalPausedMs = 0;
+    const logs = sessionData.pause_logs || [];
+    logs.forEach((log: any) => {
+      if (log.paused_at && log.resumed_at) {
+        const pausedAt = new Date(log.paused_at).getTime();
+        const resumedAt = new Date(log.resumed_at).getTime();
+        if (resumedAt >= pausedAt) {
+          totalPausedMs += (resumedAt - pausedAt);
+        }
+      }
+    });
+
+    const totalElapsedMs = (calculationEndMs - startMs) - totalPausedMs;
+    const elapsedSeconds = Math.max(0, Math.floor(totalElapsedMs / 1000));
+    const calculatedTimeLeft = Math.max(0, cycleDur - elapsedSeconds);
+
+    if (Math.abs(timeLeft - calculatedTimeLeft) > 2) {
+      setTimeLeft(calculatedTimeLeft);
+    }
+  }, [sessionData, isHost, workDuration, breakDuration, longBreakDuration, timeLeft]);
 
   // Main timer interval
   useEffect(() => {

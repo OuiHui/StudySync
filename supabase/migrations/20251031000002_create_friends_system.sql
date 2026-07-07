@@ -54,6 +54,7 @@ USING (
 );
 
 -- Add function to search users by email or display name
+DROP FUNCTION IF EXISTS public.search_users(TEXT, UUID);
 CREATE OR REPLACE FUNCTION public.search_users(search_term TEXT, current_user_id UUID)
 RETURNS TABLE (
     id UUID,

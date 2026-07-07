@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { StudySessionsService, NotesService } from '@/services/database';
 import { useTimer } from '@/hooks/useTimer';
+import { useGlobalTimer } from '@/contexts/GlobalTimerContext';
 
 interface Participant {
   user_id: string;
@@ -44,7 +45,10 @@ export const useGroupStudySessionData = () => {
   const { toast } = useToast();
 
   const urlSessionId = searchParams.get('id');
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id') || localStorage.getItem('active_group_session_id');
+  });
 
   const [sessionData, setSessionData] = useState<any>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -53,7 +57,9 @@ export const useGroupStudySessionData = () => {
   const [isHost, setIsHost] = useState(false);
 
   const [loading, setLoading] = useState(() => {
-    const savedId = localStorage.getItem('active_group_session_id');
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get('id');
+    const savedId = urlId || localStorage.getItem('active_group_session_id');
     const hasCache = localStorage.getItem('cached_session_title');
     return !(savedId && hasCache);
   });
@@ -227,12 +233,8 @@ export const useGroupStudySessionData = () => {
     if (!sessionId || !user) return;
     try {
       const minutesStudied = Math.round(sessions * (workDuration / 60));
-      await supabase
-        .from('session_participants')
-        .update({ minutes_studied: minutesStudied })
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id);
-
+      // Note: We don't update session_participants.minutes_studied here because
+      // the participant row is deleted immediately after in leaveSession().
       await StudySessionsService.leaveSession(sessionId, user.id);
       localStorage.removeItem('active_group_session_id');
       setIsInGroupSession(false);
@@ -246,6 +248,8 @@ export const useGroupStudySessionData = () => {
     }
   };
 
+  const { handleTimerUpdate } = useGlobalTimer();
+
   // Timer Tick sync callback
   const onTimerUpdate = async (
     isActive: boolean,
@@ -255,21 +259,8 @@ export const useGroupStudySessionData = () => {
     currentCycle?: number,
     pauseLogs?: { paused_at: string; resumed_at: string | null }[]
   ) => {
-    if (!sessionId || !isHost) return;
-    try {
-      const updateData: any = {
-        timer_is_active: isActive,
-        timer_time_left: timeLeft,
-      };
-      if (initialTime !== undefined) updateData.timer_initial_time = initialTime;
-      if (mode !== undefined) updateData.timer_mode = mode;
-      if (currentCycle !== undefined) updateData.timer_current_cycle = currentCycle;
-      if (pauseLogs !== undefined) updateData.timer_pause_logs = pauseLogs;
-
-      await StudySessionsService.updateSessionTimer(sessionId, updateData);
-    } catch (err) {
-      console.error("Failed to update session timer in DB:", err);
-    }
+    // Sync to global timer state in memory (so the header/sidebar indicators are updated)
+    handleTimerUpdate(isActive, timeLeft, initialTime, mode, true, currentCycle, pauseLogs);
   };
 
   const {
@@ -291,7 +282,8 @@ export const useGroupStudySessionData = () => {
     onTimerUpdate,
     globalTimerState: (window as any).globalTimerState,
     sessionId: sessionId || undefined,
-    isHost
+    isHost,
+    sessionData
   });
 
   const handleToggleStatus = async () => {

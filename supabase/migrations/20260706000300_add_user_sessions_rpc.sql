@@ -1,4 +1,5 @@
 -- Create RPC function to get a user's public study sessions (created by them or where they participate)
+DROP FUNCTION IF EXISTS public.get_user_public_sessions(UUID);
 CREATE OR REPLACE FUNCTION public.get_user_public_sessions(
     target_user_id UUID
 )

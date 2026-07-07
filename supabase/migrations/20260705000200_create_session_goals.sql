@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.session_goals (
 ALTER TABLE public.session_goals ENABLE ROW LEVEL SECURITY;
 
 -- Select policy: all authenticated users who have access to study sessions can read goals
+DROP POLICY IF EXISTS "Users can view goals of sessions they can see" ON public.session_goals;
 CREATE POLICY "Users can view goals of sessions they can see" ON public.session_goals
     FOR SELECT TO authenticated
     USING (
@@ -24,6 +25,7 @@ CREATE POLICY "Users can view goals of sessions they can see" ON public.session_
     );
 
 -- Write policies: only the session host (creator of the session) can manage goals
+DROP POLICY IF EXISTS "Session hosts can manage goals" ON public.session_goals;
 CREATE POLICY "Session hosts can manage goals" ON public.session_goals
     FOR ALL TO authenticated
     USING (

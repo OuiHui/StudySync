@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Trash2, X, Save } from 'lucide-react';
+import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Trash2, X, Save, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportNoteDialog } from './ImportNoteDialog';
 
@@ -110,7 +110,7 @@ export const SessionNotes = ({
 
   return (
     <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
-      <CardHeader className="py-3 shrink-0 flex flex-row items-center justify-between border-b dark:border-gray-700/50">
+      <CardHeader className="py-3 shrink-0 flex flex-row flex-wrap items-center justify-between gap-2 border-b dark:border-gray-700/50">
         <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
           <BookOpen size={16} className="mr-2 text-indigo-500" />
           {isCreating
@@ -120,13 +120,14 @@ export const SessionNotes = ({
             : 'Shared Study Materials'}
         </CardTitle>
         {!isCreating && !activeNote && (
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-1.5 shrink-0">
             <Button
               size="sm"
               variant="outline"
               onClick={() => setImportOpen(true)}
-              className="h-7 text-xs flex items-center"
+              className="h-7 text-xs flex items-center space-x-1"
             >
+              <FileText size={13} />
               <span>Add Existing</span>
             </Button>
             <Button

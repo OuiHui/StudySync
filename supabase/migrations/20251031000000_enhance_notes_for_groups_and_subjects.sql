@@ -11,22 +11,26 @@ CREATE TABLE IF NOT EXISTS public.custom_subjects (
 ALTER TABLE public.custom_subjects ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for custom_subjects
+DROP POLICY IF EXISTS "Users can view their own subjects" ON public.custom_subjects;
 CREATE POLICY "Users can view their own subjects"
 ON public.custom_subjects FOR SELECT
 TO authenticated
 USING (auth.uid() = created_by);
 
+DROP POLICY IF EXISTS "Users can create their own subjects" ON public.custom_subjects;
 CREATE POLICY "Users can create their own subjects"
 ON public.custom_subjects FOR INSERT
 TO authenticated
 WITH CHECK (auth.uid() = created_by);
 
+DROP POLICY IF EXISTS "Users can update their own subjects" ON public.custom_subjects;
 CREATE POLICY "Users can update their own subjects"
 ON public.custom_subjects FOR UPDATE
 TO authenticated
 USING (auth.uid() = created_by)
 WITH CHECK (auth.uid() = created_by);
 
+DROP POLICY IF EXISTS "Users can delete their own subjects" ON public.custom_subjects;
 CREATE POLICY "Users can delete their own subjects"
 ON public.custom_subjects FOR DELETE
 TO authenticated
@@ -45,6 +49,7 @@ CREATE TABLE IF NOT EXISTS public.note_group_shares (
 ALTER TABLE public.note_group_shares ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for note_group_shares
+DROP POLICY IF EXISTS "Users can view shares for their groups" ON public.note_group_shares;
 CREATE POLICY "Users can view shares for their groups"
 ON public.note_group_shares FOR SELECT
 TO authenticated
@@ -55,24 +60,29 @@ USING (
     )
 );
 
+DROP POLICY IF EXISTS "Note owners can share notes" ON public.note_group_shares;
 CREATE POLICY "Note owners can share notes"
 ON public.note_group_shares FOR INSERT
 TO authenticated
 WITH CHECK (
-    note_id IN (
-        SELECT id FROM public.notes WHERE created_by = auth.uid()
+    -- Check ownership directly without going through notes RLS
+    EXISTS (
+        SELECT 1 FROM public.notes n
+        WHERE n.id = note_id AND n.created_by = auth.uid()
     )
     AND group_id IN (
         SELECT group_id FROM public.group_members WHERE user_id = auth.uid()
     )
 );
 
+DROP POLICY IF EXISTS "Note owners can unshare notes" ON public.note_group_shares;
 CREATE POLICY "Note owners can unshare notes"
 ON public.note_group_shares FOR DELETE
 TO authenticated
 USING (
-    note_id IN (
-        SELECT id FROM public.notes WHERE created_by = auth.uid()
+    EXISTS (
+        SELECT 1 FROM public.notes n
+        WHERE n.id = note_id AND n.created_by = auth.uid()
     )
 );
 

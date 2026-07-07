@@ -1,4 +1,5 @@
 -- Fix get_user_friends function to include explicit column aliases for all return fields
+DROP FUNCTION IF EXISTS public.get_user_friends(UUID, UUID);
 CREATE OR REPLACE FUNCTION public.get_user_friends(
     target_user_id UUID,
     current_user_id UUID

@@ -100,7 +100,7 @@ DO $$
 DECLARE
     password_hash TEXT;
 BEGIN
-    password_hash := crypt('password123', gen_salt('bf'));
+    password_hash := extensions.crypt('password123', extensions.gen_salt('bf'));
 
     -- Sarah Chen
     IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = '10000000-0000-0000-0000-000000000001' OR email = 'sarah.chen@gatech.edu') THEN
