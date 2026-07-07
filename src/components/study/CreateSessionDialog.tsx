@@ -165,10 +165,6 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     }
   };
 
-  // Get current date/time for min values in local timezone
-  const now = new Date();
-  const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  const currentDateTime = localNow.toISOString().slice(0, 16);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -247,7 +243,6 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledStart: e.target.value }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
-                min={currentDateTime}
                 required
                 className="datetime-input"
               />
@@ -262,7 +257,6 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 onChange={(e) => setFormData(prev => ({ ...prev, scheduledEnd: e.target.value }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
-                min={formData.scheduledStart || currentDateTime}
                 required
                 className="datetime-input"
               />
