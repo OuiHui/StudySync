@@ -7,7 +7,6 @@ import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserGroups } from '@/hooks/useUserGroups';
-import { GroupsDashboard } from '@/components/groups/GroupsDashboard';
 import { GroupsGrid } from '@/components/groups/GroupsGrid';
 
 interface StudyGroupsProps {
@@ -95,8 +94,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
         />
       </div>
 
-      {/* Calendar dashboard */}
-      <GroupsDashboard />
+
 
       {/* Groups grid */}
       <GroupsGrid

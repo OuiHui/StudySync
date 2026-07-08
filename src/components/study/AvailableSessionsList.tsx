@@ -10,6 +10,7 @@ import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableSessions } from '@/hooks/useAvailableSessions';
 import { StudySessionsService } from '@/services/database';
+import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 
 interface StudySession {
   id: string;
@@ -202,6 +203,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
         </div>
       ) : (
         <>
+          <StudyCalendar compact={true} />
           <Card className="border-0 shadow-lg dark:bg-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center text-green-600 dark:text-green-400">
