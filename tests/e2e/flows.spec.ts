@@ -180,7 +180,7 @@ test.describe('StudySync E2E User Flows', () => {
 
     // Fill Create Note Form
     await page.locator('input').first().fill('E2E Test Note');
-    await page.locator('textarea').fill('This is note content written by E2E test.');
+    await page.locator('[contenteditable]').fill('This is note content written by E2E test.');
 
     // Save note
     await page.getByRole('button', { name: 'Create Note', exact: true }).click();
