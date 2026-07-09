@@ -1,8 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface CreateNoteDialogProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Content</label>
-            <Textarea value={newNote.content} onChange={(e) => setNewNote((prev: any) => ({ ...prev, content: e.target.value }))} placeholder="Write your note content..." className="min-h-[200px]" />
+            <MarkdownEditor value={newNote.content || ''} onChange={(val) => setNewNote((prev: any) => ({ ...prev, content: val }))} placeholder="Write your note content..." />
           </div>
           {!groupId && (
             <div>

@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
+import { MarkdownEditor } from './MarkdownEditor';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 export const NoteDialogs = (props: any) => {
   const {
@@ -45,7 +46,7 @@ export const NoteDialogs = (props: any) => {
             </div>
             <div className="space-y-2">
               <Label>Content</Label>
-              <Textarea value={newNoteData.content} onChange={(e) => setNewNoteData((prev: any) => ({ ...prev, content: e.target.value }))} rows={15} />
+              <MarkdownEditor value={newNoteData.content || ''} onChange={(val) => setNewNoteData((prev: any) => ({ ...prev, content: val }))} />
             </div>
           </div>
           <div className="flex justify-end gap-2 border-t pt-4">
@@ -62,7 +63,7 @@ export const NoteDialogs = (props: any) => {
           <div className="space-y-4">
             <div className="space-y-2"><Label>Title *</Label><Input value={editFormData.title} onChange={(e) => setEditFormData((prev: any) => ({ ...prev, title: e.target.value }))} /></div>
             <div className="space-y-2"><Label>Subject</Label><Input value={editFormData.subject} onChange={(e) => setEditFormData((prev: any) => ({ ...prev, subject: e.target.value }))} /></div>
-            <div className="space-y-2"><Label>Content</Label><Textarea value={editFormData.content} onChange={(e) => setEditFormData((prev: any) => ({ ...prev, content: e.target.value }))} rows={8} /></div>
+            <div className="space-y-2"><Label>Content</Label><MarkdownEditor value={editFormData.content || ''} onChange={(val) => setEditFormData((prev: any) => ({ ...prev, content: val }))} /></div>
             <div className="space-y-2"><Label>Privacy</Label><select value={editFormData.permission_level} onChange={(e) => setEditFormData((prev: any) => ({ ...prev, permission_level: e.target.value }))} className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-gray-200">
               <option value="private">Private</option><option value="friends">Friends</option><option value="group">Group</option><option value="public">Public</option>
             </select></div>
@@ -93,8 +94,8 @@ export const NoteDialogs = (props: any) => {
                   <div className="p-4 text-center"><Button onClick={() => window.open(viewingNote.file_url, '_blank')}><Download size={16} className="mr-2" /> Download</Button></div>}
               </div>
             )}
-            {viewingNote?.content && <div className="prose dark:prose-invert max-w-none"><div className="whitespace-pre-wrap p-4 bg-white dark:bg-gray-800 rounded-lg border">{viewingNote.content}</div></div>}
-            {!viewingNote?.content && viewingNote?.preview && <div className="prose dark:prose-invert max-w-none"><div className="whitespace-pre-wrap p-4 bg-white dark:bg-gray-800 rounded-lg border">{viewingNote.preview}</div></div>}
+            {viewingNote?.content && <MarkdownRenderer content={viewingNote.content} className="p-4 bg-white dark:bg-gray-800 rounded-lg border" />}
+            {!viewingNote?.content && viewingNote?.preview && <MarkdownRenderer content={viewingNote.preview} className="p-4 bg-white dark:bg-gray-800 rounded-lg border" />}
           </div>
           <div className="flex justify-end gap-2 mt-4"><Button variant="outline" onClick={() => setViewDialogOpen(false)}>Close</Button></div>
         </DialogContent>
