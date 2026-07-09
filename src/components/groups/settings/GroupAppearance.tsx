@@ -18,19 +18,6 @@ export const availableIcons = [
   { name: 'Zap', icon: Zap, label: 'Lightning' }
 ];
 
-export const availableColors = [
-  { name: 'from-blue-500 to-blue-600', label: 'Blue', color: '#3B82F6', colorEnd: '#2563EB' },
-  { name: 'from-purple-500 to-purple-600', label: 'Purple', color: '#8B5CF6', colorEnd: '#7C3AED' },
-  { name: 'from-green-500 to-green-600', label: 'Green', color: '#10B981', colorEnd: '#059669' },
-  { name: 'from-red-500 to-red-600', label: 'Red', color: '#EF4444', colorEnd: '#DC2626' },
-  { name: 'from-orange-500 to-orange-600', label: 'Orange', color: '#F97316', colorEnd: '#EA580C' },
-  { name: 'from-pink-500 to-pink-600', label: 'Pink', color: '#EC4899', colorEnd: '#DB2777' },
-  { name: 'from-indigo-500 to-indigo-600', label: 'Indigo', color: '#6366F1', colorEnd: '#4F46E5' },
-  { name: 'from-teal-500 to-teal-600', label: 'Teal', color: '#14B8A6', colorEnd: '#0D9488' },
-  { name: 'from-yellow-500 to-yellow-600', label: 'Yellow', color: '#EAB308', colorEnd: '#CA8A04' },
-  { name: 'from-cyan-500 to-cyan-600', label: 'Cyan', color: '#06B6D4', colorEnd: '#0891B2' }
-];
-
 interface GroupAppearanceProps {
   formData: {
     color: string;
@@ -206,42 +193,6 @@ export const GroupAppearance = ({
             </p>
           </div>
         )}
-      </div>
-
-      {/* Color selection */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Banner Color</Label>
-        <div className="grid grid-cols-5 gap-2.5">
-          {availableColors.map((colorOption) => {
-            const isSelected = formData.color === colorOption.name;
-            return (
-              <button
-                key={colorOption.name}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, color: colorOption.name }))}
-                className={`relative h-11 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  isSelected 
-                    ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-lg' 
-                    : 'hover:shadow-md'
-                }`}
-                style={{ 
-                  background: `linear-gradient(135deg, ${colorOption.color}, ${colorOption.colorEnd})`,
-                  ...(isSelected ? { ringColor: colorOption.color } : {})
-                }}
-                disabled={loading}
-                title={colorOption.label}
-              >
-                {isSelected && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-5 h-5 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
-                      <Check size={12} className="text-white drop-shadow-sm" />
-                    </div>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Live preview note */}

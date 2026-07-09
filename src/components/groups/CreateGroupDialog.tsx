@@ -98,12 +98,12 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="course">Course</Label>
             <Input
-              id="subject"
+              id="course"
               value={formData.subject}
               onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-              placeholder="e.g., Mathematics, Physics..."
+              placeholder="e.g., CS 1331, MATH 1552..."
             />
           </div>
           

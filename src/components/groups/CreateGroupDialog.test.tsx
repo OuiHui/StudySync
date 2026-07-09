@@ -65,7 +65,7 @@ describe('CreateGroupDialog Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
 
     fireEvent.change(screen.getByLabelText(/Group Name/i), { target: { value: 'Study Buddies' } });
-    fireEvent.change(screen.getByLabelText(/Subject/i), { target: { value: 'Chemistry' } });
+    fireEvent.change(screen.getByLabelText(/Course/i), { target: { value: 'Chemistry' } });
     fireEvent.change(screen.getByLabelText(/Description/i), { target: { value: 'Weekly chem study session.' } });
     fireEvent.change(screen.getByLabelText(/Max Members/i), { target: { value: '25' } });
 

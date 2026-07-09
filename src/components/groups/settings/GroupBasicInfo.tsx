@@ -32,15 +32,15 @@ export const GroupBasicInfo = ({ formData, setFormData, loading }: GroupBasicInf
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="settings-subject" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <Label htmlFor="settings-course" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <BookOpen size={14} className="text-purple-500" />
-          Subject
+          Course
         </Label>
         <Input
-          id="settings-subject"
+          id="settings-course"
           value={formData.subject}
           onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-          placeholder="e.g., Mathematics, Computer Science..."
+          placeholder="e.g., CS 1331, MATH 1552..."
           disabled={loading}
           className="rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 focus:border-purple-400 dark:focus:border-purple-500 focus:ring-purple-400/20 transition-colors"
         />

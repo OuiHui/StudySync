@@ -23,6 +23,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Group Member Moderation** | [ ] Pending | Admin/creator cannot kick members from groups due to RLS limit. |
 | **PDF Note Attachments** | [ ] Pending | File/PDF upload capability lacks Supabase storage integration. |
 | **Friend's Friends List Lookup**| [ ] Pending | Cannot query or display mutual friends or friends of friends. |
+| **Editing Goals**| [ ] Pending | Should be able to add end date for goals that show up on calendar. |
 
 ---
 

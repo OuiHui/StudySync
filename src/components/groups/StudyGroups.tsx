@@ -87,7 +87,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
       <div className="relative">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 pointer-events-none" />
         <Input
-          placeholder="Search by name, subject, or description…"
+          placeholder="Search by name, course, or description…"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-blue-400/20 transition-colors h-10"

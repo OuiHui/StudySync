@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StudyGroupsService } from '@/services/database';
 
 import { GroupBasicInfo } from './settings/GroupBasicInfo';
-import { GroupAppearance, availableIcons, availableColors } from './settings/GroupAppearance';
+import { GroupAppearance, availableIcons } from './settings/GroupAppearance';
 import { GroupPrivacy } from './settings/GroupPrivacy';
 import { DeleteGroupModal } from './settings/DeleteGroupModal';
 
