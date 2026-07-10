@@ -21,7 +21,6 @@ import SoloStudy from "@/pages/SoloStudy";
 import GroupSessions from "@/pages/GroupSessions";
 import AvailableSessions from "@/pages/AvailableSessions";
 import MyGroups from "@/pages/MyGroups";
-import BrowseGroups from "@/pages/BrowseGroups";
 import Notes from "@/pages/Notes";
 import Profile from "@/pages/Profile";
 import FindFriends from "@/pages/FindFriends";
@@ -99,7 +98,6 @@ const App = () => (
                         <Route path="group-study-session" element={<GroupSessions />} />
                         <Route path="available-sessions" element={<AvailableSessions />} />
                         <Route path="groups" element={<MyGroups />} />
-                        <Route path="browse-groups" element={<BrowseGroups />} />
                         <Route path="notes" element={<Notes />} />
                         <Route path="find-friends" element={<FindFriends />} />
                         <Route path="profile" element={<Profile />} />

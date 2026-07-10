@@ -107,7 +107,8 @@ test.describe('StudySync E2E User Flows', () => {
   });
 
   test('Flow D: Study Group Directory & Membership', async ({ page }) => {
-    // Navigate to Browse Groups
+    // Navigate to the Groups page via sidebar, then switch to the Browse Groups tab
+    await page.getByRole('button', { name: 'Study Groups' }).click();
     await page.getByRole('button', { name: 'Browse Groups' }).click();
     await expect(page.locator('h1', { hasText: 'Browse Study Groups' })).toBeVisible();
 

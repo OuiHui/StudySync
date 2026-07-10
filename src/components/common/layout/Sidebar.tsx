@@ -1,18 +1,17 @@
 
 
-import { 
-  Home, 
-  Timer, 
-  Users, 
-  BookOpen, 
-  User, 
+import {
+  Home,
+  Timer,
+  Users,
+  BookOpen,
+  User,
   Settings,
   ChevronLeft,
   ChevronRight,
   UsersRound,
   FileText,
   BarChart3,
-  Search,
   UserPlus,
   Calendar
 } from 'lucide-react';
@@ -34,8 +33,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'study-session', label: 'Solo Study', icon: BookOpen },
     { id: 'available-sessions', label: 'Group Sessions', icon: Calendar },
-    { id: 'groups', label: 'My Groups', icon: Users },
-    { id: 'browse-groups', label: 'Browse Groups', icon: Search },
+    { id: 'groups', label: 'Study Groups', icon: Users },
     { id: 'notes', label: 'Notes', icon: FileText },
     { id: 'find-friends', label: 'Find Friends', icon: UserPlus },
     { id: 'profile', label: 'Profile', icon: User },
@@ -43,23 +41,22 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
 
   const isTabDisabled = (tabId: string) => {
     if (!globalTimer.isActive) return false;
-    
+
     // Notes tab is always enabled
     if (tabId === 'notes') return false;
-    
+
     // Solo Study is enabled if the active timer is a solo study timer
     if (tabId === 'study-session' && !globalTimer.isGroupTimer) return false;
-    
+
     // Group Sessions is enabled if the active timer is a group study timer
     if (tabId === 'available-sessions' && globalTimer.isGroupTimer) return false;
-    
+
     return true;
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ${
-      isOpen ? 'w-64' : 'w-16'
-    } z-40`}>
+    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'
+      } z-40`}>
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
@@ -87,21 +84,19 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             const isDisabled = isTabDisabled(item.id);
-            
+
             return (
               <li key={item.id}>
                 <button
                   disabled={isDisabled}
                   onClick={() => !isDisabled && setActiveTab(item.id)}
-                  className={`w-full flex items-center py-2 rounded-lg text-left transition-colors ${
-                    isOpen ? 'px-3' : 'justify-center px-0'
-                  } ${
-                    isDisabled
+                  className={`w-full flex items-center py-2 rounded-lg text-left transition-colors ${isOpen ? 'px-3' : 'justify-center px-0'
+                    } ${isDisabled
                       ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600'
                       : isActive
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
+                        ? 'bg-blue-500 text-white'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
                   title={!isOpen ? item.label : undefined}
                 >
                   <Icon size={20} className={isOpen ? 'mr-3' : 'mx-auto'} />
@@ -115,15 +110,14 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
 
       {/* Footer - User Menu */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${
-          isOpen ? 'mx-4 p-3 w-[calc(100%-2rem)]' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
-        }`}>
+        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${isOpen ? 'mx-4 p-3 w-[calc(100%-2rem)]' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
+          }`}>
           <div className={`flex items-center w-full ${isOpen ? 'justify-between' : 'justify-center'}`}>
             {isOpen && (
               <span className="text-sm text-gray-600 dark:text-gray-300">Account</span>
             )}
-            <UserMenu 
-              onProfileClick={() => setActiveTab('profile')} 
+            <UserMenu
+              onProfileClick={() => setActiveTab('profile')}
               isProfileDisabled={isTabDisabled('profile')}
             />
           </div>
