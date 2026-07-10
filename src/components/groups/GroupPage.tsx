@@ -151,7 +151,16 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
         )}
       </div>
 
-      <GroupSettingsDialog group={group} open={settingsOpen} onOpenChange={setSettingsOpen} onGroupUpdated={() => {}} onGroupDeleted={onBack} />
+      <GroupSettingsDialog
+        group={group}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        onGroupUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+          queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+        }}
+        onGroupDeleted={onBack}
+      />
     </div>
   );
 };

@@ -120,10 +120,10 @@ export function useUserGroups() {
   const handleGroupUpdated = (updatedGroup: any) => {
     queryClient.setQueryData<GroupInfo[]>(['user-groups', user?.id, isAnonymous], (old) => {
       if (!old) return old;
-      return old.map(group => 
-        group.id === updatedGroup.id 
-          ? { 
-              ...group, 
+      return old.map(group =>
+        group.id === updatedGroup.id
+          ? {
+              ...group,
               ...updatedGroup,
               color: updatedGroup.color || group.color || 'from-blue-500 to-blue-600',
               icon: updatedGroup.icon || group.icon || 'Users'
@@ -131,6 +131,7 @@ export function useUserGroups() {
           : group
       );
     });
+    queryClient.invalidateQueries({ queryKey: ['group', updatedGroup.id] });
   };
 
   const handleGroupDeleted = (groupId: string) => {

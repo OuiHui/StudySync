@@ -2,4 +2,4 @@
 trigger: always_on
 ---
 
-If an existing document explains how a feature is designed/works, read that document for context. If it doesn't and a feature or design requires lots of searching through files, create a document summarizing how it works and the important parts for future reference.
+If you are doing work on a funcionality, check if there's a doc that explains how it works/designed. If not, make that document and update it as you search and understand the structure for future reference.
