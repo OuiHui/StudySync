@@ -95,8 +95,8 @@ export function usePublicGroups(
       await StudyGroupsService.joinGroup(groupId);
       queryClient.setQueryData<any[]>(['public-groups'], (old) => {
         if (!old) return old;
-        return old.map(group => 
-          group.id === groupId 
+        return old.map(group =>
+          group.id === groupId
             ? { ...group, member_count: (group.member_count || 0) + 1 }
             : group
         );
@@ -104,15 +104,7 @@ export function usePublicGroups(
       onUpdateEnrollment?.(groupId, true);
     } catch (err) {
       console.error('Error joining group:', err);
-      queryClient.setQueryData<any[]>(['public-groups'], (old) => {
-        if (!old) return old;
-        return old.map(group => 
-          group.id === groupId 
-            ? { ...group, member_count: (group.member_count || 0) + 1 }
-            : group
-        );
-      });
-      onUpdateEnrollment?.(groupId, true);
+      throw err;
     }
   };
 
@@ -121,8 +113,8 @@ export function usePublicGroups(
       await StudyGroupsService.leaveGroup(groupId);
       queryClient.setQueryData<any[]>(['public-groups'], (old) => {
         if (!old) return old;
-        return old.map(group => 
-          group.id === groupId 
+        return old.map(group =>
+          group.id === groupId
             ? { ...group, member_count: Math.max(0, (group.member_count || 0) - 1) }
             : group
         );
@@ -130,15 +122,7 @@ export function usePublicGroups(
       onUpdateEnrollment?.(groupId, false);
     } catch (err) {
       console.error('Error leaving group:', err);
-      queryClient.setQueryData<any[]>(['public-groups'], (old) => {
-        if (!old) return old;
-        return old.map(group => 
-          group.id === groupId 
-            ? { ...group, member_count: Math.max(0, (group.member_count || 0) - 1) }
-            : group
-        );
-      });
-      onUpdateEnrollment?.(groupId, false);
+      throw err;
     }
   };
 

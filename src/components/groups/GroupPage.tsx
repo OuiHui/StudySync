@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { CollaborativeNotes } from '@/components/notes/CollaborativeNotes';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
-import { StudySessionsService } from '@/services/database';
+import { StudySessionsService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroupData } from '@/hooks/useGroupData';
 import { GroupPageHeader } from './GroupPageHeader';
@@ -14,19 +14,22 @@ import { GroupMembersTab } from './GroupMembersTab';
 interface GroupPageProps {
   groupId: string;
   onBack: () => void;
-  isEnlisted?: boolean;
   onUpdateEnrollment?: (groupId: string, enrolled: boolean) => void;
 }
 
-export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollment }: GroupPageProps) => {
+export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProps) => {
   const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('sessions');
-  const [enrolled, setEnrolled] = useState(isEnlisted);
+  const [enrolledOverride, setEnrolledOverride] = useState<boolean | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { group, members, sessions, loading, error } = useGroupData(groupId);
+
+  // Derive enrolled from live DB members; local override used for instant feedback
+  const isMember = user ? members.some((m: any) => m.id === user.id) : false;
+  const enrolled = enrolledOverride !== null ? enrolledOverride : isMember;
 
   // Derive attending sessions from live DB data instead of local state
   const attendingSessions = useMemo(() => {
@@ -36,14 +39,28 @@ export const GroupPage = ({ groupId, onBack, isEnlisted = true, onUpdateEnrollme
       .map(s => s.id);
   }, [sessions, user]);
 
-  const handleLeaveGroup = () => {
-    setEnrolled(false);
-    onUpdateEnrollment?.(groupId, false);
+  const handleLeaveGroup = async () => {
+    try {
+      await StudyGroupsService.leaveGroup(groupId);
+      setEnrolledOverride(false);
+      onUpdateEnrollment?.(groupId, false);
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+    } catch (err) {
+      console.error('Error leaving group:', err);
+    }
   };
 
-  const handleJoinGroup = () => {
-    setEnrolled(true);
-    onUpdateEnrollment?.(groupId, true);
+  const handleJoinGroup = async () => {
+    try {
+      await StudyGroupsService.joinGroup(groupId);
+      setEnrolledOverride(true);
+      onUpdateEnrollment?.(groupId, true);
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+    } catch (err) {
+      console.error('Error joining group:', err);
+    }
   };
 
   const handleAttendSession = async (sessionId: string) => {

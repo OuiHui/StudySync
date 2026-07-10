@@ -16,7 +16,6 @@ export default function Groups() {
       <GroupPage
         groupId={selectedGroupId}
         onBack={() => setSelectedGroupId(null)}
-        isEnlisted={groupEnrollments[selectedGroupId] || false}
         onUpdateEnrollment={handleUpdateEnrollment}
       />
     );
@@ -42,7 +41,6 @@ export default function Groups() {
       ) : (
         <StudyGroupsBrowse
           onSelectGroup={setSelectedGroupId}
-          groupEnrollments={groupEnrollments}
           onUpdateEnrollment={handleUpdateEnrollment}
         />
       )}

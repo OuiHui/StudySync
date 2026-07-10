@@ -8,10 +8,7 @@ export interface GroupEnrollmentContextType {
 const GroupEnrollmentContext = createContext<GroupEnrollmentContextType | undefined>(undefined);
 
 export const GroupEnrollmentProvider = ({ children }: { children: ReactNode }) => {
-  const [groupEnrollments, setGroupEnrollments] = useState<Record<string, boolean>>({
-    '1': true,
-    '4': true
-  });
+  const [groupEnrollments, setGroupEnrollments] = useState<Record<string, boolean>>({});
 
   const handleUpdateEnrollment = (groupId: string, enrolled: boolean) => {
     setGroupEnrollments(prev => ({

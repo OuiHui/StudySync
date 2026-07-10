@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Users, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,48 +6,38 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePublicGroups } from '@/hooks/usePublicGroups';
+import { useUserGroups } from '@/hooks/useUserGroups';
 import { GroupCard } from './GroupCard';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
-  groupEnrollments?: Record<string, boolean>;
   onUpdateEnrollment?: (groupId: string, enrolled: boolean) => void;
 }
 
-export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
+export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
-  
-  const {
-    availableGroups,
-    loading,
-    error,
-    loadPublicGroups,
-    handleJoinGroup,
-    handleLeaveGroup,
-    handleCreateGroup,
-  } = usePublicGroups(groupEnrollments, onUpdateEnrollment);
+
+  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup } = usePublicGroups({}, onUpdateEnrollment);
+  const { studyGroups: myGroups } = useUserGroups();
+
+  const myGroupIds = useMemo(() => new Set(myGroups.map(g => g.id)), [myGroups]);
 
   const subjects = [
-    'all',
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Computer Science',
-    'History',
-    'Literature',
-    'Psychology',
-    'Economics'
+    'all', 'Mathematics', 'Physics', 'Chemistry', 'Biology',
+    'Computer Science', 'History', 'Literature', 'Psychology', 'Economics'
   ];
 
-  const filteredGroups = availableGroups.filter(group => {
-    const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         group.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || group.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
-  });
+  const filteredGroups = useMemo(() => {
+    return availableGroups.filter(group => {
+      if (myGroupIds.has(group.id)) return false;
+      const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            group.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSubject = selectedSubject === 'all' || group.subject === selectedSubject;
+      return matchesSearch && matchesSubject;
+    });
+  }, [availableGroups, myGroupIds, searchTerm, selectedSubject]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -58,14 +48,8 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
           {!loading && (
             <>
               <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">|</span>
-              <span className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredGroups.length}</span> available
-                </span>
-                <span className="text-gray-300 dark:text-gray-700 font-normal">·</span>
-                <span className="text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold text-green-600 dark:text-green-400">{filteredGroups.filter(g => g.isEnlisted).length}</span> joined
-                </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredGroups.length}</span> available
               </span>
             </>
           )}
