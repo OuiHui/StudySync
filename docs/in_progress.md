@@ -4,11 +4,11 @@ This document tracks completed systems, details current gaps, and lists future t
 
 ---
 
-## 1. Feature Progress Matrix
+## 1. Feature Progress
 
 | Feature Area | Status | Notes |
 | :--- | :--- | :--- |
-| **Authentication** | [/] Partial | Supported via email login and guest login. |
+| **Authentication** | [/] Partial | Supported via email login and guest login. Working to get O-auth |
 | **Dashboard Stats** | [/] Partial | Displays study metrics and progress bars. |
 | **Solo Timer** | [x] Done | Configurable Pomodoro durations with local state. |
 | **Solo Study Goals** |[/] Partial | Checked local storage persistence (JSON under 'solo_study_goals' with id, title, completed fields). |
@@ -32,6 +32,8 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Study Group Page Redesign** | [ ] Pending | Redesign the study group page layout, usability, and design aesthetics. |
 | **Dropdown Transitions** | [ ] Pending | Make all dropdown menus across the app have smooth entry/exit animations. |
 | **Code Cleanup / Deduplication** | [ ] Pending | Refactor components and services to reduce duplicated/re-used code. |
+| **Session History** | [ ] Pending | View list of past study sessions with durations and dates. |
+| **Simulated User Testing Framework** | [ ] Pending | Scripted fake-user bot system to perform realistic actions (friend requests, session joins, messaging) for testing and seeding. |
 
 
 
@@ -73,6 +75,16 @@ This document tracks completed systems, details current gaps, and lists future t
 ### I. Code Quality & Refactoring
 *   **Reduce Re-used Code**: Identify, consolidate, and eliminate duplicate logic/code patterns across the components and service files.
 
+### J. Session History
+*   **Session History UI**: Design and build a page, modal, or section (e.g., extending the Dashboard or Profile) that allows users to view a list of all their past study sessions with details like title, duration, type (solo/group), and date/time.
+
+### K. Simulated User Testing Framework
+*   **Bot Action Runner**: Build a script or admin tool (e.g., `scripts/simulate-users.ts`) that can authenticate as any seeded fake user and programmatically invoke service methods to perform realistic actions.
+*   **Supported Actions**: At minimum the framework should support: sending and accepting friend requests, creating and joining group sessions, sending direct messages and group chat messages, and creating/sharing notes.
+*   **Scenario Scripting**: Allow composing multi-step interaction scenarios (e.g., "User A sends friend request → User B accepts → User A messages User B → both join the same session") to validate end-to-end data flows and real-time sync.
+*   **Seeded User Pool**: Define a set of persistent fake profiles in the database (separate from production users) that the framework authenticates against, so tests can be reproduced consistently.
+
+
 ---
 
 ## 3. Lacking Backend / Supabase Functionalities
@@ -94,3 +106,6 @@ This document tracks completed systems, details current gaps, and lists future t
     *   Supabase Storage bucket for `study_materials` needs to be defined, along with security policies allowing member-only reads and upload constraints for notes sharing.
 6.  **Friends of Friends Database Queries**:
     *   Implement database functions/RPC to safely fetch and display accepted friends lists of a friend, adhering to user profile privacy constraints.
+7.  **Session History Database & API**:
+    *   Ensure all finished/completed study sessions (both solo and group) are correctly stored in the database (e.g., `study_sessions` or `session_participants` with finished status and actual duration).
+    *   Expose helper functions in services (e.g., in `StudySessionsService` or `ProfileService`) to fetch the paginated history of a user's completed study sessions.

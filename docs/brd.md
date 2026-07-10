@@ -47,6 +47,13 @@ The core objective is to create a frictionless, engaging digital environment whe
 *   **Privacy Management**: Control visibility of study stats, online presence, study group listings, and direct message permissions.
 *   **Notification Settings**: Toggle preferences for email alerts, push notifications, study session reminders, group messages, and friend requests.
 
+### F. Real-time Messaging System
+*   **Direct Messages (DMs)**: Initiate and maintain private one-on-one text conversations with accepted friends.
+*   **Group Chat**: Auto-created conversation channels for study groups, enabling collaboration among all group members.
+*   **Session Lobby Chat**: Integrated live chat within active study sessions to coordinate Pomodoro intervals or resource sharing.
+*   **Durable History & Synchronization**: Message records are stored in PostgreSQL database tables for complete history retrieval and synced in real-time across users using Supabase Realtime channels.
+*   **Optimistic UI Updates**: Messages are rendered immediately with pending status and updated to sent upon database insertion confirmation.
+
 ---
 
 ## 4. Key Constraints & Out-of-Scope Items
