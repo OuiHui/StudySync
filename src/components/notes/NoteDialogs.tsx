@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
 import { MarkdownEditor } from './MarkdownEditor';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { FileViewer } from './FileViewer';
 
 export const NoteDialogs = (props: any) => {
   const {
@@ -88,11 +89,7 @@ export const NoteDialogs = (props: any) => {
           <DialogHeader><DialogTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> {viewingNote?.title}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             {viewingNote?.file_url && (
-              <div className="border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900">
-                {viewingNote.file_url.endsWith('.pdf') ? <iframe src={viewingNote.file_url} className="w-full h-[600px]" /> :
-                  viewingNote.file_url.match(/.(jpg|jpeg|png|gif|webp)$/i) ? <img src={viewingNote.file_url} className="w-full h-auto" /> :
-                  <div className="p-4 text-center"><Button onClick={() => window.open(viewingNote.file_url, '_blank')}><Download size={16} className="mr-2" /> Download</Button></div>}
-              </div>
+              <FileViewer fileUrl={viewingNote.file_url} title={viewingNote.title || ''} />
             )}
             {viewingNote?.content && <MarkdownRenderer content={viewingNote.content} className="p-4 bg-white dark:bg-gray-800 rounded-lg border" />}
             {!viewingNote?.content && viewingNote?.preview && <MarkdownRenderer content={viewingNote.preview} className="p-4 bg-white dark:bg-gray-800 rounded-lg border" />}

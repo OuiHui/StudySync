@@ -172,6 +172,7 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
 
       <EditNoteDialog 
         editingNote={editingNote} 
+        userId={user?.id}
         onOpenChange={() => setEditingNote(null)} 
         editForm={editForm} 
         setEditForm={setEditForm} 
