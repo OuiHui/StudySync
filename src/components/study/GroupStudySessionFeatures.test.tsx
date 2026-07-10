@@ -4,6 +4,13 @@ import { ParticipantsList } from './ParticipantsList';
 import { StudyGoals } from './StudyGoals';
 import { SessionNotes } from './SessionNotes';
 
+vi.mock('@/contexts/UserProfileModalContext', () => ({
+  useUserProfileModal: () => ({
+    openProfile: vi.fn(),
+    closeProfile: vi.fn(),
+  }),
+}));
+
 describe('GroupStudySession Features Unit Tests', () => {
   describe('ParticipantsList Component', () => {
     const mockParticipants = [

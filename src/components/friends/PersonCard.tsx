@@ -31,10 +31,10 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
   return (
     <div 
       onClick={() => onViewProfile(person)}
-      className="flex flex-col rounded-xl border border-gray-200 dark:border-white/[0.12] bg-white dark:bg-gray-800 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-white/25 cursor-pointer max-w-sm sm:max-w-[320px] w-full mx-auto"
+      className="flex flex-col rounded-xl border border-gray-200 dark:border-white/[0.12] bg-white dark:bg-gray-800 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-white/25 cursor-pointer max-w-sm sm:max-w-[320px] w-full mx-auto group"
     >
       {/* Header: avatar + name/email + friends badge */}
-      <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+      <div className="px-4 pt-4 pb-3 flex items-start gap-3 relative">
         <div
           className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
         >
@@ -45,17 +45,27 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0 pr-6">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">{person.name}</h3>
-            {person.status === 'friends' && (
-              <span className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                <UserCheck size={10} />
-                Friends
+            {person.status === 'friends' ? (
+              <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
+                <UserCheck size={9} />
+                Friend
               </span>
-            )}
+            ) : person.status === 'pending' ? (
+              <span className="shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                <Clock size={9} />
+                Pending
+              </span>
+            ) : null}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate">{person.email}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">{person.email}</p>
+        </div>
+
+        {/* Click indicator */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all pl-2 shrink-0">
+          <ChevronRight size={16} />
         </div>
       </div>
 

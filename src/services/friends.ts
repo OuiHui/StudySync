@@ -323,4 +323,108 @@ export class FriendsService {
       throw error;
     }
   }
+
+  // Get a single user's profile and friendship status
+  static async getUserProfile(targetUserId: string, currentUserId: string) {
+    try {
+      // 1. Get profile details
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', targetUserId)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Error fetching profile:', profileError);
+        return null;
+      }
+
+      // 2. Get friendship status
+      const { data: friendship } = await supabase
+        .from('friendships' as any)
+        .select('*')
+        .or(`and(user_id.eq.${currentUserId},friend_id.eq.${targetUserId}),and(user_id.eq.${targetUserId},friend_id.eq.${currentUserId})`)
+        .maybeSingle();
+
+      let status: 'none' | 'pending' | 'friends' = 'none';
+      if (friendship) {
+        if (friendship.status === 'accepted') status = 'friends';
+        else if (friendship.status === 'pending') status = 'pending';
+      }
+
+      // 3. Get total friends count for target user
+      const { count: friendsCount } = await supabase
+        .from('friendships' as any)
+        .select('*', { count: 'exact', head: true })
+        .or(`user_id.eq.${targetUserId},friend_id.eq.${targetUserId}`)
+        .eq('status', 'accepted');
+
+      // 4. Get public study groups for target user
+      const { data: groupMembers, error: groupsError } = await supabase
+        .from('group_members' as any)
+        .select('group_id, study_groups(name, is_public)')
+        .eq('user_id', targetUserId);
+
+      const publicGroups: string[] = [];
+      if (!groupsError && groupMembers) {
+        groupMembers.forEach((gm: any) => {
+          if (gm.study_groups && gm.study_groups.is_public) {
+            publicGroups.push(gm.study_groups.name);
+          }
+        });
+      }
+
+      // 5. Get mutual friends count
+      const { data: currentUserFriendships } = await supabase
+        .from('friendships' as any)
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`)
+        .eq('status', 'accepted');
+
+      const { data: targetUserFriendships } = await supabase
+        .from('friendships' as any)
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${targetUserId},friend_id.eq.${targetUserId}`)
+        .eq('status', 'accepted');
+
+      const currentUserFriendIds = new Set(
+        (currentUserFriendships || []).map((f: any) =>
+          f.user_id === currentUserId ? f.friend_id : f.user_id
+        )
+      );
+      const targetUserFriendIds = (targetUserFriendships || []).map((f: any) =>
+        f.user_id === targetUserId ? f.friend_id : f.user_id
+      );
+      const mutualFriendsCount = targetUserFriendIds.filter((id: string) =>
+        currentUserFriendIds.has(id)
+      ).length;
+
+      const name = profile.display_name || profile.email?.split('@')[0] || 'Unknown';
+      const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || '👤';
+
+      return {
+        id: targetUserId,
+        name,
+        email: profile.email || '',
+        avatar: profile.avatar_url || null,
+        initials,
+        gradientFrom: profile.gradient_from || 'from-blue-400',
+        gradientTo: profile.gradient_to || 'to-blue-600',
+        major: profile.major || 'Computer Science',
+        year: profile.year || '1st Year',
+        mutualFriends: mutualFriendsCount,
+        studyHours: profile.study_hours || 0,
+        status,
+        bio: profile.bio || '',
+        topSubjects: profile.top_subjects || [],
+        friendshipId: friendship?.id,
+        friendsCount: friendsCount || 0,
+        groupsCount: publicGroups.length,
+        publicGroups,
+      };
+    } catch (err) {
+      console.error('Error in getUserProfile:', err);
+      return null;
+    }
+  }
 }

@@ -57,7 +57,7 @@ export function useFriends() {
       ]);
 
       const mappedFriends = friendsData.map((friend: any) => ({
-        id: friend.id,
+        id: friend.user_id,
         display_name: friend.display_name,
         email: friend.email,
         avatar_url: friend.avatar_url,
@@ -71,7 +71,7 @@ export function useFriends() {
         status: 'pending',
         created_at: request.created_at,
         requester: {
-          id: request.id,
+          id: request.user_id,
           display_name: request.display_name,
           email: request.email,
           avatar_url: request.avatar_url

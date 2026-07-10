@@ -1,7 +1,8 @@
-import { Users, Calendar, Clock, } from 'lucide-react';
+import { Users, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 interface SessionDetailsPopupProps {
   isOpen: boolean;
@@ -48,6 +49,7 @@ export const SessionDetailsPopup = ({
   onTogglePlanToAttend, 
   currentUser 
 }: SessionDetailsPopupProps) => {
+  const { openProfile } = useUserProfileModal();
   const handleJoin = () => {
     onJoinSession(session.id);
     onClose();
@@ -117,15 +119,35 @@ export const SessionDetailsPopup = ({
                 {session.participantList.map((p: any) => {
                   const pName = p.profiles?.display_name || 'Anonymous User';
                   const pInitials = getInitials(pName);
+                  const isSelf = p.user_id === currentUser?.id;
                   return (
-                    <div key={p.user_id} className="flex items-center space-x-2">
-                      <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold ${getAvatarColorClass(pName)}`}>
-                        {pInitials}
+                    <button
+                      key={p.user_id}
+                      onClick={() => !isSelf && openProfile(p.user_id)}
+                      disabled={isSelf}
+                      className={`flex items-center justify-between text-left focus:outline-none transition-colors w-full rounded-md p-1 ${
+                        isSelf 
+                          ? 'opacity-85 select-none' 
+                          : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-500 dark:hover:text-blue-400 group'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-transform ${getAvatarColorClass(pName)} ${isSelf ? '' : 'group-hover:scale-105 active:scale-95'}`}>
+                          {p.profiles?.avatar_url ? (
+                            <img src={p.profiles.avatar_url} alt={pName} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            pInitials
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-750 dark:text-gray-300 font-medium truncate">
+                          {pName} {isSelf ? ' (you)' : ''}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                        {pName} {p.user_id === currentUser?.id ? ' (you)' : ''}
-                      </span>
-                    </div>
+                      
+                      {!isSelf && (
+                        <ChevronRight size={14} className="text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                      )}
+                    </button>
                   );
                 })}
               </div>

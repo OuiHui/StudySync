@@ -2,6 +2,7 @@ import { UserMinus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Friend } from '@/hooks/useFriends';
 import { getInitials, getDisplayName } from './FriendSearch';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 interface FriendsListProps {
   friends: Friend[];
@@ -20,6 +21,8 @@ const avatarColors = [
 const getAvatarColor = (str: string) => avatarColors[(str?.charCodeAt(0) || 0) % avatarColors.length];
 
 export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) => {
+  const { openProfile } = useUserProfileModal();
+
   return (
     <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
@@ -50,21 +53,26 @@ export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) =
                 key={friend.id}
                 className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors"
               >
-                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
-                  {friend.avatar_url ? (
-                    <img
-                      src={friend.avatar_url}
-                      alt="Avatar"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white text-xs font-semibold">{initials}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{name}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
-                </div>
+                <button
+                  onClick={() => openProfile(friend.id)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer focus:outline-none group"
+                >
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}>
+                    {friend.avatar_url ? (
+                      <img
+                        src={friend.avatar_url}
+                        alt="Avatar"
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white text-xs font-semibold">{initials}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">{name}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{friend.email}</p>
+                  </div>
+                </button>
                 <Button
                   size="sm"
                   variant="ghost"

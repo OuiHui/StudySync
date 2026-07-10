@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { UserProfileModalProvider } from "@/contexts/UserProfileModalContext";
 
 import { GlobalTimerProvider } from "@/contexts/GlobalTimerContext";
 import { GroupEnrollmentProvider } from "@/contexts/GroupEnrollmentContext";
@@ -73,14 +74,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="study-app-theme">
       <AuthProvider>
-        <GlobalTimerProvider>
-          <GroupEnrollmentProvider>
-            <NotificationProvider>
-              <SessionProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <HashRouter>
+        <UserProfileModalProvider>
+          <GlobalTimerProvider>
+            <GroupEnrollmentProvider>
+              <NotificationProvider>
+                <SessionProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <HashRouter>
                     <Routes>
                       <Route path="/auth" element={
                         <AuthRoute>
@@ -110,6 +112,7 @@ const App = () => (
             </NotificationProvider>
           </GroupEnrollmentProvider>
         </GlobalTimerProvider>
+        </UserProfileModalProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

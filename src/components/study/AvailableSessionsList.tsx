@@ -10,6 +10,7 @@ import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAvailableSessions } from '@/hooks/useAvailableSessions';
 import { StudySessionsService } from '@/services/database';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 
 interface StudySession {
@@ -102,6 +103,7 @@ const getDurationDisplay = (startStr: string, endStr: string, isLive: boolean) =
 
 export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListProps) => {
   const { user } = useAuth();
+  const { openProfile } = useUserProfileModal();
   const [selectedSession, setSelectedSession] = useState<StudySession | null>(null);
   const { sessions, loading, error, loadSessions } = useAvailableSessions();
 
@@ -243,17 +245,24 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           Live
                         </span>
                       </div>                      {/* Host display */}
-                      <div className="flex items-center space-x-2 mt-3 select-none">
-                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10">
-                          {session.hostInitials}
+                      <button
+                        onClick={() => session.created_by && openProfile(session.created_by)}
+                        className="flex items-center space-x-2 mt-3 text-left focus:outline-none cursor-pointer group"
+                      >
+                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10 group-hover:scale-105 active:scale-95 transition-transform">
+                          {session.hostAvatarUrl ? (
+                            <img src={session.hostAvatarUrl} alt={session.hostName} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            session.hostInitials
+                          )}
                           <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
                             <Star size={8} fill="currentColor" />
                           </span>
                         </div>
-                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">
+                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
                           Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
                         </span>
-                      </div>
+                      </button>
                       
                       {session.description && (
                         <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">
@@ -398,17 +407,24 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                       </div>
 
                       {/* Host display */}
-                      <div className="flex items-center space-x-2 mt-3 select-none">
-                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10">
-                          {session.hostInitials}
+                      <button
+                        onClick={() => session.created_by && openProfile(session.created_by)}
+                        className="flex items-center space-x-2 mt-3 text-left focus:outline-none cursor-pointer group"
+                      >
+                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10 group-hover:scale-105 active:scale-95 transition-transform">
+                          {session.hostAvatarUrl ? (
+                            <img src={session.hostAvatarUrl} alt={session.hostName} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            session.hostInitials
+                          )}
                           <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
                             <Star size={8} fill="currentColor" />
                           </span>
                         </div>
-                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">
+                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
                           Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
                         </span>
-                      </div>
+                      </button>
                       
                       {session.description && (
                         <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">

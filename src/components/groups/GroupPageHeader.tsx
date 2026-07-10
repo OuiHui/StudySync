@@ -1,6 +1,7 @@
 import { ArrowLeft, Settings, Crown, UserMinus, UserCheck, Users, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, PanelRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 const getIconComponent = (iconName: string) => {
   const iconMap: { [key: string]: any } = {
@@ -48,6 +49,7 @@ export const GroupPageHeader = ({
   members
 }: GroupPageHeaderProps) => {
   const { user } = useAuth();
+  const { openProfile } = useUserProfileModal();
 
   return (
     <div className="space-y-2">
@@ -122,25 +124,33 @@ export const GroupPageHeader = ({
                   .substring(0, 2);
                 const bgColors = ['bg-purple-600', 'bg-blue-600', 'bg-red-600'];
                 return member.avatar ? (
-                  <img
+                  <button
                     key={member.id}
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] object-cover"
-                    src={member.avatar}
-                    alt={member.name}
-                  />
+                    onClick={() => openProfile(member.id)}
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] focus:outline-none hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                    title={member.name}
+                  >
+                    <img
+                      className="h-full w-full rounded-full object-cover"
+                      src={member.avatar}
+                      alt={member.name}
+                    />
+                  </button>
                 ) : (
-                  <div
+                  <button
                     key={member.id}
-                    className={`inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] flex items-center justify-center text-xs font-semibold text-white ${
+                    onClick={() => openProfile(member.id)}
+                    className={`inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] flex items-center justify-center text-xs font-semibold text-white focus:outline-none hover:scale-105 active:scale-95 transition-transform cursor-pointer ${
                       bgColors[index % bgColors.length]
                     }`}
+                    title={member.name}
                   >
                     {initials}
-                  </div>
+                  </button>
                 );
               })}
               {members.length > 3 && (
-                <div className="inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] bg-gray-800 flex items-center justify-center text-xs font-semibold text-gray-400">
+                <div className="inline-block h-8 w-8 rounded-full ring-2 ring-[#141414] bg-gray-800 flex items-center justify-center text-xs font-semibold text-gray-400 select-none">
                   +{members.length - 3}
                 </div>
               )}

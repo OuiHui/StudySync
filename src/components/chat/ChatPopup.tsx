@@ -10,6 +10,7 @@ import { ChatService } from '@/services/database';
 import { RealtimeService, RealtimeMessage } from '@/services/realtime';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 interface ChatMessage {
   id: string;
@@ -31,6 +32,7 @@ interface ChatPopupProps {
 export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = false }: ChatPopupProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { openProfile } = useUserProfileModal();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -293,9 +295,12 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
                     <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
                         {!isSelf && (
-                          <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-0.5 ml-1">
+                          <button 
+                            onClick={() => openProfile(msg.userId)}
+                            className="text-[10px] font-semibold text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 mb-0.5 ml-1 cursor-pointer transition-colors text-left focus:outline-none"
+                          >
                             {msg.userName}
-                          </span>
+                          </button>
                         )}
                         <div
                           className={`px-3 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
@@ -412,17 +417,30 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
                       }`}>
                         {msg.userId !== user?.id && (
                           <div className="flex items-center space-x-1 mb-1">
-                            <span className="text-xs">{msg.avatar}</span>
-                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{msg.userName}</p>
+                            <span className="text-[10px] select-none">{msg.avatar && (msg.avatar.startsWith('http') || msg.avatar.startsWith('/')) ? '' : (msg.avatar || '👤')}</span>
+                            <button 
+                              onClick={() => openProfile(msg.userId)}
+                              className="text-xs font-medium text-gray-650 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors text-left cursor-pointer focus:outline-none"
+                            >
+                              {msg.userName}
+                            </button>
                           </div>
                         )}
                         <p className="text-sm">{msg.message}</p>
                       </div>
                     </div>
                     {msg.userId !== user?.id && (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0">
-                        {msg.avatar}
-                      </div>
+                      <button 
+                        onClick={() => openProfile(msg.userId)}
+                        className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-sm mr-2 order-0 overflow-hidden hover:ring-2 hover:ring-blue-500 cursor-pointer focus:outline-none transition-all"
+                        title={msg.userName}
+                      >
+                        {msg.avatar && (msg.avatar.startsWith('http') || msg.avatar.startsWith('/')) ? (
+                          <img src={msg.avatar} alt={msg.userName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{msg.avatar || '👤'}</span>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MessageSquare, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 interface Participant {
   id: string;
@@ -17,6 +18,7 @@ interface ParticipantHoverCardProps {
 }
 
 export const ParticipantHoverCard = ({ participant, onChatClick }: ParticipantHoverCardProps) => {
+  const { openProfile } = useUserProfileModal();
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -50,10 +52,11 @@ export const ParticipantHoverCard = ({ participant, onChatClick }: ParticipantHo
           </div>
         </div>
         <div className="flex space-x-2 mt-4">
-          <Button 
+           <Button 
             size="sm" 
             variant="outline" 
-            className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            onClick={() => openProfile(participant.id)}
+            className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
           >
             <User size={14} className="mr-1" />
             View Profile

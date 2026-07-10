@@ -2,6 +2,7 @@ import { UserPlus, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FriendRequest } from '@/hooks/useFriends';
 import { getInitials, getDisplayName } from './FriendSearch';
+import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 
 interface FriendRequestsProps {
   friendRequests: FriendRequest[];
@@ -18,6 +19,7 @@ export const FriendRequests = ({
   handleRejectRequest,
   handleCancelRequest
 }: FriendRequestsProps) => {
+  const { openProfile } = useUserProfileModal();
   const hasAny = friendRequests.length > 0 || sentRequests.length > 0;
   if (!hasAny) return null;
 
@@ -37,17 +39,22 @@ export const FriendRequests = ({
               const initials = getInitials(request.requester?.display_name || null, request.requester?.email || '');
               return (
                 <div key={request.id} className="flex items-center gap-3 px-5 py-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0">
-                    {request.requester?.avatar_url ? (
-                      <img src={request.requester.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      <span className="text-white text-xs font-semibold">{initials}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-white truncate">{name}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{request.requester?.email}</p>
-                  </div>
+                  <button
+                    onClick={() => request.requester && openProfile(request.requester.id)}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer focus:outline-none group"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform">
+                      {request.requester?.avatar_url ? (
+                        <img src={request.requester.avatar_url} alt="Avatar" className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        <span className="text-white text-xs font-semibold">{initials}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-white truncate group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">{name}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{request.requester?.email}</p>
+                    </div>
+                  </button>
                   <div className="flex gap-1.5 shrink-0">
                     <Button
                       size="sm"

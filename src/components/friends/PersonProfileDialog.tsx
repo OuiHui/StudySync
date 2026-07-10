@@ -38,6 +38,7 @@ interface PersonProfileDialogProps {
   onClose: () => void;
   onAddFriend: (id: string) => void;
   onCancelRequest: (id: string) => void;
+  loading?: boolean;
 }
 
 const GROUPS_PAGE_SIZE = 6;
@@ -58,6 +59,7 @@ export const PersonProfileDialog = ({
   onClose,
   onAddFriend,
   onCancelRequest,
+  loading = false,
 }: PersonProfileDialogProps) => {
   const [view, setView] = useState<'profile' | 'friends'>('profile');
   const [groupsExpanded, setGroupsExpanded] = useState(false);
@@ -103,7 +105,18 @@ export const PersonProfileDialog = ({
       .finally(() => setLoadingSessions(false));
   }, [person?.id, open, view, currentUserId]);
 
-  if (!person) return null;
+  if (loading || !person) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-gray-900 border-0">
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-violet-500 mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">Loading profile...</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const gradient =
     person.gradientFrom && person.gradientTo
