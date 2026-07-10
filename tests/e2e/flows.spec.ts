@@ -123,7 +123,7 @@ test.describe('StudySync E2E User Flows', () => {
 
     // Fill Create Group form
     await page.locator('input#name').fill('E2E Test Group');
-    await page.locator('input#subject').fill('Computer Science');
+    await page.locator('input#course').fill('Computer Science');
     await page.locator('textarea#description').fill('A temporary group created by Playwright E2E tests.');
     
     // Submit Create Group

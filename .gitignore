@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 docs/testing_guide.md
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.auth/
