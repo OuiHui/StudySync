@@ -1,6 +1,29 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth, handleDbError } from '../utils';
 
+async function populateNoteProfiles(notes: any[]) {
+  if (!notes || notes.length === 0) return [];
+
+  const userIds = [...new Set(notes.map(n => n.created_by))];
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url, user_id')
+    .in('user_id', userIds);
+
+  if (error) {
+    console.error('Error populating note profiles:', error);
+    return notes.map(note => ({ ...note, profiles: null }));
+  }
+
+  return notes.map(note => {
+    const profile = profiles?.find(p => p.user_id === note.created_by);
+    return {
+      ...note,
+      profiles: profile || null
+    };
+  });
+}
+
 export class NotesQueries {
   static async getNotes() {
     try {
@@ -18,15 +41,15 @@ export class NotesQueries {
         handleDbError(error, 'fetch notes');
       }
 
-      return data || [];
+      return await populateNoteProfiles(data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
-      
+
       // Re-throw the error so the UI can handle it appropriately
       if (error instanceof Error) {
         throw error;
       }
-      
+
       throw new Error('An unexpected error occurred while fetching notes.');
     }
   }
@@ -40,7 +63,7 @@ export class NotesQueries {
 
       // First, get notes shared via the note_group_shares table
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-      
+
       // Also get notes that have this group_id directly (legacy support)
       const { data: legacyGroupNotes, error: legacyError } = await supabase
         .from('notes')
@@ -59,18 +82,18 @@ export class NotesQueries {
       );
 
       // Sort by updated_at descending
-      uniqueNotes.sort((a, b) => 
+      uniqueNotes.sort((a, b) =>
         new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
 
-      return uniqueNotes;
+      return await populateNoteProfiles(uniqueNotes);
     } catch (error) {
       console.error('Error fetching group notes:', error);
-      
+
       if (error instanceof Error) {
         throw error;
       }
-      
+
       throw new Error('An unexpected error occurred while fetching group notes.');
     }
   }
@@ -193,23 +216,7 @@ export class NotesQueries {
         handleDbError(error, 'fetch session notes');
       }
 
-      if (!notes || notes.length === 0) return [];
-
-      const userIds = [...new Set(notes.map(n => n.created_by))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, user_id')
-        .in('user_id', userIds);
-
-      const notesWithProfiles = notes.map(note => {
-        const profile = profiles?.find(p => p.user_id === note.created_by);
-        return {
-          ...note,
-          profiles: profile || null
-        };
-      });
-
-      return notesWithProfiles;
+      return await populateNoteProfiles(notes || []);
     } catch (error) {
       console.error('Error fetching session notes:', error);
       return [];
