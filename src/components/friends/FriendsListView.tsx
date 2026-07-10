@@ -10,6 +10,7 @@ interface FriendsListViewProps {
   friendsCount: number;
   currentUserId: string;
   onBack: () => void;
+  onRequestSent?: (friendUserId: string) => void;
 }
 
 export const FriendsListView = ({
@@ -17,6 +18,7 @@ export const FriendsListView = ({
   friendsCount,
   currentUserId,
   onBack,
+  onRequestSent,
 }: FriendsListViewProps) => {
   const [friends, setFriends] = useState<FriendEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,7 @@ export const FriendsListView = ({
     try {
       await FriendsService.sendFriendRequest(friendUserId);
       setPendingAdds((prev) => new Set(prev).add(friendUserId));
+      onRequestSent?.(friendUserId);
     } catch (e) {
       console.error('Error sending friend request:', e);
     }

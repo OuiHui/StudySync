@@ -38,6 +38,7 @@ interface PersonProfileDialogProps {
   onClose: () => void;
   onAddFriend: (id: string) => void;
   onCancelRequest: (id: string) => void;
+  onRequestSent?: (friendUserId: string) => void;
   loading?: boolean;
 }
 
@@ -59,6 +60,7 @@ export const PersonProfileDialog = ({
   onClose,
   onAddFriend,
   onCancelRequest,
+  onRequestSent,
   loading = false,
 }: PersonProfileDialogProps) => {
   const [view, setView] = useState<'profile' | 'friends'>('profile');
@@ -153,6 +155,7 @@ export const PersonProfileDialog = ({
               friendsCount={person.friendsCount}
               currentUserId={currentUserId}
               onBack={() => setView('profile')}
+              onRequestSent={onRequestSent}
             />
           )}
         </div>

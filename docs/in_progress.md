@@ -109,3 +109,7 @@ This document tracks completed systems, details current gaps, and lists future t
 7.  **Session History Database & API**:
     *   Ensure all finished/completed study sessions (both solo and group) are correctly stored in the database (e.g., `study_sessions` or `session_participants` with finished status and actual duration).
     *   Expose helper functions in services (e.g., in `StudySessionsService` or `ProfileService`) to fetch the paginated history of a user's completed study sessions.
+
+## 4. Bugs
+- Clicking on a friend in the friend list does not show their profile page.
+- When looking at someone's friends list, peopel that are still pending still have the 'add friend' symbol

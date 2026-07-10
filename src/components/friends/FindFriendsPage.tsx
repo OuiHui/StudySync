@@ -205,6 +205,11 @@ export const FindFriendsPage = () => {
         onClose={() => setSelectedPerson(null)}
         onAddFriend={handleAddFriend}
         onCancelRequest={handleCancelRequest}
+        onRequestSent={(friendUserId) =>
+          setPeople((prev) =>
+            prev.map((p) => p.id === friendUserId ? { ...p, status: 'pending' } : p)
+          )
+        }
       />
     </div>
   );
