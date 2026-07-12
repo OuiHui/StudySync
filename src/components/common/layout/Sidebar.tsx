@@ -55,10 +55,10 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'
+    <div className={`fixed left-0 top-0 h-full bg-card text-card-foreground shadow-lg transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'
       } z-40`}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           {isOpen && (
             <div>

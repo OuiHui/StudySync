@@ -106,7 +106,7 @@ export const GroupCard = ({
 
   return (
     <div
-      className="group/card bg-zinc-50/60 dark:bg-[#252528] border border-zinc-200 dark:border-zinc-800/90 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-200 flex flex-col justify-between cursor-pointer relative"
+      className="group/card bg-card text-card-foreground border border-border rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-200 flex flex-col justify-between cursor-pointer relative"
       onClick={onClick}
     >
       <div>

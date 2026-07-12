@@ -14,7 +14,7 @@ export const NotesGrid = ({ filteredNotes, handleViewNote, handleShareNote, hand
   <>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
       {filteredNotes.map((note) => (
-        <Card key={note.id} className="border-0 shadow-md hover:shadow-xl transition-all duration-200 dark:bg-gray-800 cursor-pointer group" onClick={() => handleViewNote(note)}>
+        <Card key={note.id} className="border border-border bg-card text-card-foreground shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group" onClick={() => handleViewNote(note)}>
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-2 flex-1">
