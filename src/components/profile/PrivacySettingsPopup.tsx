@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield, Eye, Users, Lock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { ProfileService } from '@/services/database';
 
 interface PrivacySettingsPopupProps {
   isOpen: boolean;
@@ -23,8 +24,32 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
     allowDirectMessages: true,
     shareStudyActivity: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        const profile = await ProfileService.getCurrentUser();
+        if (profile && profile.privacy_settings) {
+          setSettings(prev => ({
+            ...prev,
+            ...profile.privacy_settings
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading privacy settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      loadSettings();
+    }
+  }, [isOpen]);
 
   const handleToggle = (key: keyof typeof settings) => {
     setSettings(prev => ({
@@ -40,12 +65,27 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
     }));
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Privacy Settings Updated",
-      description: "Your privacy preferences have been saved"
-    });
-    onClose();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await ProfileService.updateProfile({
+        privacy_settings: settings
+      });
+      toast({
+        title: "Privacy Settings Updated",
+        description: "Your privacy preferences have been saved"
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error saving privacy settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save privacy settings. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -221,8 +261,8 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1 bg-blue-500 hover:bg-blue-600">
-              Save Settings
+            <Button onClick={handleSave} disabled={loading} className="flex-1 bg-blue-500 hover:bg-blue-600">
+              {loading ? 'Saving...' : 'Save Settings'}
             </Button>
           </div>
         </div>

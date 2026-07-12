@@ -4,7 +4,7 @@ import { Bell, BellDot, X, Check, UserPlus, Calendar, BookOpen, Loader2 } from '
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NotificationsService } from '@/services/database';
+import { NotificationsService, FriendsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
@@ -60,7 +60,10 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     message: notification.message || '',
     time: new Date(notification.created_at).toLocaleString(),
     read: notification.read || false,
-    actionable: notification.actionable || false
+    actionable: notification.actionable || false,
+    friendship_id: notification.friendship_id || null,
+    group_id: notification.group_id || null,
+    session_id: notification.session_id || null
   })) : [];
 
   const getIcon = (type: string) => {
@@ -101,9 +104,13 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     }
   };
 
-  const removeNotification = (notificationId: string) => {
-    // For now, just remove from local state since there's no delete method
-    setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+  const removeNotification = async (notificationId: string) => {
+    try {
+      await NotificationsService.deleteNotification(notificationId);
+      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
   };
 
   const unreadCount = displayNotifications.filter(n => !n.read).length;
@@ -192,9 +199,15 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                           <Button 
                             size="sm" 
                             className="bg-blue-500 hover:bg-blue-600 text-white"
-                            onClick={() => {
-                              console.log('Accepted invitation:', notification.id);
-                              removeNotification(notification.id);
+                            onClick={async () => {
+                              try {
+                                if (notification.type === 'friend' && notification.friendship_id) {
+                                  await FriendsService.acceptFriendRequest(notification.friendship_id);
+                                }
+                                await removeNotification(notification.id);
+                              } catch (err) {
+                                console.error('Error accepting friend request:', err);
+                              }
                             }}
                           >
                             Accept
@@ -203,9 +216,15 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                             size="sm" 
                             variant="outline" 
                             className="dark:border-gray-600 dark:text-gray-300"
-                            onClick={() => {
-                              console.log('Declined invitation:', notification.id);
-                              removeNotification(notification.id);
+                            onClick={async () => {
+                              try {
+                                if (notification.type === 'friend' && notification.friendship_id) {
+                                  await FriendsService.rejectFriendRequest(notification.friendship_id);
+                                }
+                                await removeNotification(notification.id);
+                              } catch (err) {
+                                console.error('Error declining friend request:', err);
+                              }
                             }}
                           >
                             Decline

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationsService } from '@/services/database';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface NotificationContextType {
   hasUnreadNotifications: boolean;
@@ -15,11 +16,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+      setHasUnreadNotifications(false);
+      return;
+    }
+
     const checkUnreadNotifications = async () => {
-      if (!user) {
-        setHasUnreadNotifications(false);
-        return;
-      }
       try {
         const userNotifications = await NotificationsService.getUserNotifications();
         const hasUnread = userNotifications.some((n: any) => !n.read);
@@ -31,11 +33,32 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkUnreadNotifications();
+
+    const channel = supabase
+      .channel(`user-notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          checkUnreadNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const handleMarkAllNotificationsRead = () => {
     setHasUnreadNotifications(false);
   };
+
 
   return (
     <NotificationContext.Provider value={{ hasUnreadNotifications, handleMarkAllNotificationsRead, setHasUnreadNotifications }}>

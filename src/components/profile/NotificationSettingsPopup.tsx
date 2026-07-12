@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Mail, MessageSquare, Calendar, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ProfileService } from '@/services/database';
 
 interface NotificationSettingsPopupProps {
   isOpen: boolean;
@@ -22,8 +23,32 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
     friendRequests: true,
     systemUpdates: false,
   });
+  const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        const profile = await ProfileService.getCurrentUser();
+        if (profile && profile.notification_settings) {
+          setSettings(prev => ({
+            ...prev,
+            ...profile.notification_settings
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading notification settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      loadSettings();
+    }
+  }, [isOpen]);
 
   const handleToggle = (key: keyof typeof settings) => {
     setSettings(prev => ({
@@ -32,12 +57,27 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
     }));
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Settings Saved",
-      description: "Your notification preferences have been updated"
-    });
-    onClose();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await ProfileService.updateProfile({
+        notification_settings: settings
+      });
+      toast({
+        title: "Settings Saved",
+        description: "Your notification preferences have been updated"
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save notification settings. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const notificationCategories = [
@@ -121,8 +161,8 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1 bg-blue-500 hover:bg-blue-600">
-              Save Settings
+            <Button onClick={handleSave} disabled={loading} className="flex-1 bg-blue-500 hover:bg-blue-600">
+              {loading ? 'Saving...' : 'Save Settings'}
             </Button>
           </div>
         </div>
