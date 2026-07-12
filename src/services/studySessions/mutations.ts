@@ -432,4 +432,88 @@ export class StudySessionsMutations {
       throw error;
     }
   }
+
+  static async inviteUserToSession(sessionId: string, userId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to invite user to session');
+      }
+
+      const { data, error } = await supabase
+        .from('session_participants')
+        .insert({
+          session_id: sessionId,
+          user_id: userId,
+          role: 'participant',
+          status: 'invited',
+          is_attending: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'invite user to session');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error inviting user to session:', error);
+      throw error;
+    }
+  }
+
+  static async acceptSessionInvitation(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to accept session invitation');
+      }
+
+      const { data, error } = await supabase
+        .from('session_participants')
+        .update({
+          status: 'active',
+          is_attending: true
+        })
+        .eq('session_id', sessionId)
+        .eq('user_id', session.user.id)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'accept session invitation');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error accepting session invitation:', error);
+      throw error;
+    }
+  }
+
+  static async declineSessionInvitation(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to decline session invitation');
+      }
+
+      const { error } = await supabase
+        .from('session_participants')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', session.user.id);
+
+      if (error) {
+        handleDbError(error, 'decline session invitation');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error declining session invitation:', error);
+      throw error;
+    }
+  }
 }
+

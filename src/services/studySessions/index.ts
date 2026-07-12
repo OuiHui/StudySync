@@ -22,6 +22,9 @@ export class StudySessionsService {
   static deleteSession = StudySessionsMutations.deleteSession;
   static updateParticipantStatus = StudySessionsMutations.updateParticipantStatus;
   static removeParticipant = StudySessionsMutations.removeParticipant;
+  static inviteUserToSession = StudySessionsMutations.inviteUserToSession;
+  static acceptSessionInvitation = StudySessionsMutations.acceptSessionInvitation;
+  static declineSessionInvitation = StudySessionsMutations.declineSessionInvitation;
   static createGoal = SessionGoalsService.createGoal;
   static updateGoal = SessionGoalsService.updateGoal;
   static deleteGoal = SessionGoalsService.deleteGoal;

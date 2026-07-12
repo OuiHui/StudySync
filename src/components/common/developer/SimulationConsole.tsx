@@ -15,9 +15,13 @@ import {
   FileText, 
   X, 
   Activity,
-  LogIn
+  LogIn,
+  UserPlus,
+  Check,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase as mainSupabase } from '@/integrations/supabase/client';
 
 export function SimulationConsole() {
   const { user: mainUser } = useAuth();
@@ -32,6 +36,18 @@ export function SimulationConsole() {
   const [dmContent, setDmContent] = useState('');
   const [groupSearch, setGroupSearch] = useState('');
   const [groupMessageContent, setGroupMessageContent] = useState('');
+
+  // Bot Status States
+  const [botFriends, setBotFriends] = useState<string[]>([]);
+  const [botGroups, setBotGroups] = useState<any[]>([]);
+  const [botSessions, setBotSessions] = useState<any[]>([]);
+  const [botPendingRequests, setBotPendingRequests] = useState<string[]>([]);
+  const [botPendingGroupInvites, setBotPendingGroupInvites] = useState<any[]>([]);
+  const [botPendingSessionInvites, setBotPendingSessionInvites] = useState<any[]>([]);
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  const [selectedInviteGroupId, setSelectedInviteGroupId] = useState('');
+  const [selectedInviteSessionId, setSelectedInviteSessionId] = useState('');
 
   // Dynamically resolve all interaction targets, including the main user
   const targets = [
@@ -57,6 +73,98 @@ export function SimulationConsole() {
       setTargetUserId(targets[0].id);
     }
   }, [selectedBotId, mainUser, targetUserId, targets]);
+
+  const loadBotStatus = async () => {
+    if (!selectedBotId) return;
+    try {
+      setStatusLoading(true);
+      
+      // 1. Friends
+      const { data: friendships } = await mainSupabase
+        .from('friendships' as any)
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${selectedBotId},friend_id.eq.${selectedBotId}`)
+        .eq('status', 'accepted');
+      
+      const friendIds = (friendships || []).map((f: any) => 
+        f.user_id === selectedBotId ? f.friend_id : f.user_id
+      );
+      
+      let friendsList: any[] = [];
+      if (friendIds.length > 0) {
+        const { data: profiles } = await mainSupabase
+          .from('profiles')
+          .select('user_id, display_name, email')
+          .in('user_id', friendIds);
+        friendsList = profiles || [];
+      }
+      setBotFriends(friendsList.map(p => p.display_name || p.email.split('@')[0]));
+
+      // 2. Groups
+      const { data: memberships } = await mainSupabase
+        .from('group_members' as any)
+        .select('group_id, study_groups(id, name)')
+        .eq('user_id', selectedBotId);
+      
+      setBotGroups((memberships || []).map((m: any) => m.study_groups).filter(Boolean));
+
+      // 3. Sessions
+      const { data: participations } = await mainSupabase
+        .from('session_participants' as any)
+        .select('session_id, study_sessions(id, title), status')
+        .eq('user_id', selectedBotId);
+      
+      setBotSessions((participations || []).map((p: any) => ({
+        id: p.study_sessions?.id,
+        title: p.study_sessions?.title,
+        status: p.status
+      })).filter(s => s.id));
+
+      // 4. Friend requests received
+      const { data: requests } = await mainSupabase
+        .from('friendships' as any)
+        .select('user_id')
+        .eq('friend_id', selectedBotId)
+        .eq('status', 'pending');
+      
+      setBotPendingRequests((requests || []).map((r: any) => r.user_id));
+
+      // 5. Group invitations received
+      const { data: grpInvites } = await mainSupabase
+        .from('group_invitations' as any)
+        .select('group_id, study_groups(name)')
+        .eq('invited_user_id', selectedBotId)
+        .eq('status', 'pending');
+      
+      setBotPendingGroupInvites((grpInvites || []).map((gi: any) => ({
+        groupId: gi.group_id,
+        groupName: gi.study_groups?.name
+      })).filter(gi => gi.groupId));
+
+      // 6. Session invitations received
+      const { data: sesInvites } = await mainSupabase
+        .from('session_participants' as any)
+        .select('session_id, study_sessions(title)')
+        .eq('user_id', selectedBotId)
+        .eq('status', 'invited');
+      
+      setBotPendingSessionInvites((sesInvites || []).map((si: any) => ({
+        sessionId: si.session_id,
+        sessionTitle: si.study_sessions?.title
+      })).filter(si => si.sessionId));
+
+    } catch (err) {
+      console.error('Error loading bot status:', err);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && selectedBotId) {
+      loadBotStatus();
+    }
+  }, [isOpen, selectedBotId]);
   
   // Group creation state
   const [groupName, setGroupName] = useState('');
@@ -120,6 +228,9 @@ export function SimulationConsole() {
   const executeBotAction = async (actionFn: () => Promise<void>) => {
     try {
       await actionFn();
+      setTimeout(() => {
+        loadBotStatus();
+      }, 800);
     } catch (err: any) {
       console.error(err);
     }
@@ -293,6 +404,86 @@ export function SimulationConsole() {
               </select>
             </div>
 
+            {/* Bot Status & Relations */}
+            <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-xs">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-1.5 mb-1.5">
+                <span className="font-bold text-slate-400">Bot Status</span>
+                {statusLoading && <span className="text-slate-500 italic">Refreshing...</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-slate-300">
+                <div>
+                  <span className="text-slate-500 font-semibold block">Friends:</span>
+                  <span className="truncate block" title={botFriends.join(', ')}>{botFriends.length > 0 ? botFriends.join(', ') : 'None'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-semibold block">Groups:</span>
+                  <span className="truncate block" title={botGroups.map(g => g.name).join(', ')}>{botGroups.length > 0 ? botGroups.map(g => g.name).join(', ') : 'None'}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-slate-500 font-semibold block">Sessions:</span>
+                  <span className="truncate block" title={botSessions.map(s => `${s.title} (${s.status})`).join(', ')}>{botSessions.length > 0 ? botSessions.map(s => `${s.title} (${s.status})`).join(', ') : 'None'}</span>
+                </div>
+              </div>
+
+              {(botPendingGroupInvites.length > 0 || botPendingSessionInvites.length > 0) && (
+                <div className="border-t border-slate-800 pt-2 mt-2 space-y-1.5">
+                  <span className="font-bold text-amber-400 flex items-center gap-1 font-semibold">
+                    Pending Invites
+                  </span>
+                  {botPendingGroupInvites.map(gi => (
+                    <div key={gi.groupId} className="flex justify-between items-center bg-slate-950 p-1.5 rounded gap-2">
+                      <span className="text-slate-400 font-medium truncate">Group: {gi.groupName}</span>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => executeBotAction(async () => {
+                            const bot = await simulationManager.bot(currentBot.id);
+                            await bot.acceptGroupInvitation(gi.groupId);
+                          })}
+                          className="px-2 py-0.5 bg-emerald-600/30 text-emerald-400 rounded text-[10px] hover:bg-emerald-600/40 font-semibold"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => executeBotAction(async () => {
+                            const bot = await simulationManager.bot(currentBot.id);
+                            await bot.declineGroupInvitation(gi.groupId);
+                          })}
+                          className="px-2 py-0.5 bg-rose-600/30 text-rose-400 rounded text-[10px] hover:bg-rose-600/40 font-semibold"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {botPendingSessionInvites.map(si => (
+                    <div key={si.sessionId} className="flex justify-between items-center bg-slate-950 p-1.5 rounded gap-2">
+                      <span className="text-slate-400 font-medium truncate">Session: {si.sessionTitle}</span>
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          onClick={() => executeBotAction(async () => {
+                            const bot = await simulationManager.bot(currentBot.id);
+                            await bot.acceptSessionInvitation(si.sessionId);
+                          })}
+                          className="px-2 py-0.5 bg-emerald-600/30 text-emerald-400 rounded text-[10px] hover:bg-emerald-600/40 font-semibold"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => executeBotAction(async () => {
+                            const bot = await simulationManager.bot(currentBot.id);
+                            await bot.declineSessionInvitation(si.sessionId);
+                          })}
+                          className="px-2 py-0.5 bg-rose-600/30 text-rose-400 rounded text-[10px] hover:bg-rose-600/40 font-semibold"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Friendships */}
             <div className="space-y-2 p-3 bg-slate-900/40 border border-slate-900 rounded-xl">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
@@ -321,25 +512,88 @@ export function SimulationConsole() {
                   Add Friend
                 </button>
               </div>
-              <div className="flex items-center gap-2 mt-1.5">
-                <button
-                  onClick={() => executeBotAction(async () => {
-                    const bot = await simulationManager.bot(currentBot.id);
-                    await bot.acceptFriendRequest(targetUserId);
-                  })}
-                  className="flex-1 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/30 text-emerald-400 text-xs py-1.5 rounded-lg transition"
-                >
-                  Accept Request
-                </button>
-                <button
-                  onClick={() => executeBotAction(async () => {
-                    const bot = await simulationManager.bot(currentBot.id);
-                    await bot.rejectFriendRequest(targetUserId);
-                  })}
-                  className="flex-1 bg-rose-600/30 hover:bg-rose-600/40 border border-rose-500/30 text-rose-400 text-xs py-1.5 rounded-lg transition"
-                >
-                  Decline Request
-                </button>
+              {botPendingRequests.includes(targetUserId) && (
+                <div className="flex items-center gap-2 mt-1.5 animate-fade-in">
+                  <button
+                    onClick={() => executeBotAction(async () => {
+                      const bot = await simulationManager.bot(currentBot.id);
+                      await bot.acceptFriendRequest(targetUserId);
+                    })}
+                    className="flex-1 bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-500/30 text-emerald-400 text-xs py-1.5 rounded-lg transition"
+                  >
+                    Accept Request
+                  </button>
+                  <button
+                    onClick={() => executeBotAction(async () => {
+                      const bot = await simulationManager.bot(currentBot.id);
+                      await bot.rejectFriendRequest(targetUserId);
+                    })}
+                    className="flex-1 bg-rose-600/30 hover:bg-rose-600/40 border border-rose-500/30 text-rose-400 text-xs py-1.5 rounded-lg transition"
+                  >
+                    Decline Request
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Group & Session Invitations */}
+            <div className="space-y-2.5 p-3 bg-slate-900/40 border border-slate-900 rounded-xl">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                <UserPlus size={12} />
+                Send Group/Session Invite
+              </span>
+              <div className="space-y-2">
+                {/* Invite to Group */}
+                <div className="flex gap-2">
+                  <select
+                    value={selectedInviteGroupId}
+                    onChange={(e) => setSelectedInviteGroupId(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                  >
+                    <option value="">Select Group...</option>
+                    {botGroups.map((g: any) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={!selectedInviteGroupId}
+                    onClick={() => executeBotAction(async () => {
+                      if (!selectedInviteGroupId) return;
+                      const bot = await simulationManager.bot(currentBot.id);
+                      await bot.inviteUserToGroup(selectedInviteGroupId, targetUserId);
+                      setSelectedInviteGroupId('');
+                    })}
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg transition shrink-0 font-medium"
+                  >
+                    Invite to Group
+                  </button>
+                </div>
+
+                {/* Invite to Session */}
+                <div className="flex gap-2">
+                  <select
+                    value={selectedInviteSessionId}
+                    onChange={(e) => setSelectedInviteSessionId(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                  >
+                    <option value="">Select Session...</option>
+                    {botSessions.map((s: any) => (
+                      <option key={s.id} value={s.id}>{s.title}</option>
+                    ))}
+                  </select>
+                  <button
+                    disabled={!selectedInviteSessionId}
+                    onClick={() => executeBotAction(async () => {
+                      if (!selectedInviteSessionId) return;
+                      const bot = await simulationManager.bot(currentBot.id);
+                      await bot.inviteUserToSession(selectedInviteSessionId, targetUserId);
+                      setSelectedInviteSessionId('');
+                    })}
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg transition shrink-0 font-medium"
+                  >
+                    Invite to Session
+                  </button>
+                </div>
               </div>
             </div>
 

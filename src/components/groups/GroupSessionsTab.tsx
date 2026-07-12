@@ -1,6 +1,8 @@
-import { Calendar, Check, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, Check, Users, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { InviteFriendsDialog } from '../friends/InviteFriendsDialog';
 
 interface GroupSessionsTabProps {
   sessions: any[];
@@ -11,6 +13,13 @@ interface GroupSessionsTabProps {
 
 export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession, onCancelSession }: GroupSessionsTabProps) => {
   const navigate = useNavigate();
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const handleInviteClick = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    setInviteOpen(true);
+  };
 
   const displaySessions = sessions.map(session => {
     const sessionDate = new Date(session.scheduled_start);
@@ -79,12 +88,22 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             {getStartedTimeAgo(liveSession.scheduled_start)} • {liveSession.attendees || 3} in session
           </p>
-          <Button 
-            onClick={() => navigate(`/group-study-session?id=${liveSession.id}`)} 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm px-6"
-          >
-            Join session
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => navigate(`/group-study-session?id=${liveSession.id}`)} 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm px-6"
+            >
+              Join session
+            </Button>
+            <Button
+              onClick={() => handleInviteClick(liveSession.id)}
+              variant="outline"
+              className="border-blue-500/35 hover:bg-blue-50/20 text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1.5 shadow-sm"
+            >
+              <UserPlus size={15} />
+              Invite Friends
+            </Button>
+          </div>
         </div>
       )}
 
@@ -106,7 +125,16 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
                       <p className="text-sm text-gray-500 dark:text-gray-400">{session.date} • {session.time}</p>
                     </div>
                   </div>
-                  <div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      onClick={() => handleInviteClick(session.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+                    >
+                      <UserPlus size={14} className="mr-1" />
+                      Invite
+                    </Button>
                     {attendingSessions.includes(session.id) ? (
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-green-600 dark:text-green-400 font-medium">Attending</span>
@@ -162,6 +190,18 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
             ))}
           </div>
         </div>
+      )}
+
+      {selectedSessionId && (
+        <InviteFriendsDialog
+          isOpen={inviteOpen}
+          onClose={() => {
+            setInviteOpen(false);
+            setSelectedSessionId(null);
+          }}
+          type="session"
+          id={selectedSessionId}
+        />
       )}
     </div>
   );

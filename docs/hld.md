@@ -45,10 +45,13 @@ The PostgreSQL database contains the following tables and relationships:
       │                                                │
       ├─(1) <─────── (N) [session_participants]        │
       │                                                │
+      ├─(1) <─────── (N) [group_invitations]           │ (invited_user_id / invited_by_id)
+      │                                                │
       └─(1) <─────── (N) [notes]                       │ (friend_id / user_id)
                                                        │
   [study_groups] (1) ───< (N) [group_members]          │
       │                                                │
+      ├─(1) <─────── (N) [group_invitations]           │
       ├─(1) <─────── (N) [study_sessions]              │
       │                                                │
       ├─(1) <─────── (N) [notes]                       │
@@ -130,6 +133,14 @@ The PostgreSQL database contains the following tables and relationships:
    - group_id (UUID, FK -> study_groups.id)
    - user_id (UUID, FK -> profiles.id)
    - content (TEXT)
+
+9. group_invitations
+   - id (UUID, PK)
+   - group_id (UUID, FK -> study_groups.id)
+   - invited_user_id (UUID, FK -> auth.users.id)
+   - invited_by_id (UUID, FK -> auth.users.id)
+   - status (TEXT)
+   - created_at (TIMESTAMP)
 ```
 
 ---
@@ -166,6 +177,18 @@ Governed by [friendships](src/services/friends.ts) table rows.
     *   `acceptFriendRequest()`: Updates row status to `'accepted'`.
     *   `rejectFriendRequest()`: Deletes the row.
     *   `removeFriend()`: Deletes the friendship row.
+
+### D. Group & Session Invitation State
+Governed by [group_invitations](src/services/studyGroups/mutations.ts) and [session_participants](src/services/studySessions/mutations.ts) rows.
+*   **Group Invitation States**: `NONE` -> `PENDING` -> `ACCEPTED` / `DECLINED`.
+*   **Session Invitation States**: `NONE` -> `INVITED` -> `ACTIVE` (Attending).
+*   **Actions**:
+    *   `inviteUserToGroup()`: Inserts row in `group_invitations` with status `'pending'`.
+    *   `acceptGroupInvitation()`: Updates status to `'accepted'`, adds user to `group_members`.
+    *   `declineGroupInvitation()`: Updates status to `'declined'`.
+    *   `inviteUserToSession()`: Inserts row in `session_participants` with status `'invited'`.
+    *   `acceptSessionInvitation()`: Updates status to `'active'`, setting `is_attending` to `true`.
+    *   `declineSessionInvitation()`: Deletes participant row in `session_participants`.
 
 ---
 

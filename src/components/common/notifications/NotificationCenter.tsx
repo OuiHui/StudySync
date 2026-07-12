@@ -4,8 +4,9 @@ import { Bell, BellDot, X, Check, UserPlus, Calendar, BookOpen, Loader2 } from '
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NotificationsService, FriendsService } from '@/services/database';
+import { NotificationsService, FriendsService, StudyGroupsService, StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Notification {
   id: string;
@@ -26,6 +27,7 @@ interface NotificationCenterProps {
 
 export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }: NotificationCenterProps) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -203,10 +205,16 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                               try {
                                 if (notification.type === 'friend' && notification.friendship_id) {
                                   await FriendsService.acceptFriendRequest(notification.friendship_id);
+                                } else if (notification.type === 'group' && notification.group_id) {
+                                  await StudyGroupsService.acceptGroupInvitation(notification.group_id);
+                                  queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+                                } else if (notification.type === 'session' && notification.session_id) {
+                                  await StudySessionsService.acceptSessionInvitation(notification.session_id);
+                                  queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
                                 }
                                 await removeNotification(notification.id);
                               } catch (err) {
-                                console.error('Error accepting friend request:', err);
+                                console.error('Error accepting invitation:', err);
                               }
                             }}
                           >
@@ -220,10 +228,16 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                               try {
                                 if (notification.type === 'friend' && notification.friendship_id) {
                                   await FriendsService.rejectFriendRequest(notification.friendship_id);
+                                } else if (notification.type === 'group' && notification.group_id) {
+                                  await StudyGroupsService.declineGroupInvitation(notification.group_id);
+                                  queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+                                } else if (notification.type === 'session' && notification.session_id) {
+                                  await StudySessionsService.declineSessionInvitation(notification.session_id);
+                                  queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
                                 }
                                 await removeNotification(notification.id);
                               } catch (err) {
-                                console.error('Error declining friend request:', err);
+                                console.error('Error declining invitation:', err);
                               }
                             }}
                           >

@@ -193,4 +193,109 @@ export class StudyGroupsMutations {
       throw error;
     }
   }
+
+  static async inviteUserToGroup(groupId: string, invitedUserId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to invite users');
+      }
+
+      const { data, error } = await supabase
+        .from('group_invitations' as any)
+        .insert({
+          group_id: groupId,
+          invited_user_id: invitedUserId,
+          invited_by_id: session.user.id,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'invite user to group');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error inviting user to group:', error);
+      throw error;
+    }
+  }
+
+  static async getGroupInvitations(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('group_invitations' as any)
+        .select('*')
+        .eq('group_id', groupId);
+
+      if (error) {
+        handleDbError(error, 'get group invitations');
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting group invitations:', error);
+      return [];
+    }
+  }
+
+  static async acceptGroupInvitation(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to accept group invitation');
+      }
+
+      const { data, error } = await supabase
+        .from('group_invitations' as any)
+        .update({ status: 'accepted' })
+        .eq('group_id', groupId)
+        .eq('invited_user_id', session.user.id)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'accept group invitation');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error accepting group invitation:', error);
+      throw error;
+    }
+  }
+
+  static async declineGroupInvitation(groupId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to decline group invitation');
+      }
+
+      const { data, error } = await supabase
+        .from('group_invitations' as any)
+        .update({ status: 'declined' })
+        .eq('group_id', groupId)
+        .eq('invited_user_id', session.user.id)
+        .select()
+        .single();
+
+      if (error) {
+        handleDbError(error, 'decline group invitation');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error declining group invitation:', error);
+      throw error;
+    }
+  }
 }
+

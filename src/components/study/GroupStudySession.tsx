@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogOut, Loader2, MessageSquare, Pencil } from 'lucide-react';
+import { LogOut, Loader2, MessageSquare, Pencil, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ColorCustomizer } from '@/components/common/settings/ColorCustomizer';
 import { ParticipantsList } from './ParticipantsList';
@@ -8,6 +8,7 @@ import { SessionNotes } from './SessionNotes';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { TimerDisplay } from './TimerDisplay';
 import { SessionSettings } from './SessionSettings';
+import { InviteFriendsDialog } from '../friends/InviteFriendsDialog';
 import { SessionInfoPanel } from './SessionInfoPanel';
 import { ReflectionDialog } from './ReflectionDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +71,7 @@ export const GroupStudySession = ({
   } = useGroupStudySessionData();
 
   const [isChatOpen, setIsChatOpen] = useState(true);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const getEstimatedEndTime = () => {
     const start = startTime ? new Date(startTime) : new Date();
@@ -122,6 +124,15 @@ export const GroupStudySession = ({
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setInviteOpen(true)}
+            className="h-8 text-xs flex items-center space-x-1.5 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 text-blue-600 dark:text-blue-400 font-semibold"
+          >
+            <UserPlus size={14} />
+            <span>Invite Friends</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -319,6 +330,13 @@ export const GroupStudySession = ({
         onClose={() => setReflectionOpen(false)}
         onSubmit={handleReflectionSubmit}
         loading={savingReflection}
+      />
+
+      <InviteFriendsDialog
+        isOpen={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        type="session"
+        id={sessionId}
       />
     </div>
   );

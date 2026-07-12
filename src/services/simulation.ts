@@ -535,6 +535,129 @@ export class SimulatedUserBot {
 
     this.manager.log(`✅ Bot ${this.user.name} left study session.`);
   }
+
+  async inviteUserToGroup(groupIdentifier: string, targetIdentifier: string) {
+    await this.ensureAuth();
+    const groupId = await this.resolveGroupId(groupIdentifier);
+    const targetId = await this.resolveUserId(targetIdentifier);
+    const targetName = MOCK_USERS.find(u => u.id === targetId)?.name || targetIdentifier;
+
+    this.manager.log(`Bot ${this.user.name} is inviting ${targetName} to group ID ${groupId}...`);
+
+    const { error } = await this.client
+      .from('group_invitations' as any)
+      .insert({
+        group_id: groupId,
+        invited_user_id: targetId,
+        invited_by_id: this.user.id,
+        status: 'pending'
+      });
+
+    if (error) {
+      if (error.message.includes('unique')) {
+        this.manager.log(`⚠️ Invitation for ${targetName} to group already exists.`);
+        return;
+      }
+      this.manager.log(`❌ Error inviting to group: ${error.message}`);
+      throw error;
+    }
+
+    this.manager.log(`✅ Invitation sent from ${this.user.name} to ${targetName} for group.`);
+  }
+
+  async inviteUserToSession(sessionIdentifier: string, targetIdentifier: string) {
+    await this.ensureAuth();
+    const sessionId = sessionIdentifier; // UUID
+    const targetId = await this.resolveUserId(targetIdentifier);
+    const targetName = MOCK_USERS.find(u => u.id === targetId)?.name || targetIdentifier;
+
+    this.manager.log(`Bot ${this.user.name} is inviting ${targetName} to study session ID ${sessionId}...`);
+
+    const { error } = await this.client
+      .from('session_participants')
+      .insert({
+        session_id: sessionId,
+        user_id: targetId,
+        role: 'participant',
+        status: 'invited',
+        is_attending: false
+      });
+
+    if (error) {
+      if (error.message.includes('unique')) {
+        this.manager.log(`⚠️ Participant/Invitation for ${targetName} in session already exists.`);
+        return;
+      }
+      this.manager.log(`❌ Error inviting to session: ${error.message}`);
+      throw error;
+    }
+
+    this.manager.log(`✅ Invitation sent from ${this.user.name} to ${targetName} for session.`);
+  }
+
+  async acceptGroupInvitation(groupIdentifier: string) {
+    await this.ensureAuth();
+    const groupId = await this.resolveGroupId(groupIdentifier);
+    this.manager.log(`Bot ${this.user.name} is accepting group invitation for group ID ${groupId}...`);
+    const { error } = await this.client
+      .from('group_invitations' as any)
+      .update({ status: 'accepted' })
+      .eq('group_id', groupId)
+      .eq('invited_user_id', this.user.id);
+    if (error) {
+      this.manager.log(`❌ Error accepting group invitation: ${error.message}`);
+      throw error;
+    }
+    this.manager.log(`✅ Bot ${this.user.name} accepted group invitation.`);
+  }
+
+  async declineGroupInvitation(groupIdentifier: string) {
+    await this.ensureAuth();
+    const groupId = await this.resolveGroupId(groupIdentifier);
+    this.manager.log(`Bot ${this.user.name} is declining group invitation for group ID ${groupId}...`);
+    const { error } = await this.client
+      .from('group_invitations' as any)
+      .update({ status: 'declined' })
+      .eq('group_id', groupId)
+      .eq('invited_user_id', this.user.id);
+    if (error) {
+      this.manager.log(`❌ Error declining group invitation: ${error.message}`);
+      throw error;
+    }
+    this.manager.log(`✅ Bot ${this.user.name} declined group invitation.`);
+  }
+
+  async acceptSessionInvitation(sessionIdentifier: string) {
+    await this.ensureAuth();
+    const sessionId = sessionIdentifier;
+    this.manager.log(`Bot ${this.user.name} is accepting session invitation for session ID ${sessionId}...`);
+    const { error } = await this.client
+      .from('session_participants')
+      .update({ status: 'active', is_attending: true })
+      .eq('session_id', sessionId)
+      .eq('user_id', this.user.id);
+    if (error) {
+      this.manager.log(`❌ Error accepting session invitation: ${error.message}`);
+      throw error;
+    }
+    this.manager.log(`✅ Bot ${this.user.name} accepted session invitation.`);
+  }
+
+  async declineSessionInvitation(sessionIdentifier: string) {
+    await this.ensureAuth();
+    const sessionId = sessionIdentifier;
+    this.manager.log(`Bot ${this.user.name} is declining session invitation for session ID ${sessionId}...`);
+    const { error } = await this.client
+      .from('session_participants')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('user_id', this.user.id);
+    if (error) {
+      this.manager.log(`❌ Error declining session invitation: ${error.message}`);
+      throw error;
+    }
+    this.manager.log(`✅ Bot ${this.user.name} declined session invitation.`);
+  }
 }
 
 type LogListener = (message: string) => void;
