@@ -33,7 +33,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Dropdown Transitions** | [ ] Pending | Make all dropdown menus across the app have smooth entry/exit animations. |
 | **Code Cleanup / Deduplication** | [ ] Pending | Refactor components and services to reduce duplicated/re-used code. |
 | **Session History** | [ ] Pending | View list of past study sessions with durations and dates. |
-| **Simulated User Testing Framework** | [ ] Pending | Scripted fake-user bot system to perform realistic actions (friend requests, session joins, messaging) for testing and seeding. |
+| **Simulated User Testing Framework** | [x] Done | Control stub bots via programmatic function calls and instant toggle login overlay in Dev mode. |
 
 
 
@@ -78,11 +78,12 @@ This document tracks completed systems, details current gaps, and lists future t
 ### J. Session History
 *   **Session History UI**: Design and build a page, modal, or section (e.g., extending the Dashboard or Profile) that allows users to view a list of all their past study sessions with details like title, duration, type (solo/group), and date/time.
 
-### K. Simulated User Testing Framework
-*   **Bot Action Runner**: Build a script or admin tool (e.g., `scripts/simulate-users.ts`) that can authenticate as any seeded fake user and programmatically invoke service methods to perform realistic actions.
-*   **Supported Actions**: At minimum the framework should support: sending and accepting friend requests, creating and joining group sessions, sending direct messages and group chat messages, and creating/sharing notes.
-*   **Scenario Scripting**: Allow composing multi-step interaction scenarios (e.g., "User A sends friend request → User B accepts → User A messages User B → both join the same session") to validate end-to-end data flows and real-time sync.
-*   **Seeded User Pool**: Define a set of persistent fake profiles in the database (separate from production users) that the framework authenticates against, so tests can be reproduced consistently.
+### K. Simulated User Testing Framework [x] Done
+*   **Bot Action Runner**: [x] Built simulation service (`src/services/simulation.ts`) and global manager.
+*   **Supported Actions**: [x] Supported friend requests, group join/leave, messaging (direct & group), note creation, session join/leave.
+*   **Scenario Scripting**: [x] Added scripting scenarios (`runFriendshipScenario`, `runGroupStudyScenario`).
+*   **Seeded User Pool**: [x] Authenticates against the 10 seeded database user profiles using password `password123`.
+*   **Developer Console UI**: [x] Added collapsible overlay panel with single-click login, actions dropdown, preset scenarios, and log console.
 
 
 ---

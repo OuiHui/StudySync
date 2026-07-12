@@ -24,6 +24,7 @@ import MyGroups from "@/pages/MyGroups";
 import Notes from "@/pages/Notes";
 import Profile from "@/pages/Profile";
 import FindFriends from "@/pages/FindFriends";
+import { SimulationConsole } from "@/components/common/developer/SimulationConsole";
 
 const queryClient = new QueryClient();
 
@@ -82,34 +83,35 @@ const App = () => (
                     <Toaster />
                     <Sonner />
                     <HashRouter>
-                    <Routes>
-                      <Route path="/auth" element={
-                        <AuthRoute>
-                          <Auth />
-                        </AuthRoute>
-                      } />
-                      <Route path="/" element={
-                        <ProtectedRoute>
-                          <MainLayout />
-                        </ProtectedRoute>
-                      }>
-                        <Route index element={<Dashboard />} />
-                        <Route path="study-session" element={<SoloStudy />} />
-                        <Route path="group-study-session" element={<GroupSessions />} />
-                        <Route path="available-sessions" element={<AvailableSessions />} />
-                        <Route path="groups" element={<MyGroups />} />
-                        <Route path="notes" element={<Notes />} />
-                        <Route path="find-friends" element={<FindFriends />} />
-                        <Route path="profile" element={<Profile />} />
-                      </Route>
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </HashRouter>
-                </TooltipProvider>
-              </SessionProvider>
-            </NotificationProvider>
-          </GroupEnrollmentProvider>
-        </GlobalTimerProvider>
+                      <Routes>
+                        <Route path="/auth" element={
+                          <AuthRoute>
+                            <Auth />
+                          </AuthRoute>
+                        } />
+                        <Route path="/" element={
+                          <ProtectedRoute>
+                            <MainLayout />
+                          </ProtectedRoute>
+                        }>
+                          <Route index element={<Dashboard />} />
+                          <Route path="study-session" element={<SoloStudy />} />
+                          <Route path="group-study-session" element={<GroupSessions />} />
+                          <Route path="available-sessions" element={<AvailableSessions />} />
+                          <Route path="groups" element={<MyGroups />} />
+                          <Route path="notes" element={<Notes />} />
+                          <Route path="find-friends" element={<FindFriends />} />
+                          <Route path="profile" element={<Profile />} />
+                        </Route>
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                      {import.meta.env.DEV && <SimulationConsole />}
+                    </HashRouter>
+                  </TooltipProvider>
+                </SessionProvider>
+              </NotificationProvider>
+            </GroupEnrollmentProvider>
+          </GlobalTimerProvider>
         </UserProfileModalProvider>
       </AuthProvider>
     </ThemeProvider>

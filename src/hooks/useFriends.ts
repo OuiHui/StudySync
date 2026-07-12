@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FriendsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Friend {
   id: string;
@@ -94,8 +95,35 @@ export function useFriends() {
   }, [user, toast]);
 
   useEffect(() => {
+    if (!user) return;
+
     loadFriendsData();
-  }, [loadFriendsData]);
+
+    // Subscribe to realtime updates on the friendships table
+    const channel = supabase
+      .channel(`user_friendships:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friendships'
+        },
+        (payload) => {
+          // If the payload concerns the current user, refresh the friends data
+          const row = payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old;
+          if (row && (row.user_id === user.id || row.friend_id === user.id)) {
+            console.log('Realtime friendship update received, reloading...', payload);
+            loadFriendsData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadFriendsData]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
