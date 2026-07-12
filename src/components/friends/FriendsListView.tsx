@@ -29,11 +29,45 @@ export const FriendsListView = ({
     const fetchFriends = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase.rpc('get_user_friends', {
-          target_user_id: targetUserId,
-          current_user_id: currentUserId,
-        });
-        if (!error) setFriends((data as FriendEntry[]) || []);
+        const [friendsResponse, myFriendshipsResponse] = await Promise.all([
+          supabase.rpc('get_user_friends', {
+            target_user_id: targetUserId,
+            current_user_id: currentUserId,
+          }),
+          supabase
+            .from('friendships' as any)
+            .select('*')
+            .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`)
+        ]);
+
+        if (friendsResponse.error) {
+          console.error('Error fetching user friends:', friendsResponse.error);
+          return;
+        }
+
+        const friendsList = (friendsResponse.data as FriendEntry[]) || [];
+
+        if (myFriendshipsResponse.error) {
+          console.error('Error fetching current user friendships:', myFriendshipsResponse.error);
+          setFriends(friendsList);
+        } else {
+          const friendshipsMap = new Map<string, { status: string; id: string }>();
+          (myFriendshipsResponse.data || []).forEach((f: any) => {
+            const otherId = f.user_id === currentUserId ? f.friend_id : f.user_id;
+            friendshipsMap.set(otherId, { status: f.status, id: f.id });
+          });
+
+          const enrichedFriends = friendsList.map((friend) => {
+            const rel = friendshipsMap.get(friend.friend_user_id);
+            return {
+              ...friend,
+              friendship_status: rel ? rel.status : 'none',
+              friendship_id: rel ? rel.id : undefined,
+            };
+          });
+
+          setFriends(enrichedFriends);
+        }
       } catch (e) {
         console.error('Error fetching user friends:', e);
       } finally {
@@ -99,12 +133,13 @@ export const FriendsListView = ({
           {filtered.map((friend) => {
             const gradient = `${friend.gradient_from} ${friend.gradient_to}`;
             const initials = getInitials(friend.display_name);
-            const isPending = pendingAdds.has(friend.friend_user_id);
+            const isPending = pendingAdds.has(friend.friend_user_id) || friend.friendship_status === 'pending';
+            const isAccepted = friend.is_mutual || friend.friendship_status === 'accepted';
 
             return (
               <div
                 key={friend.friend_user_id}
-                className="flex items-center gap-3 px-1 py-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors"
+                className="flex items-center gap-3 px-1 py-3 rounded-lg hover:bg-gray-55 dark:hover:bg-white/[0.03] transition-colors"
               >
                 {/* Avatar */}
                 <div
@@ -132,7 +167,7 @@ export const FriendsListView = ({
                 </div>
 
                 {/* Mutual / Add friend */}
-                {friend.is_mutual ? (
+                {isAccepted ? (
                   <div className="flex items-center gap-1.5 shrink-0 text-emerald-500 dark:text-emerald-400">
                     <UserCheck size={15} />
                     <span className="text-sm font-semibold">Mutual!</span>

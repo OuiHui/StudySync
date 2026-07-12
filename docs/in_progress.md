@@ -112,4 +112,4 @@ This document tracks completed systems, details current gaps, and lists future t
 
 ## 4. Bugs
 - Clicking on a friend in the friend list does not show their profile page.
-- When looking at someone's friends list, peopel that are still pending still have the 'add friend' symbol
+- [x] When looking at someone's friends list, peopel that are still pending still have the 'add friend' symbol

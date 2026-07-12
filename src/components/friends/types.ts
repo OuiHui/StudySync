@@ -30,4 +30,6 @@ export interface FriendEntry {
   gradient_to: string;
   avatar_url: string | null;
   is_mutual: boolean;
+  friendship_status?: string;
+  friendship_id?: string;
 }
