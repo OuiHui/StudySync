@@ -46,16 +46,20 @@ export const getCategoryLabel = (type: string) => {
   }
 };
 
-export const getStatusStyle = (status: string) => {
-  switch (status.toLowerCase()) {
+export const getStatusStyle = (status: string, scheduledEnd?: string) => {
+  const isPast = scheduledEnd && new Date(scheduledEnd) < new Date();
+  const lowerStatus = status.toLowerCase();
+  
+  if (lowerStatus === 'completed' || lowerStatus === 'finished' || (lowerStatus === 'scheduled' && isPast)) {
+    return { text: 'Ended', bg: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 dark:bg-blue-500/20' };
+  }
+  
+  switch (lowerStatus) {
     case 'active':
     case 'running':
       return { text: 'Active', bg: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-500/20' };
     case 'paused':
       return { text: 'Paused', bg: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 dark:bg-amber-500/20' };
-    case 'completed':
-    case 'finished':
-      return { text: 'Completed', bg: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 dark:bg-blue-500/20' };
     case 'cancelled':
       return { text: 'Cancelled', bg: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 dark:bg-rose-500/20' };
     default: // scheduled
@@ -72,7 +76,7 @@ interface EventItemProps {
 export const EventItem = ({ event, compact, onUpdate }: EventItemProps) => {
   const navigate = useNavigate();
   const category = getCategoryLabel(event.type);
-  const statusInfo = event.status ? getStatusStyle(event.status) : null;
+  const statusInfo = event.status ? getStatusStyle(event.status, event.scheduled_end) : null;
 
   return (
     <div className={`group relative ${compact ? 'p-3' : 'p-4'} bg-white dark:bg-slate-900/40 rounded-xl border border-gray-100 dark:border-slate-800/80 hover:border-gray-200 dark:hover:border-slate-700 shadow-sm transition-all duration-200`}>
@@ -150,7 +154,9 @@ export const EventItem = ({ event, compact, onUpdate }: EventItemProps) => {
         )}
 
         {/* Action Button */}
-        {event.group_id && !['completed', 'finished', 'cancelled'].includes(event.status?.toLowerCase() || '') && (
+        {event.group_id &&
+          !['completed', 'finished', 'cancelled'].includes(event.status?.toLowerCase() || '') &&
+          !(event.status?.toLowerCase() === 'scheduled' && event.scheduled_end && new Date(event.scheduled_end) < new Date()) && (
           <div className="mt-3">
             <Button
               onClick={() => navigate(`/group-study-session?id=${event.id}`)}

@@ -73,6 +73,16 @@ stateDiagram-v2
 *   **`RUNNING` / `PAUSED` $\rightarrow$ `FINISHED`**: Saves the `actual_end` timestamp. Calculates the final `work_duration` (Actual Work Duration = `actual_end` - `actual_start` - `total_paused_duration`).
 *   **`RUNNING` / `PAUSED` $\rightarrow$ `CANCELLED`**: Records that the session was abandoned. Discards progress metrics (or saves them separately as an incomplete session).
 
+### Session Joinability & Ended State
+
+To prevent users from joining or entering sessions that have already completed, finished, or cancelled, joinability rules are strictly enforced:
+
+1. **Officially Ended States**: If a study session has a status of `completed`, `finished`, or `cancelled`, it is considered ended.
+2. **Expired Scheduled Sessions**: If a session remains in the `scheduled` state but the current local time is past its `scheduled_end` time, it is considered ended (as it was never started).
+3. **Prevention of Entering**:
+   - The user interface hides the "Join Live Session" and "Enter Session" buttons for any sessions meeting the ended criteria (e.g., in the study calendar).
+   - If a user attempts to directly access a study session URL (e.g., `/group-study-session?id=...`) for an ended session, the details loader will throw an error, display a warning toast, and redirect them back to the study rooms dashboard.
+
 ---
 
 ## 3. What Else to Account For? (Recommendations)

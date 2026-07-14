@@ -132,6 +132,12 @@ export const useGroupStudySessionData = () => {
     try {
       const data = await StudySessionsService.getSession(id);
       if (!data) throw new Error("Session not found");
+
+      const isEnded = ['completed', 'finished', 'cancelled'].includes(data.status?.toLowerCase() || '') ||
+                      (data.status?.toLowerCase() === 'scheduled' && data.scheduled_end && new Date(data.scheduled_end) < new Date());
+      if (isEnded) {
+        throw new Error("This study session has ended");
+      }
       
       setSessionData(data);
       const currentUser = userRef.current;

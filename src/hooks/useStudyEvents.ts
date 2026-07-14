@@ -36,7 +36,7 @@ export const getStudyEventsQueryOptions = (user: any) => ({
       title: session.title,
       type: session.group_id ? 'group-session' : 'study-session',
       date: new Date(session.scheduled_start),
-      time: format(new Date(session.scheduled_start), 'h:mm a'),
+      time: `${format(new Date(session.scheduled_start), 'h:mm a')} - ${format(new Date(session.scheduled_end), 'h:mm a')}`,
       subject: session.study_groups?.subject || 'General',
       status: session.status,
       scheduled_start: session.scheduled_start,

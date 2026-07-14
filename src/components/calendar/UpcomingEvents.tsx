@@ -41,7 +41,7 @@ export const UpcomingEvents = ({ events, loading, onUpdate }: UpcomingEventsProp
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
                     <Clock size={11} className="mr-1 text-gray-400" />
                     <span>
-                      {format(event.date, 'EEE, MMM d')} • {format(new Date(event.scheduled_start), 'h:mm a')}
+                      {format(event.date, 'EEE, MMM d')} • {format(new Date(event.scheduled_start), 'h:mm a')} - {format(new Date(event.scheduled_end), 'h:mm a')}
                     </span>
                   </p>
                 </div>

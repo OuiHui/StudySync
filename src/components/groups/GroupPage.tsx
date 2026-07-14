@@ -19,6 +19,8 @@ interface GroupPageProps {
 }
 
 export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProps) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('sessions');
   const [enrolledOverride, setEnrolledOverride] = useState<boolean | null>(null);
@@ -43,8 +45,6 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
     loadInvites();
   }, [groupId, user]);
 
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
   const { group, members, sessions, loading, error } = useGroupData(groupId);
 
   // Derive enrolled from live DB members; local override used for instant feedback
