@@ -121,7 +121,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md dark:bg-gray-800 border-gray-250 dark:border-gray-700">
+      <DialogContent className="sm:max-w-md dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold dark:text-white">
             Invite Friends
@@ -139,7 +139,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search friends by name or email..."
-            className="pl-9 pr-4 dark:bg-gray-750 dark:border-gray-600 dark:text-white"
+            className="pl-9 pr-4 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
           />
         </div>
 
@@ -166,7 +166,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
                 .substring(0, 2);
 
               return (
-                <div key={friend.user_id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
+                <div key={friend.user_id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <div className="flex items-center space-x-3 min-w-0">
                     <Avatar className="h-9 w-9 shrink-0">
                       <AvatarImage src={friend.avatar_url || undefined} alt={friend.display_name} />

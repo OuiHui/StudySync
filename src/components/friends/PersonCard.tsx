@@ -83,7 +83,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-gray-650 dark:text-gray-300 font-medium">
+        <div className="flex items-center gap-1.5 text-[11px] text-gray-600 dark:text-gray-300 font-medium">
           <Users size={11} className="text-gray-400 dark:text-gray-500" />
           <span>{person.friendsCount} friends</span>
           <span className="text-gray-300 dark:text-gray-700">•</span>
@@ -91,7 +91,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
         </div>
 
         {firstGroup && (
-          <div className="flex items-center gap-1 text-[11px] text-gray-650 dark:text-gray-300 font-medium">
+          <div className="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300 font-medium">
             <Users size={11} className="shrink-0 text-gray-400 dark:text-gray-500" />
             <span className="truncate">{firstGroup}</span>
             {extraGroups > 0 && (

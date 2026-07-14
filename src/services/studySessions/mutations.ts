@@ -45,7 +45,7 @@ export class StudySessionsMutations {
               session_id: data.id,
               user_id: session.user.id,
               role: 'host',
-              status: 'active'
+              status: 'accepted'
             });
         } catch (joinError) {
           console.error('Error adding host to session participants:', joinError);

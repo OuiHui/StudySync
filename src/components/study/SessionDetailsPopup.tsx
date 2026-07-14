@@ -1,8 +1,11 @@
+import { useState, useEffect } from 'react';
 import { Users, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
+import { EditSessionDialog } from '@/components/study/EditSessionDialog';
+import { StudySessionsService } from '@/services/database';
 
 interface SessionDetailsPopupProps {
   isOpen: boolean;
@@ -17,10 +20,18 @@ interface SessionDetailsPopupProps {
     type: 'active' | 'planned';
     description: string;
     participantList?: any[];
+    isHost?: boolean;
+    scheduled_start?: string;
+    scheduled_end?: string;
+    max_participants?: number;
+    group_id?: string;
+    status?: string;
+    title?: string;
   };
   onJoinSession: (sessionId: string) => void;
   onTogglePlanToAttend?: (sessionId: string) => Promise<void> | void;
   currentUser?: any;
+  onSessionUpdated?: () => void;
 }
 
 const getAvatarColorClass = (name: string) => {
@@ -47,9 +58,34 @@ export const SessionDetailsPopup = ({
   session, 
   onJoinSession, 
   onTogglePlanToAttend, 
-  currentUser 
+  currentUser,
+  onSessionUpdated
 }: SessionDetailsPopupProps) => {
   const { openProfile } = useUserProfileModal();
+  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
+
+  // Reset confirmation state after 3 seconds
+  useEffect(() => {
+    if (isConfirmingCancel) {
+      const timer = setTimeout(() => {
+        setIsConfirmingCancel(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConfirmingCancel]);
+
+  const handleCancelSession = async () => {
+    try {
+      await StudySessionsService.deleteSession(session.id);
+      setIsConfirmingCancel(false);
+      onClose();
+      if (onSessionUpdated) {
+        onSessionUpdated();
+      }
+    } catch (err: any) {
+      console.error('Failed to cancel session:', err);
+    }
+  };
   const handleJoin = () => {
     onJoinSession(session.id);
     onClose();
@@ -96,7 +132,7 @@ export const SessionDetailsPopup = ({
               pInitials
             )}
           </div>
-          <span className="text-xs text-gray-750 dark:text-gray-305 font-medium truncate">
+          <span className="text-xs text-gray-700 dark:text-gray-300 font-medium truncate">
             {pName} {isSelf ? ' (you)' : ''}
           </span>
         </div>
@@ -189,7 +225,7 @@ export const SessionDetailsPopup = ({
             )}
 
             {participantList.length === 0 && (
-              <p className="text-xs text-gray-550 dark:text-gray-400 italic">
+              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                 No participants yet
               </p>
             )}
@@ -207,12 +243,49 @@ export const SessionDetailsPopup = ({
               >
                 Join Now
               </Button>
+            ) : session.isHost ? (
+              <>
+                <EditSessionDialog 
+                  session={{
+                    id: session.id,
+                    title: session.title || session.groupName,
+                    description: session.description,
+                    scheduled_start: session.scheduled_start || session.startTime,
+                    scheduled_end: session.scheduled_end || '',
+                    max_participants: session.max_participants,
+                    group_id: session.group_id,
+                    status: session.status
+                  }}
+                  onSessionUpdated={() => {
+                    onClose();
+                    if (onSessionUpdated) onSessionUpdated();
+                  }}
+                  trigger={
+                    <Button variant="outline" className="flex-1">
+                      Edit Session
+                    </Button>
+                  }
+                />
+                 <Button 
+                  onClick={() => {
+                    if (isConfirmingCancel) {
+                      handleCancelSession();
+                    } else {
+                      setIsConfirmingCancel(true);
+                    }
+                  }}
+                  variant="destructive"
+                  className="flex-1 font-medium text-white"
+                >
+                  {isConfirmingCancel ? 'Confirm Cancel' : 'Cancel Session'}
+                </Button>
+              </>
             ) : (
               <Button 
                 onClick={handlePlanClick}
                 className={`flex-1 ${
                   isParticipant 
-                    ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-650 text-gray-800 dark:text-gray-100' 
+                    ? 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100' 
                     : 'bg-blue-500 hover:bg-blue-600 text-white'
                 } font-medium`}
               >

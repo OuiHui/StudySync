@@ -40,6 +40,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
   const [onlineUsers, setOnlineUsers] = useState<Record<string, any[]>>({});
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeConversationIdRef = useRef<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,15 +61,13 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
     }
 
     return () => {
-      // Cleanup subscriptions when popup closes
-      if (!isOpen) {
-        if (conversationId) {
-          RealtimeService.unsubscribe(`messages:${conversationId}`);
-        }
-        if (groupId) {
-          RealtimeService.unsubscribe(`presence:${groupId}`);
-          RealtimeService.untrackPresence(groupId);
-        }
+      // Cleanup subscriptions when popup closes or unmounts
+      if (activeConversationIdRef.current) {
+        RealtimeService.unsubscribe(`messages:${activeConversationIdRef.current}`);
+      }
+      if (groupId) {
+        RealtimeService.unsubscribe(`presence:${groupId}`);
+        RealtimeService.untrackPresence(groupId);
       }
     };
   }, [isOpen, groupId]);
@@ -144,6 +143,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
       // First, get or create conversation for the group
       const conversation = await ChatService.getOrCreateGroupConversation(groupId);
       setConversationId(conversation.id);
+      activeConversationIdRef.current = conversation.id;
       
       // Then load messages for that conversation
       const groupMessages = await ChatService.getMessages(conversation.id);
@@ -420,7 +420,7 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
                             <span className="text-[10px] select-none">{msg.avatar && (msg.avatar.startsWith('http') || msg.avatar.startsWith('/')) ? '' : (msg.avatar || '👤')}</span>
                             <button 
                               onClick={() => openProfile(msg.userId)}
-                              className="text-xs font-medium text-gray-650 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors text-left cursor-pointer focus:outline-none"
+                              className="text-xs font-medium text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors text-left cursor-pointer focus:outline-none"
                             >
                               {msg.userName}
                             </button>

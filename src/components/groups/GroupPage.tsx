@@ -65,7 +65,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
 
   const handleAttendSession = async (sessionId: string) => {
     try {
-      await StudySessionsService.joinSession(sessionId);
+      await StudySessionsService.planToAttendSession(sessionId);
       await queryClient.invalidateQueries({ queryKey: ['group', groupId] });
       window.dispatchEvent(new CustomEvent('sessionAttendanceChanged', {
         detail: { sessionId, groupName: group?.name, attending: true }

@@ -174,7 +174,7 @@ export const ImportNoteDialog = ({
                       className={`p-3 rounded-lg border text-left cursor-pointer transition-all flex justify-between items-start ${
                         isSelected
                           ? 'border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/20'
-                          : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-850'
+                          : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
                       }`}
                     >
                       <div className="flex-1 min-w-0 pr-2">

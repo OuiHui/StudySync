@@ -64,7 +64,7 @@ export const EditNoteDialog = ({
                   </div>
                 </div>
               ) : (
-                <div className="border-b border-gray-150 dark:border-gray-800 pb-4">
+                <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{editForm.title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Subject: <span className="font-medium text-gray-700 dark:text-gray-300">{editForm.subject || 'General'}</span>
@@ -109,7 +109,7 @@ export const EditNoteDialog = ({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="border-b border-gray-150 dark:border-gray-800 pb-4">
+                  <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{editForm.title}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Subject: <span className="font-medium text-gray-700 dark:text-gray-300">{editForm.subject || 'General'}</span>

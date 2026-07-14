@@ -22,9 +22,21 @@ interface UseTimerProps {
   sessionId?: string;
   isHost?: boolean;
   sessionData?: any;
+  timerSyncPayload?: {
+    isActive: boolean;
+    timeLeft: number;
+    mode: 'work' | 'break';
+    currentCycle: number;
+    pauseLogs: { paused_at: string; resumed_at: string | null }[];
+    hostLocalTimestamp: string;
+    workDurationSetting?: number;
+    breakDurationSetting?: number;
+    longBreakDurationSetting?: number;
+    sessionGoal?: number;
+  } | null;
 }
 
-export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = true, sessionData }: UseTimerProps) => {
+export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = true, sessionData, timerSyncPayload }: UseTimerProps) => {
   const initialWorkDuration = 25 * 60;
   const [workDuration, setWorkDuration] = useState(initialWorkDuration);
   const [breakDuration, setBreakDuration] = useState(5 * 60);
@@ -76,6 +88,7 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
     }
     if (sessionData.current_cycle) {
       setCurrentCycle(sessionData.current_cycle);
+      setSessions(sessionData.current_cycle - 1);
     }
 
     const cycleDur = sessionData.timer_mode === 'break'
@@ -117,6 +130,43 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
       setTimeLeft(calculatedTimeLeft);
     }
   }, [sessionData, isHost, workDuration, breakDuration, longBreakDuration, timeLeft]);
+
+  // Sync non-host participants with real-time broadcast ticks
+  useEffect(() => {
+    if (isHost || !timerSyncPayload) return;
+
+    const clientNow = Date.now();
+    const hostTimestamp = new Date(timerSyncPayload.hostLocalTimestamp).getTime();
+    const latency = Math.max(0, (clientNow - hostTimestamp) / 2);
+    
+    const correctedTime = timerSyncPayload.isActive
+      ? Math.max(0, timerSyncPayload.timeLeft - Math.round(latency / 1000))
+      : timerSyncPayload.timeLeft;
+
+    setTimeLeft(correctedTime);
+    setIsActive(timerSyncPayload.isActive);
+    setMode(timerSyncPayload.mode);
+    
+    if (timerSyncPayload.currentCycle !== undefined) {
+      setCurrentCycle(timerSyncPayload.currentCycle);
+      setSessions(timerSyncPayload.currentCycle - 1);
+    }
+    if (timerSyncPayload.pauseLogs !== undefined) {
+      setPauseLogs(timerSyncPayload.pauseLogs);
+    }
+    if (timerSyncPayload.workDurationSetting !== undefined) {
+      setWorkDuration(timerSyncPayload.workDurationSetting);
+    }
+    if (timerSyncPayload.breakDurationSetting !== undefined) {
+      setBreakDuration(timerSyncPayload.breakDurationSetting);
+    }
+    if (timerSyncPayload.longBreakDurationSetting !== undefined) {
+      setLongBreakDuration(timerSyncPayload.longBreakDurationSetting);
+    }
+    if (timerSyncPayload.sessionGoal !== undefined) {
+      setSessionGoal(timerSyncPayload.sessionGoal);
+    }
+  }, [timerSyncPayload, isHost]);
 
   // Main timer interval
   useEffect(() => {
@@ -200,6 +250,12 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
     if (!isActive) {
       const newTimeLeft = mode === 'work' ? settings.workDuration : settings.breakDuration;
       setTimeLeft(newTimeLeft);
+    }
+
+    if (isHost && sessionId) {
+      StudySessionsMutations.updateSession(sessionId, {
+        target_duration: settings.workDuration
+      }).catch(err => console.error("Failed to update target_duration in DB:", err));
     }
   };
 

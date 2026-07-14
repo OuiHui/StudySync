@@ -70,9 +70,7 @@ export const StudyGoals = ({
           ) : goals.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">No goals set for this session.</p>
-              {isHost && (
-                <p className="text-[10px] text-gray-400 mt-0.5">Use the input below to set a study goal.</p>
-              )}
+              <p className="text-[10px] text-gray-400 mt-0.5">Use the input below to set a study goal.</p>
             </div>
           ) : (
             <ScrollArea className="h-full pr-2">
@@ -80,13 +78,12 @@ export const StudyGoals = ({
                 {goals.map((goal) => (
                   <div
                     key={goal.id}
-                    className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-gray-700/20 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750/50 transition-colors group"
+                    className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-gray-700/20 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
                   >
                     <div className="flex items-center space-x-2.5 flex-1 min-w-0">
                       <Checkbox
                         id={`goal-${goal.id}`}
                         checked={goal.completed}
-                        disabled={!isHost}
                         onCheckedChange={(checked) =>
                           onToggleGoal?.(goal.id, !!checked)
                         }
@@ -95,22 +92,20 @@ export const StudyGoals = ({
                       <label
                         htmlFor={`goal-${goal.id}`}
                         className={`text-xs font-medium text-gray-700 dark:text-gray-300 truncate cursor-pointer select-none ${
-                          goal.completed ? 'line-through text-gray-400 dark:text-gray-550' : ''
+                          goal.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''
                         }`}
                       >
                         {goal.title}
                       </label>
                     </div>
-                    {isHost && (
-                      <Button
-                        onClick={() => onDeleteGoal?.(goal.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
-                      >
-                        <Trash2 size={12} />
-                      </Button>
-                    )}
+                    <Button
+                      onClick={() => onDeleteGoal?.(goal.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
+                    >
+                      <Trash2 size={12} />
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -118,30 +113,28 @@ export const StudyGoals = ({
           )}
         </div>
 
-        {/* Add Goal form (Host only) */}
-        {isHost && (
-          <form onSubmit={handleSubmit} className="flex space-x-2 shrink-0 border-t dark:border-gray-700/50 pt-2.5">
-            <Input
-              placeholder="Add a new goal..."
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="h-7 text-xs flex-1"
-              required
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={submitting || !newTitle.trim()}
-              className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
-            >
-              {submitting ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Plus size={12} />
-              )}
-            </Button>
-          </form>
-        )}
+        {/* Add Goal form */}
+        <form onSubmit={handleSubmit} className="flex space-x-2 shrink-0 border-t dark:border-gray-700/50 pt-2.5">
+          <Input
+            placeholder="Add a new goal..."
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            className="h-7 text-xs flex-1"
+            required
+          />
+          <Button
+            type="submit"
+            size="sm"
+            disabled={submitting || !newTitle.trim()}
+            className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            {submitting ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Plus size={12} />
+            )}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );

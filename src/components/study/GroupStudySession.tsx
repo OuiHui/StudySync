@@ -93,7 +93,7 @@ export const GroupStudySession = ({
 
   if (loading) {
     return (
-      <div className={`flex flex-col items-center justify-center h-screen bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-905`}>
+      <div className={`flex flex-col items-center justify-center h-screen bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-900`}>
         <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
         <p className="text-gray-700 dark:text-gray-400 font-medium">Entering study room...</p>
       </div>
@@ -101,7 +101,7 @@ export const GroupStudySession = ({
   }
 
   return (
-    <div className={`h-[100vh] flex flex-col p-4 bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-905 overflow-hidden`}>
+    <div className={`h-[100vh] flex flex-col p-4 bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-900 overflow-hidden`}>
       {/* Row 1: Header */}
       <div className="flex justify-between items-center pb-3 border-b dark:border-gray-800 shrink-0">
         <div className="flex items-center space-x-3">
@@ -226,7 +226,7 @@ export const GroupStudySession = ({
                         style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }} 
                       />
                     </div>
-                    <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-305">
+                    <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-300">
                       <span>Goal: {sessionGoal} sessions</span>
                       {isHost && (
                         <Button 

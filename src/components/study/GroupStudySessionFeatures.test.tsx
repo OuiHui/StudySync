@@ -86,13 +86,26 @@ describe('GroupStudySession Features Unit Tests', () => {
       expect(screen.getByText('Read physics chapter')).toBeInTheDocument();
     });
 
-    it('disables checkbox interaction and hides add/delete tools if user is not host', () => {
-      render(<StudyGoals goals={mockGoals} isHost={false} />);
+    it('enables checkbox interaction and displays add/delete tools even if user is not host', () => {
+      const mockToggle = vi.fn();
+      const mockDelete = vi.fn();
+      render(
+        <StudyGoals
+          goals={mockGoals}
+          isHost={false}
+          onToggleGoal={mockToggle}
+          onDeleteGoal={mockDelete}
+        />
+      );
       
       const checkbox = screen.getAllByRole('checkbox')[0] as HTMLInputElement;
-      expect(checkbox).toBeDisabled();
-      expect(screen.queryByPlaceholderText('Add a new goal...')).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /Trash/i })).not.toBeInTheDocument();
+      expect(checkbox).not.toBeDisabled();
+      fireEvent.click(checkbox);
+      expect(mockToggle).toHaveBeenCalledWith('g1', true);
+      
+      expect(screen.getByPlaceholderText('Add a new goal...')).toBeInTheDocument();
+      const deleteBtns = screen.getAllByRole('button'); // First buttons are checkbox buttons, followed by delete button
+      expect(deleteBtns.length).toBeGreaterThan(0);
     });
 
     it('enables checkboxes and allows adding new goals if user is host', () => {

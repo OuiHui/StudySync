@@ -12,6 +12,7 @@ import { useAvailableSessions } from '@/hooks/useAvailableSessions';
 import { StudySessionsService } from '@/services/database';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { StudyCalendar } from '@/components/calendar/StudyCalendar';
+import { useToast } from '@/hooks/use-toast';
 
 interface StudySession {
   id: string;
@@ -104,8 +105,39 @@ const getDurationDisplay = (startStr: string, endStr: string, isLive: boolean) =
 export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListProps) => {
   const { user } = useAuth();
   const { openProfile } = useUserProfileModal();
+  const { toast } = useToast();
   const [selectedSession, setSelectedSession] = useState<StudySession | null>(null);
+  const [confirmingSessionId, setConfirmingSessionId] = useState<string | null>(null);
   const { sessions, loading, error, loadSessions } = useAvailableSessions();
+
+  // Reset confirmation state after 3 seconds
+  useEffect(() => {
+    if (confirmingSessionId) {
+      const timer = setTimeout(() => {
+        setConfirmingSessionId(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [confirmingSessionId]);
+
+  const handleCancelSession = async (sessionId: string) => {
+    try {
+      await StudySessionsService.deleteSession(sessionId);
+      setConfirmingSessionId(null);
+      await loadSessions();
+      toast({
+        title: "Success",
+        description: "Study session cancelled successfully!",
+      });
+    } catch (err: any) {
+      console.error('Failed to cancel session:', err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to cancel study session",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Use fetched sessions
   const displaySessions = sessions.map(session => {
@@ -272,7 +304,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                     </div>
                     
                     <div className="mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                      <div className="flex items-center justify-between text-xs text-gray-505 dark:text-gray-400 mb-3 font-medium">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">
                         <div className="flex items-center space-x-1.5">
                           <Calendar size={13} className="text-gray-400 shrink-0" />
                           <span>{session.timeRange}</span>
@@ -323,7 +355,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                         <Button 
                           variant="outline"
                           size="sm"
-                          className="flex-1 dark:border-gray-600 dark:text-gray-305 dark:hover:bg-gray-700"
+                          className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                           onClick={() => setSelectedSession(session)}
                         >
                           <Eye size={14} className="mr-1.5" />
@@ -434,7 +466,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                     </div>
                     
                     <div className="mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                      <div className="flex items-center justify-between text-xs text-gray-505 dark:text-gray-400 mb-3 font-medium">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">
                         <div className="flex items-center space-x-1.5">
                           <Calendar size={13} className="text-gray-400 shrink-0" />
                           <span>{session.timeRange}</span>
@@ -492,10 +524,25 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           <Eye size={14} className="mr-1.5" />
                           Details
                         </Button>
-                        {session.participantList.some((p: any) => p.user_id === user?.id && p.status !== 'invited') ? (
+                        {session.isHost ? (
+                          <Button 
+                            onClick={() => {
+                              if (confirmingSessionId === session.id) {
+                                handleCancelSession(session.id);
+                              } else {
+                                setConfirmingSessionId(session.id);
+                              }
+                            }}
+                            variant="destructive"
+                            className="flex-[2] font-medium text-white"
+                            size="sm"
+                          >
+                            {confirmingSessionId === session.id ? "Confirm Cancel" : "Cancel Session"}
+                          </Button>
+                        ) : session.participantList.some((p: any) => p.user_id === user?.id && p.status !== 'invited') ? (
                           <Button 
                             onClick={() => handleTogglePlanToAttend(session.id)}
-                            className="flex-[2] bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-650 text-gray-800 dark:text-gray-100 font-medium"
+                             className="flex-[2] bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium"
                             size="sm"
                           >
                             Cancel plan
@@ -551,6 +598,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
           onJoinSession={onJoinSession}
           onTogglePlanToAttend={handleTogglePlanToAttend}
           currentUser={user}
+          onSessionUpdated={loadSessions}
         />
       )}
     </div>

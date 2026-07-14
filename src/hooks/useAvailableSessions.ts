@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const getAvailableSessionsQueryOptions = (user: any) => ({
   queryKey: ['available-sessions', user?.id],
@@ -26,6 +28,24 @@ export function useAvailableSessions() {
       await queryClient.invalidateQueries({ queryKey: ['available-sessions', user.id] });
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('available_sessions_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'study_sessions' }, () => {
+        loadSessions();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'session_participants' }, () => {
+        loadSessions();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   const errorMessage = error ? 'Unable to load study sessions. Please check your internet connection or try again later.' : null;
 

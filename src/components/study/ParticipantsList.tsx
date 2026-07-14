@@ -68,7 +68,7 @@ export const ParticipantsList = ({
                 return (
                   <div
                     key={p.user_id}
-                    className="relative group flex items-center bg-gray-50/80 dark:bg-gray-700/40 rounded-full pl-1 pr-3 py-1 border border-gray-150/40 dark:border-gray-800 space-x-2 shrink-0 select-none"
+                    className="relative group flex items-center bg-gray-50/80 dark:bg-gray-700/40 rounded-full pl-1 pr-3 py-1 border border-gray-200/40 dark:border-gray-800 space-x-2 shrink-0 select-none"
                   >
                     <div className="relative shrink-0">
                       <ParticipantHoverCard
@@ -79,7 +79,7 @@ export const ParticipantsList = ({
                         p.status === 'active' ? 'bg-green-500' : 'bg-amber-400'
                       }`} />
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-350">
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
                       {displayName}
                     </span>
                     {p.role === 'host' && (
@@ -111,7 +111,7 @@ export const ParticipantsList = ({
 
         {/* Planning and Invited sub-rows */}
         {(planningParticipants.length > 0 || invitedParticipants.length > 0) && (
-          <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-gray-150/50 dark:border-gray-750/50 text-xs">
+          <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-gray-200/50 dark:border-gray-700/50 text-xs">
             {planningParticipants.length > 0 && (
               <div className="flex items-center space-x-2">
                 <span className="font-medium text-gray-500 dark:text-gray-400">Planning to Attend:</span>

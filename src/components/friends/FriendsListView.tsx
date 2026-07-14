@@ -161,7 +161,7 @@ export const FriendsListView = ({
                   <p className="text-base font-bold text-gray-900 dark:text-white truncate">
                     {friend.display_name}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-450 truncate font-semibold">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-semibold">
                     {friend.major || 'Unknown Major'}
                   </p>
                 </div>

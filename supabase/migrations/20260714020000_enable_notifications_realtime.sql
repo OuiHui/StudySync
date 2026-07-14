@@ -29,6 +29,7 @@ ALTER TABLE public.session_goals REPLICA IDENTITY FULL;
 
 -- Drop existing SELECT policies to prevent duplicate policy errors
 DROP POLICY IF EXISTS "Users can read public group sessions" ON public.study_sessions;
+DROP POLICY IF EXISTS "Users can read sessions they can see" ON public.study_sessions;
 DROP POLICY IF EXISTS "Users can read participants of sessions they can see" ON public.session_participants;
 
 -- Recreate SELECT policy on study_sessions to allow group members and creators to read

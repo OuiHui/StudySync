@@ -85,7 +85,7 @@ export const GroupMembersTab = ({ members, groupId }: { members: any[]; groupId:
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="font-semibold text-gray-850 dark:text-white truncate text-sm">
+                      <h3 className="font-semibold text-gray-800 dark:text-white truncate text-sm">
                         {member.name}
                       </h3>
                       

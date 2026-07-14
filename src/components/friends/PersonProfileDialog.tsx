@@ -247,7 +247,7 @@ const ProfileView = ({
     <section className="mb-6">
       <SectionLabel>About</SectionLabel>
       {person.bio ? (
-        <p className="text-sm text-gray-750 dark:text-gray-200 leading-relaxed">
+        <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
           {person.bio}
         </p>
       ) : (
@@ -292,7 +292,7 @@ const ProfileView = ({
             })}
             {person.friendsCount > 5 && (
               <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0">
-                <span className="text-xs font-bold text-gray-550 dark:text-gray-450">
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                   +{person.friendsCount - 5}
                 </span>
               </div>
@@ -321,7 +321,7 @@ const ProfileView = ({
           {person.publicGroups.length > GROUPS_PAGE_SIZE && (
             <button
               onClick={onToggleGroups}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-55 dark:bg-white/[0.07] border border-gray-200 dark:border-white/[0.08] text-xs text-violet-500 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/10 transition-colors font-semibold"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.07] border border-gray-200 dark:border-white/[0.08] text-xs text-violet-500 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/10 transition-colors font-semibold"
             >
               {groupsExpanded ? (
                 <>Show less <ChevronUp size={12} /></>
@@ -357,7 +357,7 @@ const ProfileView = ({
                 <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
                   {session.title}
                 </p>
-                <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-550 dark:text-gray-400 font-medium">
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
                   <span className="flex items-center gap-0.5">
                     <Calendar size={11} className="text-violet-500" />
                     {formatSessionTime(session.scheduled_start)}
@@ -374,7 +374,7 @@ const ProfileView = ({
                 session.status === 'active' || session.status === 'running'
                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                   : session.status === 'completed' || session.status === 'finished'
-                  ? 'bg-gray-100 text-gray-550 dark:bg-white/10 dark:text-gray-400'
+                  ? 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
                   : 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
               }`}>
                 {session.status}

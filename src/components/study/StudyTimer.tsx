@@ -135,7 +135,7 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
           <CardTitle className="text-xs font-semibold text-gray-800 dark:text-white">
             {mode === 'work' ? 'Group Focus Session' : 'Break Time'}
             {sessionCourse && <span className="block text-[10px] font-normal text-gray-500 dark:text-gray-400 mt-0.5">Course: {sessionCourse}</span>}
-            {currentCycle && <span className="block text-[9px] font-normal text-gray-400 dark:text-gray-555 mt-0.5">Cycle {currentCycle}</span>}
+            {currentCycle && <span className="block text-[9px] font-normal text-gray-400 dark:text-gray-400 mt-0.5">Cycle {currentCycle}</span>}
           </CardTitle>
           <SessionDetailsDialog
             title={sessionTitle}

@@ -186,7 +186,7 @@ export const SessionNotes = ({
               </div>
             </div>
             
-            <div className="flex justify-end space-x-2 pt-2 border-t dark:border-gray-750 shrink-0">
+            <div className="flex justify-end space-x-2 pt-2 border-t dark:border-gray-700 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -289,14 +289,14 @@ export const SessionNotes = ({
                     </button>
 
                     {isExpanded && (
-                      <div className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-850">
+                      <div className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-800">
                         {subjectNotes.map((note) => (
                           <button
                             key={note.id}
                             onClick={() => handleNoteSelect(note)}
                             className="w-full text-left p-2 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/10 transition-colors pl-4"
                           >
-                            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-250 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                            <h4 className="text-xs font-semibold text-gray-800 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                               {note.title || 'Untitled note'}
                             </h4>
                             {note.content && (

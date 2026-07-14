@@ -55,6 +55,8 @@ export const useGroupStudySessionData = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [isHost, setIsHost] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [timerSyncPayload, setTimerSyncPayload] = useState<any>(null);
 
   const [loading, setLoading] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -84,6 +86,31 @@ export const useGroupStudySessionData = () => {
   const [savingReflection, setSavingReflection] = useState(false);
 
   const channelRef = useRef<any>(null);
+  const isLeavingSessionRef = useRef(false);
+  const userRef = useRef(user);
+  const initCompletedRef = useRef(false);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Keep userRef in sync and retry init if user became available after sessionId was set
+  useEffect(() => {
+    const wasNull = !userRef.current;
+    userRef.current = user;
+    if (wasNull && user && sessionId && !initCompletedRef.current) {
+      // Auth resolved after sessionId was already set — run init now
+      loadSessionDetails(sessionId);
+      loadParticipants(sessionId);
+      loadGoals(sessionId);
+      loadNotes(sessionId).then(() => {
+        if (!channelRef.current) setupRealTimeSync(sessionId);
+        setLoading(false);
+        initCompletedRef.current = true;
+      });
+
+      if (!pollIntervalRef.current) {
+        pollIntervalRef.current = setInterval(() => loadParticipants(sessionId), 8000);
+      }
+    }
+  }, [user]);
 
   // Sync state between URL and localStorage
   useEffect(() => {
@@ -107,8 +134,9 @@ export const useGroupStudySessionData = () => {
       if (!data) throw new Error("Session not found");
       
       setSessionData(data);
-      if (user) {
-        setIsHost(data.created_by === user.id);
+      const currentUser = userRef.current;
+      if (currentUser) {
+        setIsHost(data.created_by === currentUser.id);
       }
       if (data.subject) {
         setSessionSubject(data.subject);
@@ -151,9 +179,10 @@ export const useGroupStudySessionData = () => {
     try {
       const data = await StudySessionsService.getParticipants(id);
       setParticipants(data || []);
-      const myParticipant = data?.find((p: any) => p.user_id === user?.id);
-      if (user && data && (!myParticipant || myParticipant.status !== 'active')) {
-        await StudySessionsService.joinSession(id, user.id, 'participant');
+      const currentUser = userRef.current;
+      const myParticipant = data?.find((p: any) => p.user_id === currentUser?.id);
+      if (currentUser && data && (!myParticipant || myParticipant.status !== 'active')) {
+        await StudySessionsService.joinSession(id, currentUser.id, 'participant');
         const refreshed = await StudySessionsService.getParticipants(id);
         setParticipants(refreshed || []);
       }
@@ -187,27 +216,75 @@ export const useGroupStudySessionData = () => {
 
     const channel = supabase
       .channel(`room:${id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'session_participants', filter: `session_id=eq.${id}` }, () => {
-        loadParticipants(id);
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'session_participants', filter: `session_id=eq.${id}` },
+        (payload) => {
+          console.log('[Realtime] session_participants change received:', payload.eventType);
+          loadParticipants(id);
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'session_goals', filter: `session_id=eq.${id}` },
+        () => loadGoals(id)
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'notes', filter: `session_id=eq.${id}` },
+        () => loadNotes(id)
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'study_sessions', filter: `id=eq.${id}` },
+        () => loadSessionDetails(id)
+      )
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const userIds = Object.values(state).flatMap((pList: any) => pList.map((p: any) => p.user_id));
+        setOnlineUsers(userIds);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'session_goals', filter: `session_id=eq.${id}` }, () => {
-        loadGoals(id);
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        const state = channel.presenceState();
+        const userIds = Object.values(state).flatMap((pList: any) => pList.map((p: any) => p.user_id));
+        setOnlineUsers(userIds);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: `session_id=eq.${id}` }, () => {
-        loadNotes(id);
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        const state = channel.presenceState();
+        const userIds = Object.values(state).flatMap((pList: any) => pList.map((p: any) => p.user_id));
+        setOnlineUsers(userIds);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'study_sessions', filter: `id=eq.${id}` }, () => {
-        loadSessionDetails(id);
+      .on('broadcast', { event: 'timer_sync' }, ({ payload }) => {
+        if (isHost) return;
+        setTimerSyncPayload(payload);
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Realtime] Channel status:', status);
+        if (status === 'SUBSCRIBED') {
+          const currentUser = userRef.current;
+          if (!currentUser) return;
+          setTimeout(async () => {
+            try {
+              await channel.track({
+                user_id: currentUser.id,
+                online_at: new Date().toISOString()
+              });
+            } catch (err) {
+              console.error("Error tracking presence:", err);
+            }
+          }, 0);
+        }
+      });
 
     channelRef.current = channel;
   };
 
   useEffect(() => {
-    if (!sessionId || !user) return;
+    if (!sessionId) return;
+
+    let cancelled = false;
+    initCompletedRef.current = false;
 
     const init = async () => {
+      // If user isn't available yet, the user-watcher effect above will retry
+      if (!userRef.current) return;
+
       const savedId = localStorage.getItem('active_group_session_id');
       const hasCache = localStorage.getItem('cached_session_title');
       if (!(savedId && hasCache)) {
@@ -217,22 +294,67 @@ export const useGroupStudySessionData = () => {
       await loadParticipants(sessionId);
       await loadGoals(sessionId);
       await loadNotes(sessionId);
+
+      if (cancelled) return;
+
       setupRealTimeSync(sessionId);
       setLoading(false);
+      initCompletedRef.current = true;
     };
 
     init();
 
+    pollIntervalRef.current = setInterval(() => {
+      loadParticipants(sessionId);
+    }, 8000);
+
     return () => {
+      cancelled = true;
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [sessionId]);
+
+
+  // Set user's participant status back to 'accepted' when they leave the session page (unmount)
+  useEffect(() => {
+    return () => {
+      if (sessionId && user && !isLeavingSessionRef.current) {
+        StudySessionsService.updateParticipantStatus(sessionId, user.id, 'accepted')
+          .catch(err => console.error("Error setting participant status to accepted on unmount:", err));
       }
     };
   }, [sessionId, user]);
 
+  // Resync database data when user refocuses the page
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadSessionDetails(sessionId);
+        loadParticipants(sessionId);
+        loadGoals(sessionId);
+        loadNotes(sessionId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [sessionId]);
+
   const onLeaveSession = async () => {
     if (!sessionId || !user) return;
     try {
+      isLeavingSessionRef.current = true;
       const minutesStudied = Math.round(sessions * (workDuration / 60));
       // Note: We don't update session_participants.minutes_studied here because
       // the participant row is deleted immediately after in leaveSession().
@@ -278,14 +400,79 @@ export const useGroupStudySessionData = () => {
     handleSettingsChange,
     toggleTimer,
     resetTimer,
-    setSessionGoal
+    setSessionGoal,
+    pauseLogs
   } = useTimer({
     onTimerUpdate,
     globalTimerState: (window as any).globalTimerState,
     sessionId: sessionId || undefined,
     isHost,
-    sessionData
+    sessionData,
+    timerSyncPayload
   });
+
+  const lastBroadcastRef = useRef<number>(0);
+  const prevIsActiveRef = useRef<boolean | null>(null);
+  const prevModeRef = useRef<'work' | 'break' | null>(null);
+  const prevSettingsRef = useRef<string>('');
+  const prevOnlineCountRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isHost || !sessionId || !channelRef.current) return;
+
+    const now = Date.now();
+    const settingsStr = `${workDuration}-${breakDuration}-${longBreakDuration}-${sessionGoal}`;
+    const stateChanged = 
+      prevIsActiveRef.current !== isActive || 
+      prevModeRef.current !== mode ||
+      prevSettingsRef.current !== settingsStr;
+
+    const onlineCountChanged = prevOnlineCountRef.current < onlineUsers.length;
+    prevOnlineCountRef.current = onlineUsers.length;
+
+    const shouldBroadcast = 
+      stateChanged ||
+      onlineCountChanged ||
+      now - lastBroadcastRef.current >= 3000 ||
+      timeLeft === 0;
+
+    if (shouldBroadcast) {
+      prevIsActiveRef.current = isActive;
+      prevModeRef.current = mode;
+      prevSettingsRef.current = settingsStr;
+      lastBroadcastRef.current = now;
+
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'timer_sync',
+        payload: {
+          isActive,
+          timeLeft,
+          mode,
+          currentCycle,
+          pauseLogs,
+          hostLocalTimestamp: new Date().toISOString(),
+          workDurationSetting: workDuration,
+          breakDurationSetting: breakDuration,
+          longBreakDurationSetting: longBreakDuration,
+          sessionGoal: sessionGoal
+        }
+      }).catch((err: any) => console.error("Failed to broadcast timer sync:", err));
+    }
+  }, [
+    isHost,
+    sessionId,
+    isActive,
+    timeLeft,
+    mode,
+    currentCycle,
+    pauseLogs,
+    workDuration,
+    breakDuration,
+    longBreakDuration,
+    sessionGoal,
+    onlineUsers.length
+  ]);
 
   const handleToggleStatus = async () => {
     if (!sessionId || !user) return;
@@ -319,7 +506,7 @@ export const useGroupStudySessionData = () => {
   };
 
   const handleAddGoal = async (title: string) => {
-    if (!sessionId || !isHost) return;
+    if (!sessionId) return;
     try {
       setGoalsLoading(true);
       await StudySessionsService.createGoal({ session_id: sessionId, title });
@@ -331,7 +518,6 @@ export const useGroupStudySessionData = () => {
   };
 
   const handleToggleGoal = async (goalId: string, completed: boolean) => {
-    if (!isHost) return;
     try {
       await StudySessionsService.updateGoal(goalId, { completed });
     } catch (err) {
@@ -340,7 +526,6 @@ export const useGroupStudySessionData = () => {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!isHost) return;
     try {
       await StudySessionsService.deleteGoal(goalId);
     } catch (err) {
@@ -407,10 +592,18 @@ export const useGroupStudySessionData = () => {
     }
   };
 
+  const decoratedParticipants = participants.map(p => {
+    const isOnline = onlineUsers.includes(p.user_id);
+    return {
+      ...p,
+      status: isOnline ? p.status : 'away'
+    };
+  });
+
   return {
     sessionId,
     sessionData,
-    participants,
+    participants: decoratedParticipants,
     goals,
     notes,
     isHost,

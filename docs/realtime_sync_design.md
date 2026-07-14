@@ -196,16 +196,16 @@ Session attendance requires distinct handling for **Transient Presence** (who is
 
 To roll out the complete real-time sync mechanism, follow these code updates:
 
-1. [ ] **Update Database Schema**: Extend `study_sessions` with `pause_logs` (JSONB) and `timer_state` columns if they are not already active.
-2. [ ] **Enhance `RealtimeService`**:
+1. [x] **Update Database Schema**: Extend `study_sessions` with `pause_logs` (JSONB) and `timer_state` columns if they are not already active.
+2. [x] **Enhance `RealtimeService`**:
    - Add broadcast subscription helper for timer sync: `RealtimeService.subscribeToTimerSync(sessionId, callback)`.
    - Add broadcast helper to publish ticks: `RealtimeService.broadcastTimerSync(sessionId, state)`.
-3. [ ] **Refine `useGroupStudySessionData`**:
+3. [x] **Refine `useGroupStudySessionData`**:
    - Integrate Host-detection logic (`isHost`).
    - If Host: Set up interval broadcasting to publish ticks every 3 seconds.
    - If Participant: Subscribe to `timer_sync` broadcast channel and apply drift/latency correction.
    - Attach window visibility/focus listeners to trigger server-side re-sync from database timestamps.
-4. [ ] **Configure Presence Heartbeats**: Ensure `trackPresence` and `untrackPresence` are correctly mounted in the session hooks layout.
+4. [x] **Configure Presence Heartbeats**: Ensure `trackPresence` and `untrackPresence` are correctly mounted in the session hooks layout.
 
 ---
 
