@@ -1,4 +1,4 @@
-import { ArrowLeft, Settings, Crown, UserMinus, UserCheck, Users, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, PanelRight } from 'lucide-react';
+import { ArrowLeft, Settings, Crown, UserMinus, UserCheck, Users, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap, PanelRight, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
@@ -76,10 +76,17 @@ export const GroupPageHeader = ({
           
           <div className="flex flex-col items-start md:items-end justify-between md:self-stretch gap-4 shrink-0">
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-950/80 text-green-400 border border-green-800/50 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                Public
-              </span>
+              {group.is_public !== false ? (
+                <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-950/80 text-green-400 border border-green-800/50 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  Public
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-950/80 text-amber-400 border border-amber-800/50 flex items-center gap-1.5">
+                  <Lock size={12} className="text-amber-400" />
+                  Private
+                </span>
+              )}
               <Button
                 onClick={onChatToggle}
                 variant="outline"

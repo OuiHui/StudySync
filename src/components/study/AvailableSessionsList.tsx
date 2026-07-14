@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Users, Calendar, Clock, Play, Eye, Loader2, Edit, Star } from 'lucide-react';
+import { Users, Calendar, Clock, Play, Eye, Loader2, Edit, Star, Globe, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -34,6 +34,7 @@ interface StudySession {
   hostInitials: string;
   hostAvatarUrl?: string | null;
   isHost: boolean;
+  is_public?: boolean | null;
   study_groups?: {
     name: string;
     subject?: string;
@@ -272,10 +273,23 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                             {subtitleText}
                           </p>
                         </div>
-                        <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-xs px-2.5 py-0.5 rounded-full font-semibold shrink-0 ml-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                          Live
-                        </span>
+                        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
+                          <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Live
+                          </span>
+                          {session.is_public ? (
+                            <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                              <Globe size={10} />
+                              Public
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                              <Lock size={10} />
+                              Private
+                            </span>
+                          )}
+                        </div>
                       </div>                      {/* Host display */}
                       <button
                         onClick={() => session.created_by && openProfile(session.created_by)}
@@ -378,7 +392,8 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                               scheduled_end: session.scheduled_end,
                               max_participants: session.max_participants,
                               group_id: session.group_id,
-                              status: session.status
+                              status: session.status,
+                              is_public: session.is_public
                             }}
                             onSessionUpdated={loadSessions}
                             trigger={
@@ -433,9 +448,22 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                             {subtitleText}
                           </p>
                         </div>
-                        <span className="inline-flex items-center bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs px-2.5 py-0.5 rounded-full font-semibold shrink-0 ml-2">
-                          Scheduled
-                        </span>
+                        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
+                          <span className="inline-flex items-center bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
+                            Scheduled
+                          </span>
+                          {session.is_public ? (
+                            <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                              <Globe size={10} />
+                              Public
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                              <Lock size={10} />
+                              Private
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Host display */}
@@ -566,7 +594,8 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                               scheduled_end: session.scheduled_end,
                               max_participants: session.max_participants,
                               group_id: session.group_id,
-                              status: session.status
+                              status: session.status,
+                              is_public: session.is_public
                             }}
                             onSessionUpdated={loadSessions}
                             trigger={

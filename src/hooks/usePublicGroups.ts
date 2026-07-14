@@ -127,7 +127,7 @@ export function usePublicGroups(
   };
 
   const handleCreateGroup = (newGroup: any) => {
-    if (newGroup && newGroup.is_public) {
+    if (newGroup) {
       const rawGroup = {
         id: newGroup.id,
         name: newGroup.name,

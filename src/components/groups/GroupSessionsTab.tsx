@@ -78,9 +78,20 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
       {/* Live now Hero treatment */}
       {liveSession && (
         <div className="border border-blue-500 bg-blue-50/10 dark:bg-blue-950/10 p-6 rounded-xl shadow-sm relative">
-          <div className="flex items-center space-x-1.5 text-green-500 font-semibold text-sm mb-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span>Live now</span>
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center space-x-1.5 text-green-500 font-semibold text-sm">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span>Live now</span>
+            </div>
+            {liveSession.is_public ? (
+              <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                Public
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                Private
+              </span>
+            )}
           </div>
           <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-1">
             {liveSession.title}
@@ -121,7 +132,18 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-5 w-5 text-gray-400 shrink-0" />
                     <div>
-                      <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200">{session.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-base font-semibold text-gray-800 dark:text-gray-200">{session.title}</h4>
+                        {session.is_public ? (
+                          <span className="inline-flex items-center bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] px-1.5 py-0.2 rounded font-semibold">
+                            Public
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] px-1.5 py-0.2 rounded font-semibold">
+                            Private
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{session.date} • {session.time}</p>
                     </div>
                   </div>
@@ -179,7 +201,18 @@ export const GroupSessionsTab = ({ sessions, attendingSessions, onAttendSession,
                   <div className="flex items-center space-x-3">
                     <Check className="h-5 w-5 text-gray-400 shrink-0" />
                     <div>
-                      <h4 className="text-base font-semibold text-gray-600 dark:text-gray-400">{session.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-base font-semibold text-gray-600 dark:text-gray-400">{session.title}</h4>
+                        {session.is_public ? (
+                          <span className="inline-flex items-center bg-sky-500/5 text-sky-500/70 border border-sky-500/10 text-[10px] px-1.5 py-0.2 rounded font-medium">
+                            Public
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center bg-amber-500/5 text-amber-500/70 border border-amber-500/10 text-[10px] px-1.5 py-0.2 rounded font-medium">
+                            Private
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500 dark:text-gray-500">
                         {session.date} • {session.duration_minutes ? `${session.duration_minutes} min` : '45 min'}
                       </p>

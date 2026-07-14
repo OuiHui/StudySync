@@ -182,14 +182,28 @@ export class StudySessionsQueries {
         return true;
       });
 
-      // Filter out private study sessions if user is not invited and is not the creator
+      // Fetch user's group memberships to check if they belong to the session's group
+      let userGroupIds: string[] = [];
+      if (userId) {
+        const { data: memberships } = await supabase
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', userId);
+        if (memberships) {
+          userGroupIds = memberships.map(m => m.group_id);
+        }
+      }
+
+      // Filter out private study sessions if user is not invited, is not the creator,
+      // and does not belong to the study group associated with the session.
       return enriched.filter(studySession => {
         if (studySession.is_public === false) {
           const isCreator = userId && studySession.created_by === userId;
           const isParticipant = userId && studySession.session_participants?.some(
             (p: any) => p.user_id === userId
           );
-          return isCreator || isParticipant;
+          const isGroupMember = userId && studySession.group_id && userGroupIds.includes(studySession.group_id);
+          return isCreator || isParticipant || isGroupMember;
         }
         return true;
       });

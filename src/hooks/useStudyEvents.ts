@@ -18,6 +18,7 @@ export interface StudyEvent {
   max_participants?: number;
   created_by?: string;
   group_id?: string;
+  is_public?: boolean;
   group?: {
     id: string;
     name: string;
@@ -44,6 +45,7 @@ export const getStudyEventsQueryOptions = (user: any) => ({
       max_participants: session.max_participants,
       created_by: session.created_by,
       group_id: session.group_id,
+      is_public: session.is_public,
       group: session.study_groups ? {
         id: session.study_groups.id,
         name: session.study_groups.name,

@@ -22,6 +22,7 @@ interface EditSessionDialogProps {
     max_participants?: number;
     group_id?: string;
     status?: string;
+    is_public?: boolean | null;
   };
   onSessionUpdated?: () => void;
   trigger?: React.ReactNode;
@@ -39,7 +40,8 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
     scheduledStart: '',
     scheduledEnd: '',
     maxParticipants: 20,
-    status: 'scheduled'
+    status: 'scheduled',
+    isPublic: false
   });
   
   const { user } = useAuth();
@@ -69,7 +71,8 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
         scheduledStart: formatForDateTimeInput(session.scheduled_start),
         scheduledEnd: formatForDateTimeInput(session.scheduled_end),
         maxParticipants: session.max_participants || 20,
-        status: session.status || 'scheduled'
+        status: session.status || 'scheduled',
+        isPublic: session.is_public ?? false
       });
     }
   }, [session]);
@@ -119,7 +122,8 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
         scheduled_start: formatForDatabase(formData.scheduledStart),
         scheduled_end: formatForDatabase(formData.scheduledEnd),
         max_participants: formData.maxParticipants,
-        status: formData.status as any
+        status: formData.status as any,
+        is_public: formData.isPublic
       });
 
       toast({
@@ -292,6 +296,15 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="isPublic"
+              checked={formData.isPublic}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPublic: checked }))}
+            />
+            <Label htmlFor="isPublic">Public session (visible to everyone)</Label>
           </div>
           
           <div className="flex justify-between pt-4">

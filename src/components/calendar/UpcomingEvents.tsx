@@ -55,7 +55,8 @@ export const UpcomingEvents = ({ events, loading, onUpdate }: UpcomingEventsProp
                       scheduled_end: event.scheduled_end,
                       max_participants: event.max_participants,
                       group_id: event.group_id,
-                      status: event.status
+                      status: event.status,
+                      is_public: event.is_public
                     }}
                     onSessionUpdated={onUpdate}
                     trigger={

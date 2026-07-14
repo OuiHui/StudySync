@@ -154,11 +154,10 @@ export class StudyGroupsQueries {
 
   static async getPublicGroups() {
     try {
-      // Get public groups first (without the problematic join)
+      // Get all groups (both public and private)
       const { data: groups, error } = await supabase
         .from('study_groups')
         .select('*')
-        .eq('is_public', true)
         .order('created_at', { ascending: false });
 
       if (error) {

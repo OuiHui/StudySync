@@ -159,9 +159,17 @@ export const SessionDetailsPopup = ({
           <div className="text-center">
             <h3 className="text-xl font-bold text-gray-800 dark:text-white">{session.groupName}</h3>
             <p className="text-gray-600 dark:text-gray-300">{session.course}</p>
-            <Badge variant={session.type === 'active' ? 'default' : 'secondary'} className="mt-2">
-              {session.type === 'active' ? 'LIVE' : 'SCHEDULED'}
-            </Badge>
+            <div className="flex justify-center gap-2 mt-2">
+              <Badge variant={session.type === 'active' ? 'default' : 'secondary'}>
+                {session.type === 'active' ? 'LIVE' : 'SCHEDULED'}
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className={session.is_public ? 'border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold' : 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-semibold'}
+              >
+                {session.is_public ? 'PUBLIC' : 'PRIVATE'}
+              </Badge>
+            </div>
           </div>
 
           {/* Description */}
@@ -254,7 +262,8 @@ export const SessionDetailsPopup = ({
                     scheduled_end: session.scheduled_end || '',
                     max_participants: session.max_participants,
                     group_id: session.group_id,
-                    status: session.status
+                    status: session.status,
+                    is_public: session.is_public
                   }}
                   onSessionUpdated={() => {
                     onClose();

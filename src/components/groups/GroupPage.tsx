@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Loader2, Lock, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { CollaborativeNotes } from '@/components/notes/CollaborativeNotes';
@@ -22,6 +23,25 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
   const [activeTab, setActiveTab] = useState('sessions');
   const [enrolledOverride, setEnrolledOverride] = useState<boolean | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(true);
+
+  // Load group invitations to check if user is invited
+  useEffect(() => {
+    const loadInvites = async () => {
+      if (!user || !groupId) return;
+      try {
+        setLoadingInvites(true);
+        const invites = await StudyGroupsService.getGroupInvitations(groupId);
+        setInvitations(invites);
+      } catch (err) {
+        console.error('Error fetching group invitations:', err);
+      } finally {
+        setLoadingInvites(false);
+      }
+    };
+    loadInvites();
+  }, [groupId, user]);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -87,7 +107,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
     }
   };
 
-  if (loading) {
+  if (loading || loadingInvites) {
     return (
       <div className="flex justify-center items-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -101,6 +121,52 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
   }
 
   if (!group) return null;
+
+  const isCreator = group.created_by === user?.id;
+  const isInvited = invitations.some(inv => inv.invited_user_id === user?.id && inv.status === 'pending');
+  const hasAccess = group.is_public !== false || enrolled || isCreator || isInvited;
+
+  if (!hasAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 animate-fade-in bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-8">
+        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full">
+          <Lock size={48} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Private Group</h2>
+        <p className="text-gray-600 dark:text-gray-400 max-w-md">
+          This is a private study group. You cannot access this page unless you have been invited by a member of the group.
+        </p>
+        <Button onClick={onBack} variant="outline" className="mt-4">
+          <ArrowLeft size={16} className="mr-2" />
+          Go Back
+        </Button>
+      </div>
+    );
+  }
+
+  const showInvitePrompt = group.is_public === false && !enrolled && !isCreator && isInvited;
+
+  const handleAcceptInvite = async () => {
+    try {
+      await StudyGroupsService.acceptGroupInvitation(groupId);
+      setEnrolledOverride(true);
+      queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      const invites = await StudyGroupsService.getGroupInvitations(groupId);
+      setInvitations(invites);
+    } catch (err) {
+      console.error('Error accepting group invitation:', err);
+    }
+  };
+
+  const handleDeclineInvite = async () => {
+    try {
+      await StudyGroupsService.declineGroupInvitation(groupId);
+      onBack();
+    } catch (err) {
+      console.error('Error declining group invitation:', err);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -118,33 +184,52 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
       
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         <div className="flex-1 min-w-0 w-full">
-          <div className="flex space-x-6 border-b dark:border-gray-800 pb-3 mb-6">
-            {['sessions', 'notes', 'members'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`relative pb-3 text-sm font-semibold transition-colors ${
-                  activeTab === tab
-                    ? 'text-blue-500 dark:text-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                {activeTab === tab && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full" />
-                )}
-              </button>
-            ))}
-          </div>
+          {showInvitePrompt ? (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 text-center space-y-4 my-6">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-white">You've been invited to join this group!</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                Accept the invitation to access the group's shared study sessions, collaborative notes, and group chat.
+              </p>
+              <div className="flex justify-center space-x-3">
+                <Button onClick={handleDeclineInvite} variant="outline" className="border-red-500/30 text-red-500 hover:bg-red-50">
+                  Decline
+                </Button>
+                <Button onClick={handleAcceptInvite} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                  Accept Invitation
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex space-x-6 border-b dark:border-gray-800 pb-3 mb-6">
+                {['sessions', 'notes', 'members'].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`relative pb-3 text-sm font-semibold transition-colors ${
+                      activeTab === tab
+                        ? 'text-blue-500 dark:text-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {activeTab === tab && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
 
-          {activeTab === 'sessions' && (
-            <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />
+              {activeTab === 'sessions' && (
+                <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />
+              )}
+              {activeTab === 'notes' && <CollaborativeNotes groupId={group.id} groupName={group.name} />}
+              {activeTab === 'members' && <GroupMembersTab members={members} groupId={group.id} />}
+            </>
           )}
-          {activeTab === 'notes' && <CollaborativeNotes groupId={group.id} groupName={group.name} />}
-          {activeTab === 'members' && <GroupMembersTab members={members} groupId={group.id} />}
         </div>
 
-        {chatOpen && (
+        {chatOpen && !showInvitePrompt && (
           <div className="w-full lg:w-80 shrink-0 sticky top-6 border-l dark:border-gray-700 pl-6 h-[600px]">
             <ChatPopup isOpen={chatOpen} onClose={() => setChatOpen(false)} groupName={group.name} groupId={group.id} isInline={true} />
           </div>
