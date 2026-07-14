@@ -66,16 +66,47 @@ export class StudySessionsMutations {
         throw new Error('Authentication required to join sessions');
       }
 
-      const { data, error } = await supabase
+      // Check if participant row already exists (e.g. from an invitation)
+      const { data: existing, error: fetchError } = await supabase
         .from('session_participants')
-        .insert({
-          session_id: sessionId,
-          user_id: session.user.id,
-          role: 'participant',
-          status: 'active'
-        })
-        .select()
-        .single();
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching existing participant:', fetchError);
+      }
+
+      let data, error;
+      if (existing) {
+        const res = await supabase
+          .from('session_participants')
+          .update({
+            status: 'active',
+            is_attending: true
+          })
+          .eq('session_id', sessionId)
+          .eq('user_id', session.user.id)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from('session_participants')
+          .insert({
+            session_id: sessionId,
+            user_id: session.user.id,
+            role: 'participant',
+            status: 'active',
+            is_attending: true
+          })
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) {
         handleDbError(error, 'join session');
@@ -473,8 +504,8 @@ export class StudySessionsMutations {
       const { data, error } = await supabase
         .from('session_participants')
         .update({
-          status: 'active',
-          is_attending: true
+          status: 'accepted',
+          is_attending: false
         })
         .eq('session_id', sessionId)
         .eq('user_id', session.user.id)
@@ -512,6 +543,66 @@ export class StudySessionsMutations {
       return true;
     } catch (error) {
       console.error('Error declining session invitation:', error);
+      throw error;
+    }
+  }
+
+  static async planToAttendSession(sessionId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to plan to attend sessions');
+      }
+
+      // Check if participant row already exists (e.g. from an invitation)
+      const { data: existing, error: fetchError } = await supabase
+        .from('session_participants')
+        .select('*')
+        .eq('session_id', sessionId)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching existing participant:', fetchError);
+      }
+
+      let data, error;
+      if (existing) {
+        const res = await supabase
+          .from('session_participants')
+          .update({
+            status: 'accepted',
+            is_attending: false
+          })
+          .eq('session_id', sessionId)
+          .eq('user_id', session.user.id)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from('session_participants')
+          .insert({
+            session_id: sessionId,
+            user_id: session.user.id,
+            role: 'participant',
+            status: 'accepted',
+            is_attending: false
+          })
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
+
+      if (error) {
+        handleDbError(error, 'plan to attend session');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error planning to attend session:', error);
       throw error;
     }
   }

@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NotificationsService, FriendsService, StudyGroupsService, StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
   id: string;
@@ -28,6 +30,7 @@ interface NotificationCenterProps {
 export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }: NotificationCenterProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { setHasUnreadNotifications } = useNotifications();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +39,21 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
     if (isOpen && user) {
       loadNotifications();
     }
+  }, [isOpen, user]);
+
+  useEffect(() => {
+    if (!isOpen || !user) return;
+
+    const channel = supabase
+      .channel(`notification-center-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        () => { loadNotifications(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [isOpen, user]);
 
   const loadNotifications = async () => {
@@ -81,11 +99,14 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
   const markAsRead = async (notificationId: string) => {
     try {
       await NotificationsService.markAsRead(notificationId);
-      setNotifications(prev => 
-        prev.map(notif => 
+      setNotifications(prev => {
+        const updated = prev.map(notif =>
           notif.id === notificationId ? { ...notif, read: true } : notif
-        )
-      );
+        );
+        const stillUnread = updated.some(n => !n.read);
+        setHasUnreadNotifications(stillUnread);
+        return updated;
+      });
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -109,7 +130,12 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
   const removeNotification = async (notificationId: string) => {
     try {
       await NotificationsService.deleteNotification(notificationId);
-      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
+      setNotifications(prev => {
+        const updated = prev.filter(notif => notif.id !== notificationId);
+        const stillUnread = updated.some(n => !n.read);
+        setHasUnreadNotifications(stillUnread);
+        return updated;
+      });
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
@@ -211,6 +237,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                                 } else if (notification.type === 'session' && notification.session_id) {
                                   await StudySessionsService.acceptSessionInvitation(notification.session_id);
                                   queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+                                  queryClient.invalidateQueries({ queryKey: ['available-sessions'] });
                                 }
                                 await removeNotification(notification.id);
                               } catch (err) {
@@ -234,6 +261,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                                 } else if (notification.type === 'session' && notification.session_id) {
                                   await StudySessionsService.declineSessionInvitation(notification.session_id);
                                   queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+                                  queryClient.invalidateQueries({ queryKey: ['available-sessions'] });
                                 }
                                 await removeNotification(notification.id);
                               } catch (err) {

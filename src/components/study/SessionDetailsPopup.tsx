@@ -61,11 +61,51 @@ export const SessionDetailsPopup = ({
     }
   };
 
-  const isParticipant = session.participantList?.some((p: any) => p.user_id === currentUser?.id);
+  const isParticipant = session.participantList?.some((p: any) => p.user_id === currentUser?.id && p.status !== 'invited');
 
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  const participantList = session.participantList || [];
+  const activeParticipants = participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted');
+  const planningParticipants = participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host' && (p.status === 'invited' || p.status === 'accepted'));
+  const invitedParticipants = participantList.filter((p: any) => p.status === 'invited');
+
+  const renderParticipantRow = (p: any) => {
+    const pName = p.profiles?.display_name || 'Anonymous User';
+    const pInitials = getInitials(pName);
+    const isSelf = p.user_id === currentUser?.id;
+    return (
+      <button
+        key={p.user_id}
+        onClick={() => !isSelf && openProfile(p.user_id)}
+        disabled={isSelf}
+        className={`flex items-center justify-between text-left focus:outline-none transition-colors w-full rounded-md p-1 ${
+          isSelf 
+            ? 'opacity-85 select-none' 
+            : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-500 dark:hover:text-blue-400 group'
+        }`}
+      >
+        <div className="flex items-center space-x-2 min-w-0">
+          <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-transform ${getAvatarColorClass(pName)} ${isSelf ? '' : 'group-hover:scale-105 active:scale-95'}`}>
+            {p.profiles?.avatar_url ? (
+              <img src={p.profiles.avatar_url} alt={pName} className="w-full h-full rounded-full object-cover" />
+            ) : (
+              pInitials
+            )}
+          </div>
+          <span className="text-xs text-gray-750 dark:text-gray-305 font-medium truncate">
+            {pName} {isSelf ? ' (you)' : ''}
+          </span>
+        </div>
+        
+        {!isSelf && (
+          <ChevronRight size={14} className="text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+        )}
+      </button>
+    );
   };
 
   return (
@@ -109,51 +149,48 @@ export const SessionDetailsPopup = ({
           </div>
 
           {/* People Planning to Attend / Active Participants */}
-          <div className="border-t dark:border-gray-700 pt-4">
-            <h4 className="font-semibold text-gray-800 dark:text-white mb-2 text-sm flex items-center">
+          <div className="border-t dark:border-gray-700 pt-4 space-y-3">
+            <h4 className="font-semibold text-gray-800 dark:text-white text-sm flex items-center mb-1">
               <Users size={16} className="mr-1.5 text-gray-400" />
-              {session.type === 'active' ? 'Active Participants' : 'People Planning to Attend'} ({session.participantList?.length || 0})
+              Participants & Invites
             </h4>
-            {session.participantList && session.participantList.length > 0 ? (
-              <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                {session.participantList.map((p: any) => {
-                  const pName = p.profiles?.display_name || 'Anonymous User';
-                  const pInitials = getInitials(pName);
-                  const isSelf = p.user_id === currentUser?.id;
-                  return (
-                    <button
-                      key={p.user_id}
-                      onClick={() => !isSelf && openProfile(p.user_id)}
-                      disabled={isSelf}
-                      className={`flex items-center justify-between text-left focus:outline-none transition-colors w-full rounded-md p-1 ${
-                        isSelf 
-                          ? 'opacity-85 select-none' 
-                          : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-500 dark:hover:text-blue-400 group'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2 min-w-0">
-                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-transform ${getAvatarColorClass(pName)} ${isSelf ? '' : 'group-hover:scale-105 active:scale-95'}`}>
-                          {p.profiles?.avatar_url ? (
-                            <img src={p.profiles.avatar_url} alt={pName} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            pInitials
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-750 dark:text-gray-300 font-medium truncate">
-                          {pName} {isSelf ? ' (you)' : ''}
-                        </span>
-                      </div>
-                      
-                      {!isSelf && (
-                        <ChevronRight size={14} className="text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                      )}
-                    </button>
-                  );
-                })}
+
+            {activeParticipants.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400 block mb-1">
+                  Active ({activeParticipants.length})
+                </span>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {activeParticipants.map((p) => renderParticipantRow(p))}
+                </div>
               </div>
-            ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                {session.type === 'active' ? 'No active participants' : 'No one planning to attend yet'}
+            )}
+
+            {planningParticipants.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">
+                  Planning to Attend ({planningParticipants.length})
+                </span>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {planningParticipants.map((p) => renderParticipantRow(p))}
+                </div>
+              </div>
+            )}
+
+            {invitedParticipants.length > 0 && (
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-1">
+                  Invited ({invitedParticipants.length})
+                </span>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {invitedParticipants.map((p) => renderParticipantRow(p))}
+                </div>
+              </div>
+            )}
+
+            {participantList.length === 0 && (
+              <p className="text-xs text-gray-550 dark:text-gray-400 italic">
+                No participants yet
               </p>
             )}
           </div>

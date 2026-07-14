@@ -206,3 +206,52 @@ To roll out the complete real-time sync mechanism, follow these code updates:
    - If Participant: Subscribe to `timer_sync` broadcast channel and apply drift/latency correction.
    - Attach window visibility/focus listeners to trigger server-side re-sync from database timestamps.
 4. [ ] **Configure Presence Heartbeats**: Ensure `trackPresence` and `untrackPresence` are correctly mounted in the session hooks layout.
+
+---
+
+## 7. Supabase Real-Time Database Configuration
+
+For Supabase Realtime to successfully capture PostgreSQL database changes and push them to client subscriptions (e.g., `postgres_changes` events), two configuration steps must be performed on the database level:
+
+### A. Real-Time Publication Enrollment
+The database uses a publication named `supabase_realtime` to control which tables broadcast changes. Tables must be explicitly added to this publication:
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.study_sessions;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.session_participants;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.session_goals;
+```
+
+### B. PostgreSQL Replica Identity (`REPLICA IDENTITY FULL`)
+By default, PostgreSQL's Write-Ahead Log (WAL) only includes primary key values for `DELETE` and `UPDATE` operations. If a client's realtime subscription uses a filter on a non-primary key column (for example, listening to participant changes filtered by `session_id=eq.SESSION_ID`), a `DELETE` event payload will omit the `session_id` column, and the event will fail to match the filter.
+
+To ensure client filters match on deleted records, set `REPLICA IDENTITY FULL` on these tables:
+```sql
+ALTER TABLE public.notifications REPLICA IDENTITY FULL;
+ALTER TABLE public.study_sessions REPLICA IDENTITY FULL;
+ALTER TABLE public.session_participants REPLICA IDENTITY FULL;
+ALTER TABLE public.session_goals REPLICA IDENTITY FULL;
+```
+
+### C. Row-Level Security (RLS) Policy Compatibility
+Supabase Realtime respects PostgreSQL RLS policies. If a user is not permitted to `SELECT` a row under the table's RLS policies, the realtime engine will filter out the corresponding database change events (e.g., `INSERT`, `UPDATE`, `DELETE`) and will not push them to that user's client socket.
+
+To ensure realtime updates broadcast successfully for group sessions:
+1. **`study_sessions` SELECT Policy**: Must permit members of the session's group to read the session row (even if the group is private).
+2. **`session_participants` SELECT Policy**: Must permit members of the session's group to read participant rows.
+
+Ensure the RLS policies include checking group membership:
+```sql
+EXISTS (
+  SELECT 1 FROM public.study_groups 
+  WHERE study_groups.id = study_sessions.group_id 
+  AND (
+    study_groups.is_public = true OR
+    EXISTS (
+      SELECT 1 FROM public.group_members 
+      WHERE group_members.group_id = study_groups.id 
+      AND group_members.user_id = auth.uid()
+    )
+  )
+)
+```

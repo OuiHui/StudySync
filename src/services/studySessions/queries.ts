@@ -22,7 +22,7 @@ export class StudySessionsQueries {
     const sessionIds = sessions.map(s => s.id);
     const { data: allParticipants } = await supabase
       .from('session_participants')
-      .select('session_id, user_id')
+      .select('session_id, user_id, status, role, is_attending')
       .in('session_id', sessionIds);
 
     const creatorIds = sessions.map(s => s.created_by).filter(Boolean);
@@ -62,6 +62,9 @@ export class StudySessionsQueries {
           const profile = profiles.find(p => p.user_id === sp.user_id);
           return {
             user_id: sp.user_id,
+            status: sp.status,
+            role: sp.role,
+            is_attending: sp.is_attending,
             profiles: profile || null
           };
         });
@@ -97,11 +100,12 @@ export class StudySessionsQueries {
         console.error('Error fetching created sessions:', createdError);
       }
 
-      // Get sessions the user is participating in
+      // Get sessions the user is participating in (accepted or active, i.e., status in ('accepted', 'active'))
       const { data: participations, error: participationError } = await supabase
         .from('session_participants')
         .select('session_id')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .in('status', ['accepted', 'active']);
 
       let participatedSessions = [];
       if (!participationError && participations && participations.length > 0) {
@@ -157,6 +161,9 @@ export class StudySessionsQueries {
 
   static async getAvailableSessions() {
     try {
+      const session = await checkAuth();
+      const userId = session?.user?.id;
+
       const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select(STUDY_SESSION_SELECT)
@@ -168,9 +175,21 @@ export class StudySessionsQueries {
         return [];
       }
 
-      return StudySessionsQueries.enrichSessionsWithParticipants(sessions, (studySession) => {
+      const enriched = await StudySessionsQueries.enrichSessionsWithParticipants(sessions, (studySession) => {
         if (studySession.status === 'scheduled') {
           return new Date(studySession.scheduled_end) >= new Date();
+        }
+        return true;
+      });
+
+      // Filter out private study sessions if user is not invited and is not the creator
+      return enriched.filter(studySession => {
+        if (studySession.is_public === false) {
+          const isCreator = userId && studySession.created_by === userId;
+          const isParticipant = userId && studySession.session_participants?.some(
+            (p: any) => p.user_id === userId
+          );
+          return isCreator || isParticipant;
         }
         return true;
       });

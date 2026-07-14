@@ -151,7 +151,8 @@ export const useGroupStudySessionData = () => {
     try {
       const data = await StudySessionsService.getParticipants(id);
       setParticipants(data || []);
-      if (user && data && !data.some((p: any) => p.user_id === user.id)) {
+      const myParticipant = data?.find((p: any) => p.user_id === user?.id);
+      if (user && data && (!myParticipant || myParticipant.status !== 'active')) {
         await StudySessionsService.joinSession(id, user.id, 'participant');
         const refreshed = await StudySessionsService.getParticipants(id);
         setParticipants(refreshed || []);
@@ -189,7 +190,7 @@ export const useGroupStudySessionData = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'session_participants', filter: `session_id=eq.${id}` }, () => {
         loadParticipants(id);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'study_goals', filter: `session_id=eq.${id}` }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'session_goals', filter: `session_id=eq.${id}` }, () => {
         loadGoals(id);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: `session_id=eq.${id}` }, () => {
@@ -307,6 +308,7 @@ export const useGroupStudySessionData = () => {
     if (!sessionId || !isHost) return;
     try {
       await StudySessionsService.removeParticipant(sessionId, targetUserId);
+      await loadParticipants(sessionId);
       toast({
         title: "Participant removed",
         description: "Successfully removed the participant from the session."

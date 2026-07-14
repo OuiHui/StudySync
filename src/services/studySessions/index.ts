@@ -25,6 +25,7 @@ export class StudySessionsService {
   static inviteUserToSession = StudySessionsMutations.inviteUserToSession;
   static acceptSessionInvitation = StudySessionsMutations.acceptSessionInvitation;
   static declineSessionInvitation = StudySessionsMutations.declineSessionInvitation;
+  static planToAttendSession = StudySessionsMutations.planToAttendSession;
   static createGoal = SessionGoalsService.createGoal;
   static updateGoal = SessionGoalsService.updateGoal;
   static deleteGoal = SessionGoalsService.deleteGoal;

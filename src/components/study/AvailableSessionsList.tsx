@@ -162,12 +162,12 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
     if (!user) return;
     const session = displaySessions.find(s => s.id === sessionId);
     if (!session) return;
-    const isParticipant = session.participantList.some((p: any) => p.user_id === user.id);
+    const myParticipant = session.participantList.find((p: any) => p.user_id === user.id);
     try {
-      if (isParticipant) {
+      if (myParticipant && myParticipant.status !== 'invited') {
         await StudySessionsService.leaveSession(sessionId);
       } else {
-        await StudySessionsService.joinSession(sessionId);
+        await StudySessionsService.planToAttendSession(sessionId);
       }
       await loadSessions();
     } catch (err) {
@@ -283,10 +283,10 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                         </div>
                       </div>                      {/* Overlapping participants group */}
                       <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
-                        {session.participantList.length > 0 ? (
+                        {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length > 0 ? (
                           <>
                             <div className="flex -space-x-1.5 overflow-hidden">
-                              {session.participantList.slice(0, 3).map((p: any) => {
+                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').slice(0, 3).map((p: any) => {
                                 const pName = p.profiles?.display_name || 'Anonymous';
                                 const pInitials = getInitials(pName);
                                 return (
@@ -299,14 +299,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                                   </div>
                                 );
                               })}
-                              {session.participantList.length > 3 && (
+                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length > 3 && (
                                 <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
-                                  +{session.participantList.length - 3}
+                                  +{session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length - 3}
                                 </div>
                               )}
                             </div>
                             <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              {session.participants} active
+                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length} active
                             </span>
                           </>
                         ) : (
@@ -446,10 +446,10 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                       </div>
                                           {/* Overlapping participants group */}
                       <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
-                        {session.participantList.length > 0 ? (
+                        {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length > 0 ? (
                           <>
                             <div className="flex -space-x-1.5 overflow-hidden">
-                              {session.participantList.slice(0, 3).map((p: any) => {
+                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').slice(0, 3).map((p: any) => {
                                 const pName = p.profiles?.display_name || 'Anonymous';
                                 const pInitials = getInitials(pName);
                                 return (
@@ -462,14 +462,14 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                                   </div>
                                 );
                               })}
-                              {session.participantList.length > 3 && (
+                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length > 3 && (
                                 <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
-                                  +{session.participantList.length - 3}
+                                  +{session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length - 3}
                                 </div>
                               )}
                             </div>
                             <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              {session.participants} planning to attend
+                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length} planning to attend
                             </span>
                           </>
                         ) : (
@@ -492,7 +492,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                           <Eye size={14} className="mr-1.5" />
                           Details
                         </Button>
-                        {session.participantList.some((p: any) => p.user_id === user?.id) ? (
+                        {session.participantList.some((p: any) => p.user_id === user?.id && p.status !== 'invited') ? (
                           <Button 
                             onClick={() => handleTogglePlanToAttend(session.id)}
                             className="flex-[2] bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-650 text-gray-800 dark:text-gray-100 font-medium"

@@ -494,23 +494,45 @@ export class SimulatedUserBot {
 
     this.manager.log(`Bot ${this.user.name} is joining study session ID ${sessionId}...`);
 
-    const { error } = await this.client
+    // Check if participant row already exists (e.g. from an invitation)
+    const { data: existing, error: fetchError } = await this.client
       .from('session_participants')
-      .insert({
-        session_id: sessionId,
-        user_id: this.user.id,
-        role: 'participant',
-        status: 'active',
-        is_attending: true
-      });
+      .select('*')
+      .eq('session_id', sessionId)
+      .eq('user_id', this.user.id)
+      .maybeSingle();
 
-    if (error) {
-      if (error.message.includes('unique') || error.message.includes('duplicate')) {
-        this.manager.log(`⚠️ ${this.user.name} has already joined this study session.`);
-        return;
-      }
-      this.manager.log(`❌ Error joining session: ${error.message}`);
-      throw error;
+    if (fetchError) {
+      console.error('Error fetching existing participant:', fetchError);
+    }
+
+    let dbError;
+    if (existing) {
+      const { error } = await this.client
+        .from('session_participants')
+        .update({
+          status: 'active',
+          is_attending: true
+        })
+        .eq('session_id', sessionId)
+        .eq('user_id', this.user.id);
+      dbError = error;
+    } else {
+      const { error } = await this.client
+        .from('session_participants')
+        .insert({
+          session_id: sessionId,
+          user_id: this.user.id,
+          role: 'participant',
+          status: 'active',
+          is_attending: true
+        });
+      dbError = error;
+    }
+
+    if (dbError) {
+      this.manager.log(`❌ Error joining session: ${dbError.message}`);
+      throw dbError;
     }
 
     this.manager.log(`✅ Bot ${this.user.name} joined study session successfully.`);
@@ -633,7 +655,7 @@ export class SimulatedUserBot {
     this.manager.log(`Bot ${this.user.name} is accepting session invitation for session ID ${sessionId}...`);
     const { error } = await this.client
       .from('session_participants')
-      .update({ status: 'active', is_attending: true })
+      .update({ status: 'accepted', is_attending: false })
       .eq('session_id', sessionId)
       .eq('user_id', this.user.id);
     if (error) {
