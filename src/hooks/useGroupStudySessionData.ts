@@ -41,7 +41,7 @@ export const useGroupStudySessionData = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { setIsInGroupSession } = useSession();
+  const { setIsInGroupSession, setSessionStarted } = useSession();
   const { toast } = useToast();
 
   const urlSessionId = searchParams.get('id');
@@ -162,6 +162,9 @@ export const useGroupStudySessionData = () => {
           localStorage.setItem('cached_session_host', profile.display_name);
         }
       }
+
+      const started = !!data.actual_start || data.status !== 'scheduled';
+      setSessionStarted(started);
     } catch (err) {
       console.error(err);
       toast({

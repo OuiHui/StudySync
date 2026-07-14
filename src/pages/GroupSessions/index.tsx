@@ -9,15 +9,16 @@ export default function GroupSessions() {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('id') || undefined;
   const { handleTimerUpdate, handleCancelTimer } = useGlobalTimer();
-  const { setIsInGroupSession, setShowLeaveSessionDialog, setPendingNavigation } = useSession();
+  const { setIsInGroupSession, setShowLeaveSessionDialog, setPendingNavigation, setSessionStarted } = useSession();
   const { currentTheme, handleThemeChange } = useOutletContext<any>();
 
   useEffect(() => {
     setIsInGroupSession(true);
     return () => {
       setIsInGroupSession(false);
+      setSessionStarted(false);
     };
-  }, [setIsInGroupSession]);
+  }, [setIsInGroupSession, setSessionStarted]);
 
   const handleLeaveSession = () => {
     setPendingNavigation('/available-sessions');

@@ -15,12 +15,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGroupStudySessionData } from '@/hooks/useGroupStudySessionData';
 
 interface GroupStudySessionProps {
+  onLeaveSession?: () => void;
   onThemeChange?: (theme: { name: string; primary: string; secondary: string; gradient: string }) => void;
   currentTheme?: { name: string; primary: string; secondary: string; gradient: string };
   onChatWithParticipant?: (participant: { id: string; name: string; status: string; avatar: string }) => void;
 }
 
 export const GroupStudySession = ({
+  onLeaveSession,
   onThemeChange,
   currentTheme,
   onChatWithParticipant
@@ -44,7 +46,7 @@ export const GroupStudySession = ({
     reflectionOpen,
     setReflectionOpen,
     savingReflection,
-    onLeaveSession,
+    onLeaveSession: defaultLeaveSession,
     handleToggleStatus,
     handleKickParticipant,
     handleAddGoal,
@@ -69,6 +71,20 @@ export const GroupStudySession = ({
     setSessionGoal,
     user
   } = useGroupStudySessionData();
+
+  const sessionStarted = !!sessionData?.actual_start || sessionData?.status !== 'scheduled';
+
+  const handleLeaveClick = () => {
+    if (sessionStarted) {
+      if (onLeaveSession) {
+        onLeaveSession();
+      } else {
+        defaultLeaveSession();
+      }
+    } else {
+      defaultLeaveSession();
+    }
+  };
 
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -108,7 +124,7 @@ export const GroupStudySession = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onLeaveSession}
+            onClick={handleLeaveClick}
             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20 h-8 text-xs"
           >
             <LogOut size={14} className="mr-1.5" />

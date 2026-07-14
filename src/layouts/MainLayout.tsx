@@ -35,7 +35,8 @@ export const MainLayout = () => {
     setShowLeaveSessionDialog,
     pendingNavigation,
     setPendingNavigation,
-    setIsInGroupSession
+    setIsInGroupSession,
+    sessionStarted
   } = useSession();
   
   useEffect(() => {
@@ -85,8 +86,18 @@ export const MainLayout = () => {
   const handleSidebarNavigation = (newTab: string) => {
     const path = newTab === 'dashboard' ? '/' : `/${newTab}`;
     
-    // Only show leave dialog for active group sessions or group session page
-    if (path !== location.pathname && (isGroupSessionPage || (globalTimer.isActive && globalTimer.isGroupTimer))) {
+    // If we are navigating away from group study session and it hasn't started yet,
+    // bypass the warning dialog but leave the session.
+    if (path !== location.pathname && isGroupSessionPage && !sessionStarted) {
+      handleConfirmLeaveSession(path);
+      return;
+    }
+    
+    // Only show leave dialog for active group sessions or group session page that has started
+    if (path !== location.pathname && (
+      (isGroupSessionPage && sessionStarted) || 
+      (globalTimer.isActive && globalTimer.isGroupTimer)
+    )) {
       setPendingNavigation(path);
       setShowLeaveSessionDialog(true);
       return;
@@ -100,7 +111,7 @@ export const MainLayout = () => {
     setPendingNavigation(null);
   };
 
-  const handleConfirmLeaveSession = async () => {
+  const handleConfirmLeaveSession = async (directPath?: string) => {
     handleCancelTimer(); // stops and resets
     
     // Call leaveSession if we were in a group study session
@@ -115,8 +126,9 @@ export const MainLayout = () => {
     }
 
     setIsInGroupSession(false);
-    if (pendingNavigation) {
-      navigate(pendingNavigation);
+    const targetPath = directPath || pendingNavigation;
+    if (targetPath) {
+      navigate(targetPath);
     }
     setShowLeaveSessionDialog(false);
     setPendingNavigation(null);
@@ -168,7 +180,7 @@ export const MainLayout = () => {
       <LeaveSessionDialog
         isOpen={showLeaveSessionDialog}
         onClose={handleCancelLeaveSession}
-        onConfirm={handleConfirmLeaveSession}
+        onConfirm={() => handleConfirmLeaveSession()}
         timerActive={globalTimer.isActive}
       />
     </div>
