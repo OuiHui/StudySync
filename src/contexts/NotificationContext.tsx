@@ -41,11 +41,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         {
           event: '*',
           schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`
+          table: 'notifications'
         },
-        () => {
-          checkUnreadNotifications();
+        (payload) => {
+          const row = payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old;
+          if (row && (!('user_id' in row) || (row as any).user_id === user.id)) {
+            checkUnreadNotifications();
+          }
         }
       )
       .subscribe();

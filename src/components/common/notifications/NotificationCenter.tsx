@@ -48,13 +48,25 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
       .channel(`notification-center-${user.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        () => { loadNotifications(); }
+        { event: '*', schema: 'public', table: 'notifications' },
+        (payload) => {
+          const row = payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old;
+          if (row && (!('user_id' in row) || (row as any).user_id === user.id)) {
+            loadNotifications();
+          }
+        }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [isOpen, user]);
+
+  useEffect(() => {
+    if (user) {
+      const stillUnread = notifications.some(n => !n.read);
+      setHasUnreadNotifications(stillUnread);
+    }
+  }, [notifications, user, setHasUnreadNotifications]);
 
   const loadNotifications = async () => {
     if (!user) return;
@@ -99,14 +111,11 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
   const markAsRead = async (notificationId: string) => {
     try {
       await NotificationsService.markAsRead(notificationId);
-      setNotifications(prev => {
-        const updated = prev.map(notif =>
+      setNotifications(prev =>
+        prev.map(notif =>
           notif.id === notificationId ? { ...notif, read: true } : notif
-        );
-        const stillUnread = updated.some(n => !n.read);
-        setHasUnreadNotifications(stillUnread);
-        return updated;
-      });
+        )
+      );
     } catch (err) {
       console.error('Error marking notification as read:', err);
     }
@@ -130,12 +139,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
   const removeNotification = async (notificationId: string) => {
     try {
       await NotificationsService.deleteNotification(notificationId);
-      setNotifications(prev => {
-        const updated = prev.filter(notif => notif.id !== notificationId);
-        const stillUnread = updated.some(n => !n.read);
-        setHasUnreadNotifications(stillUnread);
-        return updated;
-      });
+      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
