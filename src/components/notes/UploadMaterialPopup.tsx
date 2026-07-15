@@ -105,7 +105,8 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
 
       // If a file is selected, upload it to Supabase Storage
       if (file) {
-        const uploadResult = await NotesService.uploadFile(file);
+        const targetGroupId = selectedGroups.length > 0 ? selectedGroups[0] : undefined;
+        const uploadResult = await NotesService.uploadFile(file, targetGroupId);
         if (uploadResult) {
           fileUrl = uploadResult.url;
           fileName = uploadResult.fileName;

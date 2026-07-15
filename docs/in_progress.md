@@ -23,7 +23,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Group Session Layout** | [/] Partial | Workspace wraps poorly and overflows on average monitors. |
 | **Group Member Limit Enforce**| [ ] Pending | Maximum members specified in group config is not validated on join. |
 | **Group Member Moderation** | [ ] Pending | Admin/creator cannot kick members from groups due to RLS limit. |
-| **PDF Note Attachments** | [ ] Pending | File/PDF upload capability lacks Supabase storage integration. |
+| **PDF Note Attachments** | [x] Done | File/PDF upload capability integrates with secure study_materials bucket. |
 | **Friend's Friends List Lookup**| [ ] Pending | Cannot query or display mutual friends or friends of friends. |
 | **Editing Goals**| [ ] Pending | Should be able to add end date for goals that show up on calendar. |
 | **Account Card Functionality** | [ ] Pending | Determine and implement required features for the bottom-left account card (UserMenu). |
@@ -103,8 +103,8 @@ This document tracks completed systems, details current gaps, and lists future t
     *   Need to implement a group kick RPC or backend utility method in services.
 4.  **Backend Join Verification (Member Limits)**:
     *   The join group endpoint needs database triggers or checking functions to verify that the group's current size is strictly less than its `max_members` limit before allowing insert.
-5.  **PDF/Storage Buckets Configuration**:
-    *   Supabase Storage bucket for `study_materials` needs to be defined, along with security policies allowing member-only reads and upload constraints for notes sharing.
+5.  **PDF/Storage Buckets Configuration** [x] Done:
+    *   Supabase Storage bucket for `study_materials` has been defined, along with security policies allowing member-only reads and upload constraints for notes sharing.
 6.  **Friends of Friends Database Queries**:
     *   Implement database functions/RPC to safely fetch and display accepted friends lists of a friend, adhering to user profile privacy constraints.
 7.  **Session History Database & API**:

@@ -8,6 +8,7 @@ import { NotesService } from '@/services/database';
 import { useToast } from '@/hooks/use-toast';
 import { Note } from '@/services/utils';
 import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Edit2, Save, X } from 'lucide-react';
+import { useResolvedFileUrl } from '@/hooks/useResolvedFileUrl';
 
 export const StudyMaterial = () => {
   const { toast } = useToast();
@@ -15,6 +16,8 @@ export const StudyMaterial = () => {
   const [loading, setLoading] = useState(true);
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
+
+  const { resolvedUrl: resolvedFileUrl } = useResolvedFileUrl(activeNote?.file_url);
   
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -311,7 +314,7 @@ export const StudyMaterial = () => {
               </div>
               {activeNote.file_url && (
                 <div className="mt-4 border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800">
-                  {activeNote.file_url.toLowerCase().endsWith('.pdf') ? (
+                  {(resolvedFileUrl || activeNote.file_url).toLowerCase().split('?')[0].endsWith('.pdf') ? (
                     <div className="flex flex-col">
                       <div className="p-3 border-b bg-gray-100/50 dark:bg-gray-800/50 flex justify-between items-center text-xs border-gray-100 dark:border-gray-800">
                         <span className="font-medium truncate text-gray-700 dark:text-gray-300 max-w-[70%]">
@@ -320,17 +323,17 @@ export const StudyMaterial = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(activeNote.file_url, '_blank')}
+                          onClick={() => window.open(resolvedFileUrl || activeNote.file_url, '_blank')}
                           className="h-7 px-2 text-xs border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
                         >
                           Open in New Tab
                         </Button>
                       </div>
-                      <iframe src={activeNote.file_url} className="w-full h-[400px] border-0" title="PDF Viewer" />
+                      <iframe src={resolvedFileUrl || activeNote.file_url} className="w-full h-[400px] border-0" title="PDF Viewer" />
                     </div>
-                  ) : activeNote.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                  ) : (resolvedFileUrl || activeNote.file_url).split('?')[0].match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                     <div className="p-3 flex flex-col items-center">
-                      <img src={activeNote.file_url} className="max-w-full h-auto max-h-[300px] rounded border dark:border-gray-800" alt={activeNote.file_name || 'Attached image'} />
+                      <img src={resolvedFileUrl || activeNote.file_url} className="max-w-full h-auto max-h-[300px] rounded border dark:border-gray-800" alt={activeNote.file_name || 'Attached image'} />
                       <div className="mt-2 w-full flex justify-between items-center text-xs">
                         <span className="font-medium truncate text-gray-700 dark:text-gray-300">
                           📷 {activeNote.file_name || 'Attached Image'}
@@ -338,7 +341,7 @@ export const StudyMaterial = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(activeNote.file_url, '_blank')}
+                          onClick={() => window.open(resolvedFileUrl || activeNote.file_url, '_blank')}
                           className="h-7 px-2 text-xs border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
                         >
                           Open Original Image
@@ -353,7 +356,7 @@ export const StudyMaterial = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(activeNote.file_url, '_blank')}
+                        onClick={() => window.open(resolvedFileUrl || activeNote.file_url, '_blank')}
                         className="h-7 px-2 text-xs border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
                       >
                         Download File

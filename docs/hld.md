@@ -206,3 +206,16 @@ Group session hosts control and synchronize the timer.
 2. Changes to document fields trigger database updates in the `notes` table.
 3. Supabase Postgres changes listeners (`on('postgres_changes', ...)`) alert other connected peers.
 4. React Query cache invalidates or updates local state, reflecting the edits in real-time.
+
+### C. PDF & Study Materials Storage Flow (Secure Buckets)
+To store shared notes attachments securely and restrict access to group members:
+1. **Storage Buckets**:
+   - `note-files` (Public): Used for personal and public notes attachments. Accessible globally via public URL.
+   - `study_materials` (Private): Used for study groups' shared notes attachments. Access is restricted using Row Level Security (RLS) on the `storage.objects` table.
+2. **Path Convention**: 
+   - Files uploaded for group sharing are stored under the path format: `study_materials/<group_id>/<user_id>/<timestamp>.<extension>`.
+3. **Storage Policies**:
+   - **SELECT**: Access is restricted to group members or the group creator. A query checks `public.group_members` for the matching `<group_id>`.
+   - **INSERT**: Authenticated users can upload if they are members/creators of the group, they match the `<user_id>` folder in the path, and the file extension matches one of `.pdf`, `.doc`, `.docx`, `.txt`, `.ppt`, `.pptx`, `.png`, `.jpg`, `.jpeg`.
+   - **UPDATE / DELETE**: Restricted to the owner who uploaded the file (verified using the `<user_id>` folder).
+4. **Dynamic URL Resolution**: Since browsers cannot pass Supabase authentication tokens in standard `<iframe>` or `<img>` source headers, a helper `NotesService.getSignedUrl` dynamically generates a temporary signed URL (1-hour expiration) for private files. The custom hook `useResolvedFileUrl` resolves this state in UI components (`FileViewer`, `StudyMaterial`) dynamically before rendering.

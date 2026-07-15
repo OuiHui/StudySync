@@ -92,7 +92,7 @@ export class NotesMutations {
     }
   }
 
-  static async uploadFile(file: File) {
+  static async uploadFile(file: File, groupId?: string) {
     try {
       const session = await checkAuth();
       if (!session) {
@@ -102,11 +102,15 @@ export class NotesMutations {
       // Create a unique file name with timestamp
       const timestamp = Date.now();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${session.user.id}/${timestamp}.${fileExt}`;
+      
+      const bucketName = groupId ? 'study_materials' : 'note-files';
+      const fileName = groupId
+        ? `${groupId}/${session.user.id}/${timestamp}.${fileExt}`
+        : `${session.user.id}/${timestamp}.${fileExt}`;
 
       // Upload file to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('note-files')
+        .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
@@ -119,7 +123,7 @@ export class NotesMutations {
 
       // Get public URL for the uploaded file
       const { data: urlData } = supabase.storage
-        .from('note-files')
+        .from(bucketName)
         .getPublicUrl(fileName);
 
       return {
@@ -129,6 +133,39 @@ export class NotesMutations {
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
+    }
+  }
+
+  static async getSignedUrl(filePath: string): Promise<string> {
+    try {
+      const bucketName = 'study_materials';
+      let path = '';
+      
+      if (filePath.includes('/storage/v1/object/public/study_materials/')) {
+        path = filePath.split('/storage/v1/object/public/study_materials/')[1];
+      } else if (filePath.includes('/storage/v1/object/sign/study_materials/')) {
+        path = filePath.split('/storage/v1/object/sign/study_materials/')[1];
+      } else {
+        path = filePath;
+      }
+
+      // Clean up path of any query parameters if they exist
+      if (path.includes('?')) {
+        path = path.split('?')[0];
+      }
+
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(path, 3600);
+
+      if (error) {
+        throw error;
+      }
+
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error creating signed URL:', error);
+      return filePath;
     }
   }
 

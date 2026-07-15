@@ -16,6 +16,7 @@ export class NotesService {
   static updateNote = NotesMutations.updateNote;
   static deleteNote = NotesMutations.deleteNote;
   static uploadFile = NotesMutations.uploadFile;
+  static getSignedUrl = NotesMutations.getSignedUrl;
   static createSubject = NotesMutations.createSubject;
   static deleteSubject = NotesMutations.deleteSubject;
   static shareNoteWithGroups = NotesMutations.shareNoteWithGroups;
