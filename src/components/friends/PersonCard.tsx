@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Person } from './types';
-import { getAvatarGradient } from './avatarUtils';
+import { getAvatarColor } from './avatarUtils';
 
 interface PersonCardProps {
   person: Person;
@@ -20,10 +20,7 @@ interface PersonCardProps {
 }
 
 export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile }: PersonCardProps) => {
-  const gradient =
-    person.gradientFrom && person.gradientTo
-      ? `${person.gradientFrom} ${person.gradientTo}`
-      : getAvatarGradient(person.name);
+  const avatarBg = getAvatarColor(person.name);
 
   const firstGroup = person.publicGroups[0];
   const extraGroups = person.publicGroups.length - 1;
@@ -36,7 +33,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
       {/* Header: avatar + name/email + friends badge */}
       <div className="px-4 pt-4 pb-3 flex items-start gap-3 relative">
         <div
-          className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
+          className={`w-11 h-11 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 shadow-sm`}
         >
           {person.avatar ? (
             <img src={person.avatar} alt={person.name} className="w-full h-full rounded-full object-cover" />

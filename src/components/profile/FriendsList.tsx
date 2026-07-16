@@ -10,12 +10,15 @@ interface FriendsListProps {
 }
 
 const avatarColors = [
-  'from-violet-400 to-purple-500',
-  'from-sky-400 to-blue-500',
-  'from-emerald-400 to-teal-500',
-  'from-orange-400 to-amber-500',
-  'from-rose-400 to-pink-500',
-  'from-indigo-400 to-indigo-600',
+  'bg-violet-500',
+  'bg-sky-500',
+  'bg-emerald-500',
+  'bg-amber-500',
+  'bg-rose-500',
+  'bg-indigo-500',
+  'bg-cyan-500',
+  'bg-lime-500',
+  'bg-fuchsia-500',
 ];
 
 const getAvatarColor = (str: string) => avatarColors[(str?.charCodeAt(0) || 0) % avatarColors.length];
@@ -46,18 +49,18 @@ export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) =
           {friends.map((friend) => {
             const name = getDisplayName(friend.display_name, friend.email);
             const initials = getInitials(friend.display_name, friend.email);
-            const gradient = getAvatarColor(name);
+            const avatarBg = getAvatarColor(name);
 
             return (
               <div
                 key={friend.id}
-                className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors"
+                className="flex items-center gap-3 px-5 py-3 hover:bg-gray-55 dark:hover:bg-gray-800/40 transition-colors"
               >
                 <button
                   onClick={() => openProfile(friend.id)}
                   className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer focus:outline-none group"
                 >
-                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}>
+                  <div className={`w-8 h-8 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}>
                     {friend.avatar_url ? (
                       <img
                         src={friend.avatar_url}

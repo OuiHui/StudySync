@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Search, UserPlus, UserCheck, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { FriendEntry } from './types';
-import { getInitials, getAvatarGradient } from './avatarUtils';
+import { getInitials, getAvatarColor } from './avatarUtils';
 import { FriendsService } from '@/services/database';
 
 interface FriendsListViewProps {
@@ -133,7 +133,7 @@ export const FriendsListView = ({
       ) : (
         <div className="space-y-1">
           {filtered.map((friend) => {
-            const gradient = `${friend.gradient_from} ${friend.gradient_to}`;
+            const avatarBg = getAvatarColor(friend.display_name);
             const initials = getInitials(friend.display_name);
             const isPending = pendingAdds.has(friend.friend_user_id) || friend.friendship_status === 'pending';
             const isAccepted = friend.is_mutual || friend.friendship_status === 'accepted';
@@ -153,7 +153,7 @@ export const FriendsListView = ({
                 >
                   {/* Avatar */}
                   <div
-                    className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}
+                    className={`w-11 h-11 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}
                   >
                     {friend.avatar_url ? (
                       <img
