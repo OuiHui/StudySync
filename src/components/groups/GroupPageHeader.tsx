@@ -51,6 +51,8 @@ export const GroupPageHeader = ({
   const { user } = useAuth();
   const { openProfile } = useUserProfileModal();
 
+  const isFull = group.max_members && members.length >= group.max_members;
+
   return (
     <div className="space-y-2">
       <Button variant="ghost" size="sm" onClick={onBack} className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -87,6 +89,16 @@ export const GroupPageHeader = ({
                   Private
                 </span>
               )}
+              {group.max_members && (
+                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border flex items-center gap-1.5 ${
+                  isFull 
+                    ? 'bg-red-950/80 text-red-400 border-red-800/50' 
+                    : 'bg-blue-950/80 text-blue-400 border-blue-800/50'
+                }`}>
+                  <Users size={12} />
+                  {members.length} / {group.max_members}
+                </span>
+              )}
               <Button
                 onClick={onChatToggle}
                 variant="outline"
@@ -113,8 +125,16 @@ export const GroupPageHeader = ({
                     Leave Group
                   </Button>
                 ) : (
-                  <Button onClick={onJoinGroup} size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                    Join Group
+                  <Button 
+                    onClick={onJoinGroup} 
+                    disabled={!!isFull}
+                    size="sm" 
+                    className={isFull 
+                      ? "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed hover:bg-zinc-800" 
+                      : "bg-green-600 hover:bg-green-700 text-white"
+                    }
+                  >
+                    {isFull ? 'Group Full' : 'Join Group'}
                   </Button>
                 )
               )}

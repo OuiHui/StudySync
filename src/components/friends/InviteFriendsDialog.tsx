@@ -29,6 +29,10 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
   const [friends, setFriends] = useState<FriendItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [invitingId, setInvitingId] = useState<string | null>(null);
+  const [groupMaxMembers, setGroupMaxMembers] = useState<number | null>(null);
+  const [groupMemberCount, setGroupMemberCount] = useState<number>(0);
+
+  const isFull = type === 'group' && groupMaxMembers !== null && groupMemberCount >= groupMaxMembers;
 
   useEffect(() => {
     if (isOpen && id) {
@@ -43,11 +47,15 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
       const friendsList = await FriendsService.getUserFriends();
 
       if (type === 'group') {
-        // Fetch group members and invitations in parallel
-        const [members, invitations] = await Promise.all([
+        // Fetch group, members and invitations in parallel
+        const [group, members, invitations] = await Promise.all([
+          StudyGroupsService.getGroupById(id),
           StudyGroupsService.getGroupMembers(id),
           StudyGroupsService.getGroupInvitations(id)
         ]);
+
+        setGroupMaxMembers(group?.max_members || null);
+        setGroupMemberCount(members?.length || 0);
 
         const mapped: FriendItem[] = friendsList.map(friend => {
           const isMember = (members || []).some((m: any) => m.id === friend.user_id);
@@ -133,6 +141,12 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
           </DialogDescription>
         </DialogHeader>
 
+        {isFull && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-650 dark:text-red-400 flex items-center gap-2">
+            <span>This group has reached its maximum member limit ({groupMaxMembers} members). You cannot invite more members.</span>
+          </div>
+        )}
+
         <div className="relative my-2">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <Input
@@ -197,7 +211,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
                       <Button
                         size="sm"
                         className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                        disabled={invitingId === friend.user_id}
+                        disabled={invitingId === friend.user_id || isFull}
                         onClick={() => handleInvite(friend.user_id)}
                       >
                         {invitingId === friend.user_id ? (

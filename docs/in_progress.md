@@ -43,7 +43,6 @@ This document tracks completed systems, details current gaps, and lists future t
 
 ### A. Profile Page Integration ([Profile.tsx](src/components/profile/Profile.tsx))
 *   **Show Friends list**: The profile page does not import or render the [FriendsSection](src/components/profile/FriendsSection.tsx) component. Needs to be embedded below the settings card.
-*   **Privacy settings persistence**: Connect [PrivacySettingsPopup](src/components/profile/PrivacySettingsPopup.tsx) toggles to backend profile updates instead of local mock states.
 *   **Notification settings persistence**: Link [NotificationSettingsPopup](src/components/profile/NotificationSettingsPopup.tsx) toggles to database profile configurations.
 
 ### B. Group Study Session Layout ([GroupStudySession.tsx](src/components/study/GroupStudySession.tsx))
@@ -91,24 +90,13 @@ This document tracks completed systems, details current gaps, and lists future t
 ## 3. Lacking Backend / Supabase Functionalities
 
 1.  **Profiles Schema Additions**:
-    *   Need to add JSON columns or structured columns to `public.profiles` for `privacy_settings` and `notification_settings` to persist user choices made in settings popups.
+    *   Need to add JSON columns or structured columns to `public.profiles` for `notification_settings` to persist user choices made in settings popups.
 2.  **Real User Notifications Table**:
     *   Currently, the notifications list is empty because no table exists to track reminders, invites, or requests. A `notifications` table (storing `sender_id`, `receiver_id`, `type`, `content`, `read_status`) is required.
     *   **Database Triggers/Functions**: Need DB triggers/functions to automatically create notification entries when specific actions occur (e.g., when a friendship row is created/modified, or when a group session invite is sent).
-3.  **Group Creator / Admin Moderation RLS**: [x] Done
-    *   Added helper function `public.is_group_admin(user_uuid, group_uuid)` to verify admin status without RLS recursion.
-    *   Updated the `group_members` delete policy to allow deletes if the user is a group admin or if it is their own membership record.
-    *   Added `removeMember` API mutation method.
-4.  **Backend Join Verification (Member Limits)**:
-    *   The join group endpoint needs database triggers or checking functions to verify that the group's current size is strictly less than its `max_members` limit before allowing insert.
-5.  **PDF/Storage Buckets Configuration** [x] Done:
-    *   Supabase Storage bucket for `study_materials` has been defined, along with security policies allowing member-only reads and upload constraints for notes sharing.
-6.  **Friends of Friends Database Queries** [x] Done:
-    *   Implemented database functions/RPC to safely fetch and display accepted friends lists of a friend, adhering to user profile privacy constraints.
-7.  **Session History Database & API**:
+3.  **Session History Database & API**:
     *   Ensure all finished/completed study sessions (both solo and group) are correctly stored in the database (e.g., `study_sessions` or `session_participants` with finished status and actual duration).
     *   Expose helper functions in services (e.g., in `StudySessionsService` or `ProfileService`) to fetch the paginated history of a user's completed study sessions.
 
 ## 4. Bugs
 - Clicking on a friend in the friend list does not show their profile page.
-- [x] When looking at someone's friends list, peopel that are still pending still have the 'add friend' symbol

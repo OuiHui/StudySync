@@ -104,6 +104,9 @@ To protect database operations and prevent recursive query loops, Row Level Secu
   - A group admin or creator can delete memberships of other users (removing a member).
 - **UPDATE**: Group creators can update memberships (promoting/demoting).
 
+### Database Triggers & Validation Rules
+- **Group Member Limit validation**: A `BEFORE INSERT` trigger (`tr_check_group_member_limit`) on `group_members` checks that the group's current member count does not exceed `max_members`. If the limit has been reached, database operations throw an exception: `'Group member limit of % reached'`.
+
 ---
 
 ## 5. User Flows
@@ -111,10 +114,10 @@ To protect database operations and prevent recursive query loops, Row Level Secu
 ### A. Removing a Member
 ```mermaid
 sequenceDiagram
-    actor Admin as Group Admin / Creator
-    participant UI as Group Members UI
-    participant API as StudyGroupsService
-    participant DB as Supabase DB
+    actor Admin as "Group Admin / Creator"
+    participant UI as "Group Members UI"
+    participant API as "StudyGroupsService"
+    participant DB as "Supabase DB"
 
     Admin->>UI: Click "Remove Member" on a user card
     UI->>UI: Show Confirmation Alert Dialog
