@@ -45,6 +45,25 @@ export const FindFriendsPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  const handleOpenProfile = async (userId: string) => {
+    if (!user) return;
+    if (userId === user.id) return;
+
+    setSelectedPerson(null);
+    setLoadingProfile(true);
+    try {
+      const personData = await FriendsService.getUserProfile(userId, user.id);
+      if (personData) {
+        setSelectedPerson(personData);
+      }
+    } catch (err) {
+      console.error('Error opening user profile:', err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -210,6 +229,8 @@ export const FindFriendsPage = () => {
             prev.map((p) => p.id === friendUserId ? { ...p, status: 'pending' } : p)
           )
         }
+        loading={loadingProfile}
+        onOpenProfile={handleOpenProfile}
       />
     </div>
   );

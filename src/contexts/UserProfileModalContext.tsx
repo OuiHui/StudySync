@@ -123,6 +123,7 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
         onCancelRequest={handleCancelRequest}
         // We'll update the Dialog to handle a loading state
         loading={loading}
+        onOpenProfile={openProfile}
       />
     </UserProfileModalContext.Provider>
   );

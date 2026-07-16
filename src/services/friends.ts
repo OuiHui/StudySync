@@ -92,6 +92,31 @@ export class FriendsService {
     }
   }
 
+  // Get mutual friends (intersection of accepted friendships)
+  static async getMutualFriends(targetUserId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        return [];
+      }
+
+      const { data, error } = await supabase.rpc('get_mutual_friends', {
+        target_user_id: targetUserId,
+        current_user_id: session.user.id
+      });
+
+      if (error) {
+        console.error('Error fetching mutual friends:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching mutual friends:', error);
+      return [];
+    }
+  }
+
   // Get pending friend requests (received)
   static async getFriendRequests() {
     try {
@@ -352,12 +377,13 @@ export class FriendsService {
         else if (friendship.status === 'pending') status = 'pending';
       }
 
-      // 3. Get total friends count for target user
-      const { count: friendsCount } = await supabase
-        .from('friendships' as any)
-        .select('*', { count: 'exact', head: true })
-        .or(`user_id.eq.${targetUserId},friend_id.eq.${targetUserId}`)
-        .eq('status', 'accepted');
+      // 3. Get total friends count for target user using RPC to bypass RLS policy restriction
+      const { data: friendsList, error: countError } = await supabase
+        .rpc('get_user_friends', {
+          target_user_id: targetUserId,
+          current_user_id: currentUserId,
+        });
+      const friendsCount = !countError && friendsList ? friendsList.length : 0;
 
       // 4. Get public study groups for target user
       const { data: groupMembers, error: groupsError } = await supabase
@@ -374,30 +400,13 @@ export class FriendsService {
         });
       }
 
-      // 5. Get mutual friends count
-      const { data: currentUserFriendships } = await supabase
-        .from('friendships' as any)
-        .select('user_id, friend_id')
-        .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`)
-        .eq('status', 'accepted');
-
-      const { data: targetUserFriendships } = await supabase
-        .from('friendships' as any)
-        .select('user_id, friend_id')
-        .or(`user_id.eq.${targetUserId},friend_id.eq.${targetUserId}`)
-        .eq('status', 'accepted');
-
-      const currentUserFriendIds = new Set(
-        (currentUserFriendships || []).map((f: any) =>
-          f.user_id === currentUserId ? f.friend_id : f.user_id
-        )
-      );
-      const targetUserFriendIds = (targetUserFriendships || []).map((f: any) =>
-        f.user_id === targetUserId ? f.friend_id : f.user_id
-      );
-      const mutualFriendsCount = targetUserFriendIds.filter((id: string) =>
-        currentUserFriendIds.has(id)
-      ).length;
+      // 5. Get mutual friends count using RPC to bypass RLS policy restriction
+      const { data: mutualFriendsList, error: mutualError } = await supabase
+        .rpc('get_mutual_friends', {
+          target_user_id: targetUserId,
+          current_user_id: currentUserId,
+        });
+      const mutualFriendsCount = !mutualError && mutualFriendsList ? mutualFriendsList.length : 0;
 
       const name = profile.display_name || profile.email?.split('@')[0] || 'Unknown';
       const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || '👤';

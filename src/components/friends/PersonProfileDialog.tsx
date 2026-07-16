@@ -13,7 +13,7 @@ import {
   Calendar,
   Loader2,
 } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Person, FriendEntry, FriendStatus } from './types';
@@ -40,6 +40,7 @@ interface PersonProfileDialogProps {
   onCancelRequest: (id: string) => void;
   onRequestSent?: (friendUserId: string) => void;
   loading?: boolean;
+  onOpenProfile?: (userId: string) => void;
 }
 
 const GROUPS_PAGE_SIZE = 6;
@@ -62,6 +63,7 @@ export const PersonProfileDialog = ({
   onCancelRequest,
   onRequestSent,
   loading = false,
+  onOpenProfile,
 }: PersonProfileDialogProps) => {
   const [view, setView] = useState<'profile' | 'friends'>('profile');
   const [groupsExpanded, setGroupsExpanded] = useState(false);
@@ -70,13 +72,11 @@ export const PersonProfileDialog = ({
   const [loadingSessions, setLoadingSessions] = useState(false);
 
   useEffect(() => {
-    if (!open) {
-      setView('profile');
-      setGroupsExpanded(false);
-      setFriendsPreviews([]);
-      setSessions([]);
-    }
-  }, [open]);
+    setView('profile');
+    setGroupsExpanded(false);
+    setFriendsPreviews([]);
+    setSessions([]);
+  }, [person?.id, open]);
 
   useEffect(() => {
     if (!person || !open || view !== 'profile') return;
@@ -111,6 +111,8 @@ export const PersonProfileDialog = ({
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-gray-900 border-0">
+          <DialogTitle className="sr-only">Loading User Profile</DialogTitle>
+          <DialogDescription className="sr-only">Please wait while the user profile details are loading.</DialogDescription>
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-violet-500 mb-2" />
             <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">Loading profile...</p>
@@ -133,6 +135,10 @@ export const PersonProfileDialog = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
+        <DialogTitle className="sr-only">{person.name}'s Profile</DialogTitle>
+        <DialogDescription className="sr-only">
+          Detailed profile information for {person.name}, including their major, year, study groups, and friends.
+        </DialogDescription>
         <div className="overflow-y-auto max-h-[85vh] p-5">
           {view === 'profile' ? (
             <ProfileView
@@ -148,6 +154,7 @@ export const PersonProfileDialog = ({
               onViewAllFriends={() => setView('friends')}
               onAddFriend={onAddFriend}
               onCancelRequest={onCancelRequest}
+              onOpenProfile={onOpenProfile}
             />
           ) : (
             <FriendsListView
@@ -156,6 +163,7 @@ export const PersonProfileDialog = ({
               currentUserId={currentUserId}
               onBack={() => setView('profile')}
               onRequestSent={onRequestSent}
+              onOpenProfile={onOpenProfile}
             />
           )}
         </div>
@@ -179,6 +187,7 @@ interface ProfileViewProps {
   onViewAllFriends: () => void;
   onAddFriend: (id: string) => void;
   onCancelRequest: (id: string) => void;
+  onOpenProfile?: (userId: string) => void;
 }
 
 const ProfileView = ({
@@ -194,6 +203,7 @@ const ProfileView = ({
   onViewAllFriends,
   onAddFriend,
   onCancelRequest,
+  onOpenProfile,
 }: ProfileViewProps) => (
   <>
     {/* Header: avatar + name/email/button */}
@@ -277,9 +287,10 @@ const ProfileView = ({
               const fg = `${f.gradient_from} ${f.gradient_to}`;
               const ini = getInitials(f.display_name);
               return (
-                <div
+                <button
                   key={f.friend_user_id}
-                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${fg} flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0`}
+                  onClick={() => onOpenProfile?.(f.friend_user_id)}
+                  className={`w-9 h-9 rounded-full bg-gradient-to-br ${fg} flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform focus:outline-none`}
                   title={f.display_name}
                 >
                   {f.avatar_url ? (
@@ -287,7 +298,7 @@ const ProfileView = ({
                   ) : (
                     <span className="text-white text-xs font-bold">{ini}</span>
                   )}
-                </div>
+                </button>
               );
             })}
             {person.friendsCount > 5 && (

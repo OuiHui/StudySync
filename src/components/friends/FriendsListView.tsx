@@ -11,6 +11,7 @@ interface FriendsListViewProps {
   currentUserId: string;
   onBack: () => void;
   onRequestSent?: (friendUserId: string) => void;
+  onOpenProfile?: (userId: string) => void;
 }
 
 export const FriendsListView = ({
@@ -19,6 +20,7 @@ export const FriendsListView = ({
   currentUserId,
   onBack,
   onRequestSent,
+  onOpenProfile,
 }: FriendsListViewProps) => {
   const [friends, setFriends] = useState<FriendEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,33 +143,46 @@ export const FriendsListView = ({
                 key={friend.friend_user_id}
                 className="flex items-center gap-3 px-1 py-3 rounded-lg hover:bg-gray-55 dark:hover:bg-white/[0.03] transition-colors"
               >
-                {/* Avatar */}
-                <div
-                  className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}
+                {/* Clickable Profile wrapper */}
+                <button
+                  onClick={() => friend.friend_user_id !== currentUserId && onOpenProfile?.(friend.friend_user_id)}
+                  disabled={friend.friend_user_id === currentUserId}
+                  className={`flex items-center gap-3 flex-1 min-w-0 text-left focus:outline-none group ${
+                    friend.friend_user_id !== currentUserId ? 'cursor-pointer' : 'cursor-default'
+                  }`}
                 >
-                  {friend.avatar_url ? (
-                    <img
-                      src={friend.avatar_url}
-                      alt={friend.display_name}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white text-xs font-bold">{initials}</span>
-                  )}
-                </div>
+                  {/* Avatar */}
+                  <div
+                    className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}
+                  >
+                    {friend.avatar_url ? (
+                      <img
+                        src={friend.avatar_url}
+                        alt={friend.display_name}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white text-xs font-bold">{initials}</span>
+                    )}
+                  </div>
 
-                {/* Name + major */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-gray-900 dark:text-white truncate">
-                    {friend.display_name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-semibold">
-                    {friend.major || 'Unknown Major'}
-                  </p>
-                </div>
+                  {/* Name + major */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-gray-900 dark:text-white truncate group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors">
+                      {friend.display_name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-semibold">
+                      {friend.major || 'Unknown Major'}
+                    </p>
+                  </div>
+                </button>
 
                 {/* Mutual / Add friend */}
-                {isAccepted ? (
+                {friend.friend_user_id === currentUserId ? (
+                  <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 shrink-0">
+                    You
+                  </span>
+                ) : isAccepted ? (
                   <div className="flex items-center gap-1.5 shrink-0 text-emerald-500 dark:text-emerald-400">
                     <UserCheck size={15} />
                     <span className="text-sm font-semibold">Mutual!</span>

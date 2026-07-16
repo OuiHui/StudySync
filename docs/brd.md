@@ -44,7 +44,7 @@ The core objective is to create a frictionless, engaging digital environment whe
 ### E. User Profiles & Dashboard
 *   **Profile Metadata**: Display name, email, bio, major, school year, join date, custom gradient avatar, and cumulative study hours.
 *   **Dashboard Widgets**: Display summaries of study hours today/this week, active groups, notes shared, and recent study activities.
-*   **Privacy Management**: Control visibility of study stats, online presence, study group listings, and direct message permissions.
+*   **Privacy Management**: User profiles, friends lists, and study statistics are always visible to other registered users to promote collaboration and study network discovery. Public vs. private visibility constraints are reserved strictly for Study Groups and Study Sessions.
 *   **Notification Settings**: Toggle preferences for email alerts, push notifications, study session reminders, group messages, and friend requests.
 
 ### F. Real-time Messaging System

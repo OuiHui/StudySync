@@ -1,13 +1,12 @@
-import { Lock, Bell, Shield, Trash2, ChevronRight } from 'lucide-react';
+import { Lock, Bell, Trash2, ChevronRight } from 'lucide-react';
 
 interface ProfileSettingsProps {
   onChangePassword: () => void;
   onNotificationSettings: () => void;
-  onPrivacySettings: () => void;
   onDeleteAccount: () => void;
 }
 
-export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onPrivacySettings, onDeleteAccount }: ProfileSettingsProps) => {
+export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onDeleteAccount }: ProfileSettingsProps) => {
   const settingsItems = [
     {
       icon: Lock,
@@ -21,13 +20,6 @@ export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onPr
       label: 'Notifications',
       description: 'Manage email and push alerts',
       onClick: onNotificationSettings,
-      danger: false,
-    },
-    {
-      icon: Shield,
-      label: 'Privacy',
-      description: 'Control who can see your profile',
-      onClick: onPrivacySettings,
       danger: false,
     },
   ];
