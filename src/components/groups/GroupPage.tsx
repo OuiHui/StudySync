@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Loader2, Lock, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,7 +23,15 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [chatOpen, setChatOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('sessions');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'sessions';
+
+  const setActiveTab = (tab: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', tab);
+    setSearchParams(nextParams);
+  };
+
   const [enrolledOverride, setEnrolledOverride] = useState<boolean | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [invitations, setInvitations] = useState<any[]>([]);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { StudyGroups } from '@/components/groups/StudyGroups';
 import { StudyGroupsBrowse } from '@/components/groups/StudyGroupsBrowse';
 import { GroupPage } from '@/components/groups/GroupPage';
@@ -7,15 +8,30 @@ import { useGroupEnrollment } from '@/contexts/GroupEnrollmentContext';
 type GroupsTab = 'my-groups' | 'browse';
 
 export default function Groups() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedGroupId = searchParams.get('groupId');
   const [activeTab, setActiveTab] = useState<GroupsTab>('my-groups');
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const { groupEnrollments, handleUpdateEnrollment } = useGroupEnrollment();
+
+  const handleSelectGroup = (id: string | null) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (id) {
+      nextParams.set('groupId', id);
+      if (!nextParams.has('tab')) {
+        nextParams.set('tab', 'sessions');
+      }
+    } else {
+      nextParams.delete('groupId');
+      nextParams.delete('tab');
+    }
+    setSearchParams(nextParams);
+  };
 
   if (selectedGroupId) {
     return (
       <GroupPage
         groupId={selectedGroupId}
-        onBack={() => setSelectedGroupId(null)}
+        onBack={() => handleSelectGroup(null)}
         onUpdateEnrollment={handleUpdateEnrollment}
       />
     );
@@ -37,10 +53,10 @@ export default function Groups() {
       </div>
 
       {activeTab === 'my-groups' ? (
-        <StudyGroups onSelectGroup={setSelectedGroupId} />
+        <StudyGroups onSelectGroup={handleSelectGroup} />
       ) : (
         <StudyGroupsBrowse
-          onSelectGroup={setSelectedGroupId}
+          onSelectGroup={handleSelectGroup}
           onUpdateEnrollment={handleUpdateEnrollment}
         />
       )}
