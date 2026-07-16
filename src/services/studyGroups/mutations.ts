@@ -112,6 +112,30 @@ export class StudyGroupsMutations {
     }
   }
 
+  static async removeMember(groupId: string, userId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required to remove members');
+      }
+
+      const { error } = await supabase
+        .from('group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('user_id', userId);
+
+      if (error) {
+        handleDbError(error, 'remove member');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error removing member:', error);
+      throw error;
+    }
+  }
+
   static async updateGroup(id: string, updates: Partial<StudyGroup>) {
     try {
       const session = await checkAuth();

@@ -224,7 +224,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
                 <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />
               )}
               {activeTab === 'notes' && <CollaborativeNotes groupId={group.id} groupName={group.name} />}
-              {activeTab === 'members' && <GroupMembersTab members={members} groupId={group.id} />}
+              {activeTab === 'members' && <GroupMembersTab members={members} groupId={group.id} group={group} />}
             </>
           )}
         </div>

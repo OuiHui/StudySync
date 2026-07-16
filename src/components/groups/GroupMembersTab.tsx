@@ -1,17 +1,56 @@
 import { useState, useEffect } from 'react';
-import { Users, Crown, ChevronRight, UserCheck, Clock, UserPlus } from 'lucide-react';
+import { Users, Crown, ChevronRight, UserCheck, Clock, UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
-import { FriendsService } from '@/services/database';
+import { FriendsService, StudyGroupsService } from '@/services/database';
 import { InviteFriendsDialog } from '../friends/InviteFriendsDialog';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-export const GroupMembersTab = ({ members, groupId }: { members: any[]; groupId: string }) => {
+export const GroupMembersTab = ({ 
+  members, 
+  groupId,
+  group 
+}: { 
+  members: any[]; 
+  groupId: string;
+  group?: any;
+}) => {
   const { user } = useAuth();
   const { openProfile } = useUserProfileModal();
+  const queryClient = useQueryClient();
   const [friendships, setFriendships] = useState<Record<string, 'friends' | 'pending' | 'none'>>({});
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<any | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+    setRemovingId(memberToRemove.id);
+    try {
+      await StudyGroupsService.removeMember(groupId, memberToRemove.id);
+      toast.success(`${memberToRemove.name} has been removed from the group.`);
+      await queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+    } catch (err) {
+      console.error('Error removing member:', err);
+      toast.error('Failed to remove member. Please try again.');
+    } finally {
+      setRemovingId(null);
+      setMemberToRemove(null);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -64,6 +103,17 @@ export const GroupMembersTab = ({ members, groupId }: { members: any[]; groupId:
           const initials = member.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2);
           const friendshipStatus = friendships[member.id] || 'none';
           
+          const currentUserMember = members.find(m => m.id === user?.id);
+          const isCreator = group?.created_by === user?.id;
+          const isUserAdmin = currentUserMember?.role === 'admin' || isCreator;
+          
+          const canRemoveMember = isUserAdmin && 
+            !isCurrentUser && 
+            member.id !== group?.created_by && 
+            (isCreator || member.role !== 'admin');
+            
+          const isRemovingThisMember = removingId === member.id;
+          
           return (
             <Card 
               key={member.id} 
@@ -113,10 +163,31 @@ export const GroupMembersTab = ({ members, groupId }: { members: any[]; groupId:
                   </div>
                 </div>
                 
-                {/* Click indicator */}
+                {/* Actions / Click indicator */}
                 {!isCurrentUser && (
-                  <div className="text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all pl-2 shrink-0">
-                    <ChevronRight size={16} />
+                  <div className="flex items-center space-x-1 shrink-0 pl-2">
+                    {canRemoveMember && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full transition-colors"
+                        disabled={removingId !== null}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMemberToRemove(member);
+                        }}
+                        title={`Remove ${member.name} from group`}
+                      >
+                        {isRemovingThisMember ? (
+                          <Loader2 size={15} className="animate-spin text-red-500" />
+                        ) : (
+                          <UserMinus size={15} />
+                        )}
+                      </Button>
+                    )}
+                    <div className="text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all pl-1">
+                      <ChevronRight size={16} />
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -131,6 +202,26 @@ export const GroupMembersTab = ({ members, groupId }: { members: any[]; groupId:
         type="group"
         id={groupId}
       />
+
+      <AlertDialog open={memberToRemove !== null} onOpenChange={(open) => !open && setMemberToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove <strong>{memberToRemove?.name}</strong> from the study group? This will revoke their access to shared resources, collaborative notes, and group chat.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRemoveMember}
+              className="bg-red-600 hover:bg-red-700 text-white focus:ring-red-600"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -675,7 +675,30 @@ export function SimulationConsole() {
                     Leave
                   </button>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 border-t border-slate-900/60 pt-2 mt-1">
+                  <span className="text-xs text-slate-400 w-16 font-medium">Kick User:</span>
+                  <select
+                    value={targetUserId}
+                    onChange={(e) => setTargetUserId(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                  >
+                    {targets.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} {u.id === mainUser?.id ? ' (You)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => executeBotAction(async () => {
+                      const bot = await simulationManager.bot(currentBot.id);
+                      await bot.kickGroupMember(groupSearch, targetUserId);
+                    })}
+                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium shrink-0"
+                  >
+                    Kick
+                  </button>
+                </div>
+                <div className="flex gap-2 border-t border-slate-900/60 pt-2 mt-1">
                   <input
                     type="text"
                     value={groupMessageContent}

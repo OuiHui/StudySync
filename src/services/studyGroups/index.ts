@@ -13,6 +13,7 @@ export class StudyGroupsService {
   static createGroup = StudyGroupsMutations.createGroup;
   static joinGroup = StudyGroupsMutations.joinGroup;
   static leaveGroup = StudyGroupsMutations.leaveGroup;
+  static removeMember = StudyGroupsMutations.removeMember;
   static updateGroup = StudyGroupsMutations.updateGroup;
   static deleteGroup = StudyGroupsMutations.deleteGroup;
   static inviteUserToGroup = StudyGroupsMutations.inviteUserToGroup;

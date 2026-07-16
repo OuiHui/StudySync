@@ -22,7 +22,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Notifications System**          | [/] Partial | UI NotificationCenter modal exists with stubs; lacks DB table and backend connection. |
 | **Group Session Layout** | [/] Partial | Workspace wraps poorly and overflows on average monitors. |
 | **Group Member Limit Enforce**| [ ] Pending | Maximum members specified in group config is not validated on join. |
-| **Group Member Moderation** | [ ] Pending | Admin/creator cannot kick members from groups due to RLS limit. |
+| **Group Member Moderation** | [x] Done | Admin/creator can kick members using the updated RLS delete policy. |
 | **PDF Note Attachments** | [x] Done | File/PDF upload capability integrates with secure study_materials bucket. |
 | **Friend's Friends List Lookup**| [ ] Pending | Cannot query or display mutual friends or friends of friends. |
 | **Editing Goals**| [ ] Pending | Should be able to add end date for goals that show up on calendar. |
@@ -95,12 +95,10 @@ This document tracks completed systems, details current gaps, and lists future t
 2.  **Real User Notifications Table**:
     *   Currently, the notifications list is empty because no table exists to track reminders, invites, or requests. A `notifications` table (storing `sender_id`, `receiver_id`, `type`, `content`, `read_status`) is required.
     *   **Database Triggers/Functions**: Need DB triggers/functions to automatically create notification entries when specific actions occur (e.g., when a friendship row is created/modified, or when a group session invite is sent).
-3.  **Group Creator / Admin Moderation RLS**:
-    *   The `group_members` delete policy restricts deletes:
-        `CREATE POLICY "Users can delete own memberships" ON public.group_members FOR DELETE USING (auth.uid() = user_id);`
-    *   An additional policy is required to allow group admins to eject members:
-        `USING (public.is_group_creator(auth.uid(), group_id))` or checking member role.
-    *   Need to implement a group kick RPC or backend utility method in services.
+3.  **Group Creator / Admin Moderation RLS**: [x] Done
+    *   Added helper function `public.is_group_admin(user_uuid, group_uuid)` to verify admin status without RLS recursion.
+    *   Updated the `group_members` delete policy to allow deletes if the user is a group admin or if it is their own membership record.
+    *   Added `removeMember` API mutation method.
 4.  **Backend Join Verification (Member Limits)**:
     *   The join group endpoint needs database triggers or checking functions to verify that the group's current size is strictly less than its `max_members` limit before allowing insert.
 5.  **PDF/Storage Buckets Configuration** [x] Done:

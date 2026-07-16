@@ -220,6 +220,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.study_sessions;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.session_participants;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.session_goals;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.group_members;
 ```
 
 ### B. PostgreSQL Replica Identity (`REPLICA IDENTITY FULL`)
@@ -231,6 +232,7 @@ ALTER TABLE public.notifications REPLICA IDENTITY FULL;
 ALTER TABLE public.study_sessions REPLICA IDENTITY FULL;
 ALTER TABLE public.session_participants REPLICA IDENTITY FULL;
 ALTER TABLE public.session_goals REPLICA IDENTITY FULL;
+ALTER TABLE public.group_members REPLICA IDENTITY FULL;
 ```
 
 ### C. Row-Level Security (RLS) Policy Compatibility

@@ -300,6 +300,28 @@ export class SimulatedUserBot {
     this.manager.log(`✅ Bot ${this.user.name} left the group.`);
   }
 
+  async kickGroupMember(groupIdentifier: string, targetIdentifier: string) {
+    await this.ensureAuth();
+    const groupId = await this.resolveGroupId(groupIdentifier);
+    const targetId = await this.resolveUserId(targetIdentifier);
+    const targetName = MOCK_USERS.find(u => u.id === targetId)?.name || targetIdentifier;
+
+    this.manager.log(`Bot ${this.user.name} is kicking ${targetName} from group ID ${groupId}...`);
+
+    const { error } = await this.client
+      .from('group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', targetId);
+
+    if (error) {
+      this.manager.log(`❌ Error kicking member: ${error.message}`);
+      throw error;
+    }
+
+    this.manager.log(`✅ Bot ${this.user.name} kicked ${targetName} from the group.`);
+  }
+
   async sendMessage(targetUserIdentifier: string, content: string) {
     await this.ensureAuth();
     const targetId = await this.resolveUserId(targetUserIdentifier);
