@@ -51,17 +51,17 @@ Tracks pending, accepted, or declined invitations for private groups.
 
 ## 2. Visibility & Access Rules
 
-Study Groups support two visibility modes:
+All Study Groups, regardless of their public or private status, are visible and discoverable to users (e.g. in search results, browse lists, or user profiles). The distinction lies in joining and access:
 
 1. **Public Groups (`is_public = true`)**:
-   - Anyone can discover them in the **Browse Groups** page.
+   - Discoverable by everyone in the **Browse Groups** page.
    - Any user can join directly (creating a `group_members` row with role `'member'`).
-   - Non-members can view general group details and active sessions, but must join to access chat and edit notes.
+   - Non-members can view general group details, but must join to access chat and edit notes.
 
 2. **Private Groups (`is_public = false`)**:
-   - Hidden from general search results for non-members.
-   - Joining requires a pending invitation in `group_invitations` with `'pending'` status.
-   - Access to pages, chat, notes, and sessions is restricted strictly to members, creators, or users with pending invitations.
+   - Discoverable by everyone in search and group browse lists.
+   - Direct join is blocked. Joining strictly requires a pending invitation in `group_invitations` with `'pending'` status.
+   - Access to internal details (chat, notes, active sessions, and member list) is restricted to members, creators, or users with pending invitations. Non-members will see the group metadata and an inline locked/invite-required notice.
 
 ---
 
@@ -71,7 +71,7 @@ Permissions are structured hierarchically:
 
 | Action | Creator | Admin | Member | Guest / Non-Member |
 | :--- | :---: | :---: | :---: | :---: |
-| **View Group Details** | Yes | Yes | Yes | Public Groups Only |
+| **View Group Details** | Yes | Yes | Yes | Yes |
 | **Join Group** | N/A | N/A | N/A | Public Groups / If Invited |
 | **Leave Group** | Yes | Yes | Yes | N/A |
 | **Edit Group Settings** | Yes | No | No | No |

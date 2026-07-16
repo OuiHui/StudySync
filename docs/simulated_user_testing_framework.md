@@ -67,7 +67,7 @@ Each bot exposes the following chainable/async methods:
 - **`sendFriendRequest(targetNameOrEmailOrId)`**: Send a friend request to another user.
 - **`acceptFriendRequest(senderNameOrEmailOrId)`**: Accept a pending friend request from another user.
 - **`rejectFriendRequest(senderNameOrEmailOrId)`**: Decline/delete a pending request.
-- **`createGroup(name, description, subject, maxMembers?)`**: Create a new study group.
+- **`createGroup(name, description, subject, maxMembers?, isPublic?)`**: Create a new study group (visibility defaults to public/true).
 - **`joinGroup(groupIdOrName)`**: Join a study group as a member.
 - **`leaveGroup(groupIdOrName)`**: Leave a study group.
 - **`sendMessage(targetNameOrEmailOrId, content)`**: Send a direct message to a user (automatically creating a conversation if needed).

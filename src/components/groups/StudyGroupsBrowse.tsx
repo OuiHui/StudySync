@@ -19,7 +19,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
 
-  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup } = usePublicGroups({}, onUpdateEnrollment);
+  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup, handleJoinGroup } = usePublicGroups({}, onUpdateEnrollment);
   const { studyGroups: myGroups } = useUserGroups();
 
   const myGroupIds = useMemo(() => new Set(myGroups.map(g => g.id)), [myGroups]);
@@ -109,6 +109,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
                 isMyGroupPage={false}
                 currentUserId={user?.id}
                 onClick={() => onSelectGroup(group.id)}
+                onJoinGroup={() => handleJoinGroup(group.id)}
               />
             ))}
           </div>

@@ -385,7 +385,7 @@ export class FriendsService {
         });
       const friendsCount = !countError && friendsList ? friendsList.length : 0;
 
-      // 4. Get public study groups for target user
+      // 4. Get study groups for target user (all visible groups)
       const { data: groupMembers, error: groupsError } = await supabase
         .from('group_members' as any)
         .select('group_id, study_groups(name, is_public)')
@@ -394,7 +394,7 @@ export class FriendsService {
       const publicGroups: string[] = [];
       if (!groupsError && groupMembers) {
         groupMembers.forEach((gm: any) => {
-          if (gm.study_groups && gm.study_groups.is_public) {
+          if (gm.study_groups) {
             publicGroups.push(gm.study_groups.name);
           }
         });

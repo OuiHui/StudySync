@@ -99,16 +99,18 @@ export const GroupPageHeader = ({
                   {members.length} / {group.max_members}
                 </span>
               )}
-              <Button
-                onClick={onChatToggle}
-                variant="outline"
-                size="icon"
-                className={`h-9 w-9 border-gray-800 bg-gray-950 hover:bg-gray-900 text-gray-400 hover:text-white ${
-                  chatOpen ? 'border-blue-500 text-blue-400 bg-gray-900' : ''
-                }`}
-              >
-                <PanelRight size={18} />
-              </Button>
+              {(enrolled || user?.id === group.created_by) && (
+                <Button
+                  onClick={onChatToggle}
+                  variant="outline"
+                  size="icon"
+                  className={`h-9 w-9 border-gray-800 bg-gray-950 hover:bg-gray-900 text-gray-400 hover:text-white ${
+                    chatOpen ? 'border-blue-500 text-blue-400 bg-gray-900' : ''
+                  }`}
+                >
+                  <PanelRight size={18} />
+                </Button>
+              )}
               {group.user_role === 'admin' && (
                 <Button
                   onClick={onSettingsOpen}
@@ -125,17 +127,27 @@ export const GroupPageHeader = ({
                     Leave Group
                   </Button>
                 ) : (
-                  <Button 
-                    onClick={onJoinGroup} 
-                    disabled={!!isFull}
-                    size="sm" 
-                    className={isFull 
-                      ? "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed hover:bg-zinc-800" 
-                      : "bg-green-600 hover:bg-green-700 text-white"
-                    }
-                  >
-                    {isFull ? 'Group Full' : 'Join Group'}
-                  </Button>
+                  group.is_public !== false ? (
+                    <Button 
+                      onClick={onJoinGroup} 
+                      disabled={!!isFull}
+                      size="sm" 
+                      className={isFull 
+                        ? "bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed hover:bg-zinc-800" 
+                        : "bg-green-600 hover:bg-green-700 text-white"
+                      }
+                    >
+                      {isFull ? 'Group Full' : 'Join Group'}
+                    </Button>
+                  ) : (
+                    <Button 
+                      disabled
+                      size="sm" 
+                      className="bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed"
+                    >
+                      Invite Required
+                    </Button>
+                  )
                 )
               )}
             </div>

@@ -199,7 +199,7 @@ export class SimulatedUserBot {
     this.manager.log(`✅ Friend request from ${senderName} declined/removed by ${this.user.name}.`);
   }
 
-  async createGroup(name: string, description: string, subject: string, maxMembers = 10): Promise<string> {
+  async createGroup(name: string, description: string, subject: string, maxMembers = 10, isPublic = true): Promise<string> {
     await this.ensureAuth();
     this.manager.log(`Bot ${this.user.name} is creating study group "${name}"...`);
 
@@ -209,7 +209,7 @@ export class SimulatedUserBot {
         name,
         description,
         subject,
-        is_public: true,
+        is_public: isPublic,
         created_by: this.user.id,
         max_members: maxMembers
       })
@@ -234,7 +234,7 @@ export class SimulatedUserBot {
       this.manager.log(`❌ Error adding creator to group: ${memberError.message}`);
     }
 
-    this.manager.log(`✅ Group "${name}" created successfully by ${this.user.name}. ID: ${group.id}`);
+    this.manager.log(`✅ Group "${name}" (${isPublic ? 'Public' : 'Private'}) created successfully by ${this.user.name}. ID: ${group.id}`);
     return group.id;
   }
 

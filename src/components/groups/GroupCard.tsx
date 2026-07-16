@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Crown, Settings, BookOpen, MessageSquare, Calendar, Globe, Lock, ArrowRight, Calculator, Atom, Code, Music, Camera, Heart, Star, Zap } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GroupCardProps {
   group: any;
@@ -8,6 +10,7 @@ interface GroupCardProps {
   onClick: () => void;
   openGroupSettings?: (group: any) => void;
   openChat?: (groupName: string, groupId: string) => void;
+  onJoinGroup?: () => void;
 }
 
 export const GroupCard = ({
@@ -16,9 +19,61 @@ export const GroupCard = ({
   currentUserId,
   onClick,
   openGroupSettings,
-  openChat
+  openChat,
+  onJoinGroup
 }: GroupCardProps) => {
   const [isUnread, setIsUnread] = useState(false);
+  const [hasRequested, setHasRequested] = useState(false);
+
+  useEffect(() => {
+    const requested = localStorage.getItem(`studysync_group_request_${group.id}`) === 'true';
+    setHasRequested(requested);
+  }, [group.id]);
+
+  const handleJoin = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onJoinGroup) {
+      onJoinGroup();
+    }
+  };
+
+  const handleRequest = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("You must be logged in to request an invite");
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('group_invitations' as any)
+        .insert({
+          group_id: group.id,
+          invited_user_id: group.created_by, // Send to group creator
+          invited_by_id: session.user.id,    // Requester is current user
+          status: 'pending',
+          is_request: true
+        });
+
+      if (error) {
+        if (error.message.includes('unique')) {
+          toast.info("You have already requested to join this group.");
+          localStorage.setItem(`studysync_group_request_${group.id}`, 'true');
+          setHasRequested(true);
+          return;
+        }
+        throw error;
+      }
+
+      localStorage.setItem(`studysync_group_request_${group.id}`, 'true');
+      setHasRequested(true);
+      toast.success("Join request sent to the group administrator!");
+    } catch (err: any) {
+      console.error("Error requesting group invite:", err);
+      toast.error(err.message || "Failed to send join request");
+    }
+  };
 
   const groupCreatorId = group.created_by;
   const userRole = group.user_role || group.role;
@@ -214,6 +269,36 @@ export const GroupCard = ({
                 )}
               </div>
               <ArrowRight size={14} className="group-hover/chat:translate-x-1 transition-transform flex-shrink-0 text-zinc-400 dark:text-zinc-500 group-hover/chat:text-blue-500" />
+            </div>
+          </>
+        )}
+        {/* Actions Row (Browse mode only) */}
+        {!isMyGroupPage && (
+          <>
+            <hr className="border-zinc-200 dark:border-zinc-800 my-4" />
+            <div className="flex items-center justify-end">
+              {group.is_public ? (
+                <button
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  onClick={handleJoin}
+                >
+                  <ArrowRight size={14} />
+                  Join Group
+                </button>
+              ) : (
+                <button
+                  className={`w-full text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                    hasRequested 
+                      ? 'bg-zinc-800 border border-zinc-700 text-zinc-400 cursor-not-allowed'
+                      : 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
+                  }`}
+                  disabled={hasRequested}
+                  onClick={handleRequest}
+                >
+                  <Lock size={12} />
+                  {hasRequested ? 'Request Pending' : 'Request Invite'}
+                </button>
+              )}
             </div>
           </>
         )}

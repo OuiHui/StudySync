@@ -132,14 +132,20 @@ export function SimulationConsole() {
       // 5. Group invitations received
       const { data: grpInvites } = await mainSupabase
         .from('group_invitations' as any)
-        .select('group_id, study_groups(name)')
+        .select('group_id, study_groups(name), is_request, invited_by_id')
         .eq('invited_user_id', selectedBotId)
         .eq('status', 'pending');
       
-      setBotPendingGroupInvites((grpInvites || []).map((gi: any) => ({
-        groupId: gi.group_id,
-        groupName: gi.study_groups?.name
-      })).filter(gi => gi.groupId));
+      setBotPendingGroupInvites((grpInvites || []).map((gi: any) => {
+        const requester = MOCK_USERS.find(u => u.id === gi.invited_by_id);
+        const requesterName = requester ? requester.name : (gi.invited_by_id === mainUser?.id ? 'You' : 'Someone');
+        return {
+          groupId: gi.group_id,
+          groupName: gi.study_groups?.name,
+          isRequest: gi.is_request === true,
+          requesterName
+        };
+      }).filter(gi => gi.groupId));
 
       // 6. Session invitations received
       const { data: sesInvites } = await mainSupabase
@@ -170,6 +176,7 @@ export function SimulationConsole() {
   const [groupName, setGroupName] = useState('');
   const [groupSubject, setGroupSubject] = useState('Computer Science');
   const [groupDesc, setGroupDesc] = useState('');
+  const [groupIsPublic, setGroupIsPublic] = useState(true);
 
   // Study Session state
   const [sessionSearch, setSessionSearch] = useState('');
@@ -432,7 +439,12 @@ export function SimulationConsole() {
                   </span>
                   {botPendingGroupInvites.map(gi => (
                     <div key={gi.groupId} className="flex justify-between items-center bg-slate-950 p-1.5 rounded gap-2">
-                      <span className="text-slate-400 font-medium truncate">Group: {gi.groupName}</span>
+                      <span className="text-slate-400 font-medium truncate">
+                        {gi.isRequest 
+                          ? `Request: ${gi.requesterName} wants to join ${gi.groupName}`
+                          : `Invite: Join ${gi.groupName}`
+                        }
+                      </span>
                       <div className="flex gap-1 shrink-0">
                         <button
                           onClick={() => executeBotAction(async () => {
@@ -441,7 +453,7 @@ export function SimulationConsole() {
                           })}
                           className="px-2 py-0.5 bg-emerald-600/30 text-emerald-400 rounded text-[10px] hover:bg-emerald-600/40 font-semibold"
                         >
-                          Accept
+                          {gi.isRequest ? 'Approve' : 'Accept'}
                         </button>
                         <button
                           onClick={() => executeBotAction(async () => {
@@ -450,7 +462,7 @@ export function SimulationConsole() {
                           })}
                           className="px-2 py-0.5 bg-rose-600/30 text-rose-400 rounded text-[10px] hover:bg-rose-600/40 font-semibold"
                         >
-                          Decline
+                          {gi.isRequest ? 'Reject' : 'Decline'}
                         </button>
                       </div>
                     </div>
@@ -743,18 +755,28 @@ export function SimulationConsole() {
                   className="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
                 />
               </div>
-              <input
-                type="text"
-                value={groupDesc}
-                onChange={(e) => setGroupDesc(e.target.value)}
-                placeholder="Description..."
-                className="w-full bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
-              />
+              <div className="grid grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  value={groupDesc}
+                  onChange={(e) => setGroupDesc(e.target.value)}
+                  placeholder="Description..."
+                  className="col-span-2 bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
+                />
+                <select
+                  value={groupIsPublic ? 'public' : 'private'}
+                  onChange={(e) => setGroupIsPublic(e.target.value === 'public')}
+                  className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
               <button
                 onClick={() => executeBotAction(async () => {
                   if (!groupName.trim()) return;
                   const bot = await simulationManager.bot(currentBot.id);
-                  await bot.createGroup(groupName, groupDesc, groupSubject);
+                  await bot.createGroup(groupName, groupDesc, groupSubject, 10, groupIsPublic);
                   setGroupName('');
                   setGroupDesc('');
                 })}

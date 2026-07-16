@@ -135,23 +135,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
   const isInvited = invitations.some(inv => inv.invited_user_id === user?.id && inv.status === 'pending');
   const hasAccess = group.is_public !== false || enrolled || isCreator || isInvited;
 
-  if (!hasAccess) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 animate-fade-in bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-8">
-        <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full">
-          <Lock size={48} />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Private Group</h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md">
-          This is a private study group. You cannot access this page unless you have been invited by a member of the group.
-        </p>
-        <Button onClick={onBack} variant="outline" className="mt-4">
-          <ArrowLeft size={16} className="mr-2" />
-          Go Back
-        </Button>
-      </div>
-    );
-  }
+
 
   const showInvitePrompt = group.is_public === false && !enrolled && !isCreator && isInvited;
 
@@ -193,7 +177,17 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
       
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         <div className="flex-1 min-w-0 w-full">
-          {showInvitePrompt ? (
+          {!hasAccess ? (
+            <div className="bg-amber-500/5 border border-amber-500/20 dark:border-amber-500/10 rounded-2xl p-8 text-center space-y-4 my-6">
+              <div className="mx-auto w-12 h-12 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center">
+                <Lock size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white">Private Group</h3>
+              <p className="text-sm text-gray-650 dark:text-gray-400 max-w-md mx-auto leading-relaxed">
+                This is a private study group. You cannot access its shared sessions, notes, members, or group chat unless you have been invited by an existing group member.
+              </p>
+            </div>
+          ) : showInvitePrompt ? (
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 text-center space-y-4 my-6">
               <h3 className="text-lg font-bold text-gray-800 dark:text-white">You've been invited to join this group!</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md mx-auto">
@@ -238,7 +232,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
           )}
         </div>
 
-        {chatOpen && !showInvitePrompt && (
+        {chatOpen && hasAccess && !showInvitePrompt && (
           <div className="w-full lg:w-80 shrink-0 sticky top-6 border-l dark:border-gray-700 pl-6 h-[600px]">
             <ChatPopup isOpen={chatOpen} onClose={() => setChatOpen(false)} groupName={group.name} groupId={group.id} isInline={true} />
           </div>
