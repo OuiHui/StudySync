@@ -3,7 +3,6 @@ import { useOutletContext } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { StudySessionsService } from '@/services/database';
 import { ReflectionDialog } from './ReflectionDialog';
 import { SessionSettings } from './SessionSettings';
 import { TimerDisplay } from './TimerDisplay';
@@ -118,48 +117,35 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
     setSavingReflection(true);
     try {
       const minutesStudied = Math.round(sessions * (workDuration / 60));
-      await StudySessionsService.createSession({
-        title: "Solo Study Session",
-        scheduled_start: startTime || new Date().toISOString(),
-        scheduled_end: new Date().toISOString(),
-        subject: "Solo Study",
-        target_duration: minutesStudied
-      });
-      
-      // Get the latest created session by the user and update reflections/minutes
-      const { data: latestSession } = await supabase
+      const endTime = new Date().toISOString();
+
+      const { error } = await supabase
         .from('study_sessions')
-        .select('id')
-        .eq('created_by', user?.id || '')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-        
-      if (latestSession) {
-        await supabase
-          .from('study_sessions')
-          .update({
-            reflection_rating: rating,
-            reflection_notes: notes,
-            status: 'finished',
-            actual_start: startTime,
-            actual_end: new Date().toISOString(),
-            minutes_studied: minutesStudied
-          } as any)
-          .eq('id', latestSession.id);
-      }
-      
+        .insert({
+          title: 'Solo Study Session',
+          subject: 'Solo Study',
+          scheduled_start: startTime || endTime,
+          scheduled_end: endTime,
+          actual_start: startTime,
+          actual_end: endTime,
+          target_duration: minutesStudied,
+          minutes_studied: minutesStudied,
+          reflection_rating: rating,
+          reflection_notes: notes,
+          status: 'finished',
+          created_by: user?.id,
+        });
+
+      if (error) throw error;
+
       toast({
-        title: "Session saved",
-        description: `Successfully logged ${minutesStudied} minutes of study!`
+        title: 'Session saved',
+        description: `Successfully logged ${minutesStudied} minutes of study!`,
       });
       resetTimer();
     } catch (err) {
       console.error(err);
-      toast({
-        title: "Error saving session",
-        variant: "destructive"
-      });
+      toast({ title: 'Error saving session', variant: 'destructive' });
     } finally {
       setSavingReflection(false);
     }
