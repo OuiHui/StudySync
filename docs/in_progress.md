@@ -32,7 +32,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Study Group Page Redesign** | [ ] Pending | Redesign the study group page layout, usability, and design aesthetics. |
 | **Dropdown Transitions** | [ ] Pending | Make all dropdown menus across the app have smooth entry/exit animations. |
 | **Code Cleanup / Deduplication** | [ ] Pending | Refactor components and services to reduce duplicated/re-used code. |
-| **Session History** | [ ] Pending | View list of past study sessions with durations and dates. |
+| **Session History** | [x] Done | Profile page shows past sessions with duration, date, and solo/group context. |
 | **Simulated User Testing Framework** | [x] Done | Control stub bots via programmatic function calls and instant toggle login overlay in Dev mode. |
 
 
@@ -74,8 +74,8 @@ This document tracks completed systems, details current gaps, and lists future t
 ### I. Code Quality & Refactoring
 *   **Reduce Re-used Code**: Identify, consolidate, and eliminate duplicate logic/code patterns across the components and service files.
 
-### J. Session History
-*   **Session History UI**: Design and build a page, modal, or section (e.g., extending the Dashboard or Profile) that allows users to view a list of all their past study sessions with details like title, duration, type (solo/group), and date/time.
+### J. Session History [x] Done
+*   **Session History UI**: Session history card added to the profile page. Shows past finished/cancelled sessions with title, date, duration, subject, and solo/group badge (with group name). Paginated with "Load more".
 
 ### K. Simulated User Testing Framework [x] Done
 *   **Bot Action Runner**: [x] Built simulation service (`src/services/simulation.ts`) and global manager.
@@ -94,9 +94,8 @@ This document tracks completed systems, details current gaps, and lists future t
 2.  **Real User Notifications Table**:
     *   Currently, the notifications list is empty because no table exists to track reminders, invites, or requests. A `notifications` table (storing `sender_id`, `receiver_id`, `type`, `content`, `read_status`) is required.
     *   **Database Triggers/Functions**: Need DB triggers/functions to automatically create notification entries when specific actions occur (e.g., when a friendship row is created/modified, or when a group session invite is sent).
-3.  **Session History Database & API**:
-    *   Ensure all finished/completed study sessions (both solo and group) are correctly stored in the database (e.g., `study_sessions` or `session_participants` with finished status and actual duration).
-    *   Expose helper functions in services (e.g., in `StudySessionsService` or `ProfileService`) to fetch the paginated history of a user's completed study sessions.
+3.  **Session History Database & API**: [x] Done
+    *   `get_my_session_history` RPC added (`20260717000000_add_session_history_rpc.sql`). Returns the authenticated user's finished/completed/cancelled sessions including private ones, with group name and participant count.
 
 ## 4. Bugs
 - Clicking on a friend in the friend list does not show their profile page.

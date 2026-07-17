@@ -1,6 +1,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth } from '../utils';
 
+export interface SessionHistoryItem {
+  id: string;
+  title: string;
+  subject: string | null;
+  status: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  group_id: string | null;
+  group_name: string | null;
+  is_solo: boolean;
+  participant_count: number;
+}
+
 const STUDY_SESSION_SELECT = `
   *,
   study_groups (
@@ -291,6 +304,28 @@ export class StudySessionsQueries {
     } catch (error) {
       console.error('Error fetching session:', error);
       throw error;
+    }
+  }
+
+  static async getSessionHistory(limit = 20, offset = 0) {
+    try {
+      const session = await checkAuth();
+      if (!session) return [];
+
+      const { data, error } = await supabase.rpc('get_my_session_history', {
+        p_limit: limit,
+        p_offset: offset,
+      });
+
+      if (error) {
+        console.error('Error fetching session history:', error);
+        return [];
+      }
+
+      return (data ?? []) as SessionHistoryItem[];
+    } catch (error) {
+      console.error('Error fetching session history:', error);
+      return [];
     }
   }
 

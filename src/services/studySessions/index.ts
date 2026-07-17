@@ -1,6 +1,8 @@
-import { StudySessionsQueries } from './queries';
+import { StudySessionsQueries, SessionHistoryItem } from './queries';
 import { StudySessionsMutations } from './mutations';
 import { SessionGoalsService } from './goals';
+
+export type { SessionHistoryItem };
 
 export class StudySessionsService {
   // Queries
@@ -11,6 +13,7 @@ export class StudySessionsService {
   static getSessionGoals = SessionGoalsService.getSessionGoals;
   static getGoals = SessionGoalsService.getSessionGoals;
   static getParticipants = StudySessionsQueries.getParticipants;
+  static getSessionHistory = StudySessionsQueries.getSessionHistory;
 
 
   // Mutations
