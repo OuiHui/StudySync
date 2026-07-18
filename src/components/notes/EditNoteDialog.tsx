@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, X } from 'lucide-react';
 import { CollaborativeNote } from '@/hooks/useCollaborativeNotes';
-import { MarkdownEditor } from './MarkdownEditor';
+import { MarkdownEditor } from './MarkdownEditor/index';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { FileViewer } from './FileViewer';
 

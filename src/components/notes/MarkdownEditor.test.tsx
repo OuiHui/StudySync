@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MarkdownEditor } from './MarkdownEditor';
+import { MarkdownEditor } from './MarkdownEditor/index';
 
 describe('MarkdownEditor Component', () => {
   it('renders dropdown select style and formatting buttons', () => {

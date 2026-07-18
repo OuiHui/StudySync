@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UploadMaterialPopup } from './UploadMaterialPopup';
-import { MarkdownEditor } from './MarkdownEditor';
+import { MarkdownEditor } from './MarkdownEditor/index';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { FileViewer } from './FileViewer';
 
