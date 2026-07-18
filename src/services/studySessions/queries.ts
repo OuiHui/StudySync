@@ -307,24 +307,98 @@ export class StudySessionsQueries {
     }
   }
 
-  static async getSessionHistory(limit = 20, offset = 0) {
+  static async getSessionHistory(userId: string, limit = 20, offset = 0): Promise<SessionHistoryItem[]> {
     try {
-      const session = await checkAuth();
-      if (!session) return [];
+      if (!userId) return [];
 
-      const { data, error } = await supabase.rpc('get_my_session_history', {
-        p_limit: limit,
-        p_offset: offset,
-      });
+      const { data: createdData, error: createdErr } = await supabase
+        .from('study_sessions')
+        .select('id, title, subject, status, scheduled_start, scheduled_end, actual_end, group_id')
+        .eq('created_by', userId)
+        .order('scheduled_start', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching session history:', error);
-        return [];
+      if (createdErr) console.error('[sessionHistory] created query error:', createdErr);
+
+      const { data: participations, error: partErr } = await supabase
+        .from('session_participants')
+        .select('session_id')
+        .eq('user_id', userId);
+
+      if (partErr) console.error('[sessionHistory] participations error:', partErr);
+
+      let participatedData: any[] = [];
+      if (participations && participations.length > 0) {
+        const partIds = participations.map((p) => p.session_id);
+        const { data: partSessions, error: partSessionsErr } = await supabase
+          .from('study_sessions')
+          .select('id, title, subject, status, scheduled_start, scheduled_end, actual_end, group_id')
+          .in('id', partIds)
+          .neq('created_by', userId)
+          .order('scheduled_start', { ascending: false });
+
+        if (partSessionsErr) console.error('[sessionHistory] participated error:', partSessionsErr);
+        participatedData = partSessions ?? [];
       }
 
-      return (data ?? []) as SessionHistoryItem[];
+      const combined = [...(createdData ?? []), ...participatedData];
+      const seen = new Set<string>();
+      const ended = combined.filter((s) => {
+        const status = s.status as string;
+        // A session is "done" if it has an ended status, actual_end is set,
+        // OR it's a solo study session (subject='Solo Study') — these exist with
+        // status='scheduled'/actual_end=null due to a historic insert field-stripping bug.
+        const isDone =
+          status === 'completed' ||
+          status === 'cancelled' ||
+          status === 'finished' ||
+          s.actual_end != null ||
+          s.subject === 'Solo Study';
+        if (!isDone || seen.has(s.id)) return false;
+        seen.add(s.id);
+        return true;
+      });
+
+      ended.sort((a, b) =>
+        new Date(b.scheduled_start).getTime() - new Date(a.scheduled_start).getTime()
+      );
+
+      const page = ended.slice(offset, offset + limit);
+      if (page.length === 0) return [];
+
+      const groupIds = [...new Set(page.map((s) => s.group_id).filter(Boolean))];
+      const groupNames: Record<string, string> = {};
+      if (groupIds.length > 0) {
+        const { data: groups } = await supabase
+          .from('study_groups')
+          .select('id, name')
+          .in('id', groupIds);
+        (groups ?? []).forEach((g) => { groupNames[g.id] = g.name; });
+      }
+
+      const pageIds = page.map((s) => s.id);
+      const countMap: Record<string, number> = {};
+      const { data: parts } = await supabase
+        .from('session_participants')
+        .select('session_id')
+        .in('session_id', pageIds);
+      (parts ?? []).forEach((p) => {
+        countMap[p.session_id] = (countMap[p.session_id] ?? 0) + 1;
+      });
+
+      return page.map((s): SessionHistoryItem => ({
+        id: s.id,
+        title: s.title,
+        subject: s.subject ?? null,
+        status: s.status,
+        scheduled_start: s.scheduled_start,
+        scheduled_end: s.scheduled_end,
+        group_id: s.group_id ?? null,
+        group_name: s.group_id ? (groupNames[s.group_id] ?? null) : null,
+        is_solo: !s.group_id,
+        participant_count: countMap[s.id] ?? 0,
+      }));
     } catch (error) {
-      console.error('Error fetching session history:', error);
+      console.error('[sessionHistory] error:', error);
       return [];
     }
   }

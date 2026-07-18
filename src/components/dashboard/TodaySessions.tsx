@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
 import { DashboardSession } from '@/hooks/useDashboardData';
 
-export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession[], onJoin: () => void }) => {
+export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession[], onJoin: (session: DashboardSession) => void }) => {
   return (
     <Card className="border-0 shadow-md dark:bg-gray-800">
       <CardHeader>
@@ -35,7 +35,7 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
                 <Button 
                   size="sm" 
                   className="bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={onJoin}
+                  onClick={() => onJoin(session)}
                 >
                   Join
                 </Button>

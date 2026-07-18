@@ -13,12 +13,12 @@ export const useSessionHistory = () => {
   >({
     queryKey: ['sessionHistory', user?.id],
     queryFn: ({ pageParam }) =>
-      StudySessionsService.getSessionHistory(PAGE_SIZE, (pageParam as number) ?? 0),
+      StudySessionsService.getSessionHistory(user!.id, PAGE_SIZE, (pageParam as number) ?? 0),
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
     initialPageParam: 0,
     enabled: !!user,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
   });
 
   const sessions = data?.pages.flat() ?? [];

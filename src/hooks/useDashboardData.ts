@@ -9,6 +9,7 @@ export interface DashboardSession {
   title: string;
   groupName: string;
   scheduled_start?: string;
+  isSolo?: boolean;
 }
 
 export interface UserStats {
@@ -55,13 +56,18 @@ export const getDashboardQueryOptions = (user: any) => ({
 
     if (sessionsResult.status === 'fulfilled') {
       const sessions = sessionsResult.value;
-      const todaySessions = sessions.filter(session => isToday(parseISO(session.scheduled_start)));
-      
+      const ENDED_STATUSES = new Set(['finished', 'completed', 'cancelled']);
+      const todaySessions = sessions.filter(session =>
+        isToday(parseISO(session.scheduled_start)) &&
+        !ENDED_STATUSES.has(session.status)
+      );
+
       attendingSessions = todaySessions.map(session => ({
         id: session.id,
         title: session.title,
         groupName: session.study_groups?.name || 'Solo Session',
-        scheduled_start: session.scheduled_start
+        scheduled_start: session.scheduled_start,
+        isSolo: !session.group_id
       }));
 
       const today = new Date();

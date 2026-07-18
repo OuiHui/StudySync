@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Bell, BellDot, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotificationCenter } from '@/components/common/notifications/NotificationCenter';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData, DashboardSession } from '@/hooks/useDashboardData';
 import { TodaySessions } from './TodaySessions';
 import { QuickActions } from './QuickActions';
 import { RecentActivity } from './RecentActivity';
@@ -19,9 +19,12 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
   const { loading, attendingSessions, userStats, recentActivity } = useDashboardData();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const handleQuickAction = (action: string) => {
-    if (onNavigate) {
-      onNavigate(action);
+  const handleJoinSession = (session: DashboardSession) => {
+    if (!onNavigate) return;
+    if (session.isSolo) {
+      onNavigate('study-session');
+    } else {
+      onNavigate(`group-study-session?id=${session.id}`);
     }
   };
 
@@ -63,9 +66,9 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
         </div>
       ) : (
         <>
-          <TodaySessions sessions={attendingSessions} onJoin={() => handleQuickAction('group-study-session')} />
+          <TodaySessions sessions={attendingSessions} onJoin={handleJoinSession} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <QuickActions onAction={handleQuickAction} />
+            <QuickActions onAction={(action) => onNavigate && onNavigate(action)} />
             <RecentActivity activity={recentActivity} />
           </div>
           <StudyProgress stats={userStats} />

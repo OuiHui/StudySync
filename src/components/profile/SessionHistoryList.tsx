@@ -113,6 +113,10 @@ export const SessionHistoryList = () => {
 const SessionRow = ({ session }: { session: ReturnType<typeof useSessionHistory>['sessions'][number] }) => {
   const duration = formatDuration(session.scheduled_start, session.scheduled_end);
 
+  // Solo sessions in history are always completed — the raw DB status may say
+  // 'scheduled' due to a historic insert issue, so we override the display value.
+  const displayStatus = session.is_solo ? 'completed' : session.status;
+
   return (
     <div className="flex items-center gap-3 py-3">
       {/* Type icon */}

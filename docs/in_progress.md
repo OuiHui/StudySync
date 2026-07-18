@@ -10,21 +10,15 @@ This document tracks completed systems, details current gaps, and lists future t
 | :--- | :--- | :--- |
 | **Authentication** | [/] Partial | Supported via email login and guest login. Working to get O-auth |
 | **Dashboard Stats** | [/] Partial | Displays study metrics and progress bars. |
-| **Solo Timer** | [x] Done | Configurable Pomodoro durations with local state. |
 | **Solo Study Goals** |[/] Partial | Checked local storage persistence (JSON under 'solo_study_goals' with id, title, completed fields). |
 | **Group Timer Sync** | [/] Partial | Real-time broadcast sync controlled by session host. |
-| **Note Shared Editing** | [x] Done | Collaborative editing synced to Supabase database. |
-| **Friends List Page** | [x] Done | Standalone friend search and requests. |
-| **Profile - Personal Info** | [x] Done | Edit bio, display name, and email details. |
-| **Profile - Friends List** | [ ] Pending | No friends lists are currently rendered on the profile view. |
+| **Profile - Personal Info** | [x] Partial | Edit bio, display name, and email details. |
+| **Profile - Friends List** | [/] Partial | No friends lists are currently rendered on the profile view. |
 | **Profile - Privacy Settings** | [/] Partial | UI popup exists, but state is not saved in database. |
 | **Profile - Notification Settings**| [/] Partial | UI popup exists, but settings are not saved in database. |
 | **Notifications System**          | [/] Partial | UI NotificationCenter modal exists with stubs; lacks DB table and backend connection. |
 | **Group Session Layout** | [/] Partial | Workspace wraps poorly and overflows on average monitors. |
 | **Group Member Limit Enforce**| [ ] Pending | Maximum members specified in group config is not validated on join. |
-| **Group Member Moderation** | [x] Done | Admin/creator can kick members using the updated RLS delete policy. |
-| **PDF Note Attachments** | [x] Done | File/PDF upload capability integrates with secure study_materials bucket. |
-| **Friend's Friends List Lookup**| [x] Done | Query and display mutual friends or friends lists respecting privacy settings. |
 | **Editing Goals**| [ ] Pending | Should be able to add end date for goals that show up on calendar. |
 | **Account Card Functionality** | [ ] Pending | Determine and implement required features for the bottom-left account card (UserMenu). |
 | **Theme Customizer / Color Support** | [/] Partial | Custom themes can be selected, but custom colors only change background gradient; main components still default to blue/standard colors. |
@@ -32,8 +26,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Study Group Page Redesign** | [ ] Pending | Redesign the study group page layout, usability, and design aesthetics. |
 | **Dropdown Transitions** | [ ] Pending | Make all dropdown menus across the app have smooth entry/exit animations. |
 | **Code Cleanup / Deduplication** | [ ] Pending | Refactor components and services to reduce duplicated/re-used code. |
-| **Session History** | [x] Done | Profile page shows past sessions with duration, date, and solo/group context. |
-| **Simulated User Testing Framework** | [x] Done | Control stub bots via programmatic function calls and instant toggle login overlay in Dev mode. |
+| **Simulated User Testing Framework** | [/] Partial | Control stub bots via programmatic function calls and instant toggle login overlay in Dev mode. |
 
 
 
@@ -53,13 +46,12 @@ This document tracks completed systems, details current gaps, and lists future t
 ### C. Sidebar Account Card ([Sidebar.tsx](src/components/common/layout/Sidebar.tsx))
 *   **Define Account Card Functionalities**: Figure out what functionalities the account card in the bottom left will do. This includes specifying drop-down items (e.g., Settings menu connection, status/presence selection, or user details) and handling collapsed vs. expanded layouts.
 
-### D. Notifications System ([NotificationCenter.tsx](src/components/common/notifications/NotificationCenter.tsx))
-*   **Connect Service to Backend**: Rewrite [notifications.ts](src/services/notifications.ts) functions (`getUserNotifications`, `markAsRead`, `markAllAsRead`) to query and update the database instead of returning static mocked objects.
-*   **Actionable Notification Triggers**: Bind UI buttons like "Accept" and "Decline" inside [NotificationCenter.tsx](src/components/common/notifications/NotificationCenter.tsx) to execute corresponding actions (such as accepting/declining friend requests or group invitations) on the server.
-*   **Real-time Subscription**: Integrate Supabase Realtime channel subscription in [NotificationContext.tsx](src/contexts/NotificationContext.tsx) to listen for inserts/updates to the user's notifications.
-
-### E. Color Theme Support / Customizer ([ColorCustomizer.tsx](src/components/common/settings/ColorCustomizer.tsx))
+### D. Color Theme Support / Customizer ([ColorCustomizer.tsx](src/components/common/settings/ColorCustomizer.tsx))
 *   **Fully Support Custom Theme Colors**: Modify the app components (e.g., buttons, active sidebar items, progress bars, active icons, etc.) to use CSS custom properties (`--theme-primary`, `--theme-secondary`) or dynamic Tailwind class mapping rather than hardcoded `bg-blue-500`, `text-blue-600`, etc., so that selecting themes like "Forest Green" or "Sunset Orange" updates the entire application's primary/secondary colors.
+
+### E. Heatmap in Dashboard
+*   **GitHub Style**
+*   **Add functionality to display data**
 
 ### F. Solo Study Note Integration ([StudySession.tsx](src/components/study/StudySession.tsx))
 *   **Rendering & Editing Logic**: Determine how personal note rendering/editing components are integrated into solo study sessions.
@@ -74,15 +66,10 @@ This document tracks completed systems, details current gaps, and lists future t
 ### I. Code Quality & Refactoring
 *   **Reduce Re-used Code**: Identify, consolidate, and eliminate duplicate logic/code patterns across the components and service files.
 
-### J. Session History [x] Done
-*   **Session History UI**: Session history card added to the profile page. Shows past finished/cancelled sessions with title, date, duration, subject, and solo/group badge (with group name). Paginated with "Load more".
 
-### K. Simulated User Testing Framework [x] Done
-*   **Bot Action Runner**: [x] Built simulation service (`src/services/simulation.ts`) and global manager.
-*   **Supported Actions**: [x] Supported friend requests, group join/leave, messaging (direct & group), note creation, session join/leave.
-*   **Scenario Scripting**: [x] Added scripting scenarios (`runFriendshipScenario`, `runGroupStudyScenario`).
-*   **Seeded User Pool**: [x] Authenticates against the 10 seeded database user profiles using password `password123`.
-*   **Developer Console UI**: [x] Added collapsible overlay panel with single-click login, actions dropdown, preset scenarios, and log console.
+### K. Simulated User Testing Framework [/] Partial
+*   **Missing Actions**: Will add more actions
+*   **Dropdowns**: Existing lists don't fully show
 
 
 ---
@@ -91,11 +78,9 @@ This document tracks completed systems, details current gaps, and lists future t
 
 1.  **Profiles Schema Additions**:
     *   Need to add JSON columns or structured columns to `public.profiles` for `notification_settings` to persist user choices made in settings popups.
-2.  **Real User Notifications Table**:
-    *   Currently, the notifications list is empty because no table exists to track reminders, invites, or requests. A `notifications` table (storing `sender_id`, `receiver_id`, `type`, `content`, `read_status`) is required.
-    *   **Database Triggers/Functions**: Need DB triggers/functions to automatically create notification entries when specific actions occur (e.g., when a friendship row is created/modified, or when a group session invite is sent).
-3.  **Session History Database & API**: [x] Done
-    *   `get_my_session_history` RPC added (`20260717000000_add_session_history_rpc.sql`). Returns the authenticated user's finished/completed/cancelled sessions including private ones, with group name and participant count.
-
-## 4. Bugs
-- Clicking on a friend in the friend list does not show their profile page.
+2.  **Slow Query Times**:
+    * Something is messed up here. Notes need to be cached.
+3.  **Solo Study Sessions in Session History**:
+    *  **Fixed**: `get_my_session_history` RPC was never applied to the live DB, so it silently returned `[]`. Replaced with a direct multi-step Supabase query in `getSessionHistory()` that fetches sessions by `created_by` or `session_participants` membership, filtered to ended statuses, then merges/deduplicates/paginates client-side.
+4.  **Direct Messaging**: 
+    *  Existing bug

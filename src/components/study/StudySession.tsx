@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -48,6 +49,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
   const { toast } = useToast();
   const { userStats } = useProfileData();
   const { currentTheme } = useOutletContext<any>() || {};
+  const queryClient = useQueryClient();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [reflectionOpen, setReflectionOpen] = useState(false);
@@ -119,7 +121,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
       const minutesStudied = Math.round(sessions * (workDuration / 60));
       const endTime = new Date().toISOString();
 
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('study_sessions')
         .insert({
           title: 'Solo Study Session',
@@ -129,19 +131,26 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
           actual_start: startTime,
           actual_end: endTime,
           target_duration: minutesStudied,
-          minutes_studied: minutesStudied,
           reflection_rating: rating,
           reflection_notes: notes,
-          status: 'finished',
+          status: 'completed',
           created_by: user?.id,
-        });
+        })
+        .select();
+
+      console.log('[soloSession] insert result:', inserted, 'error:', error);
 
       if (error) throw error;
+
+      // Refresh session history and dashboard so new entry is visible immediately
+      await queryClient.invalidateQueries({ queryKey: ['sessionHistory', user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
       toast({
         title: 'Session saved',
         description: `Successfully logged ${minutesStudied} minutes of study!`,
       });
+      setReflectionOpen(false);
       resetTimer();
     } catch (err) {
       console.error(err);
