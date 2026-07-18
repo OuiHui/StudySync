@@ -1,21 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NotesService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+export type NoteTab = 'all' | 'mine' | 'shared' | 'public' | 'group';
+export type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
+
+export interface ColumnFilters {
+  name: string;
+  subject: string;
+  creator: string;
+  group: string;
+  visibility: string;
+}
+
+const initialColumnFilters: ColumnFilters = {
+  name: '',
+  subject: 'all',
+  creator: 'all',
+  group: 'all',
+  visibility: 'all'
+};
+
 export const useNotes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
-  const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<NoteTab>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(initialColumnFilters);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
+
+  const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
   const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [editingNote, setEditingNote] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({
     title: '',
@@ -24,14 +49,14 @@ export const useNotes = () => {
     permission_level: 'private' as 'private' | 'public' | 'group' | 'friends',
     selectedGroups: [] as string[]
   });
-  
+
   const [sharingNote, setSharingNote] = useState<any | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareSelectedGroups, setShareSelectedGroups] = useState<string[]>([]);
-  
+
   const [viewingNote, setViewingNote] = useState<any | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [groups, setGroups] = useState<any[]>([]);
   const [newNoteData, setNewNoteData] = useState({
@@ -46,11 +71,15 @@ export const useNotes = () => {
     loadGroups();
   }, [user]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedSubject, activeTab, sortOption, columnFilters, itemsPerPage]);
+
   const loadGroups = async () => {
     if (!user) return;
     try {
       const userGroups = await StudyGroupsService.getUserGroups();
-      setGroups(userGroups);
+      setGroups(userGroups || []);
     } catch (err) {
       console.error('Error loading groups:', err);
     }
@@ -62,7 +91,7 @@ export const useNotes = () => {
       setLoading(true);
       setError(null);
       const userNotes = await NotesService.getNotes();
-      setNotes(userNotes);
+      setNotes(userNotes || []);
     } catch (err) {
       console.error('Error loading notes:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to load notes. Please try again.';
@@ -79,106 +108,223 @@ export const useNotes = () => {
     }
   };
 
-  const displayNotes = notes.map(note => {
-    const hasPDF = note.file_url && note.file_url.toLowerCase().endsWith('.pdf');
-    const hasFile = note.file_url && note.file_url.trim() !== '';
-    let preview = 'No content preview';
-    if (hasPDF) preview = `📄 PDF Document: ${note.file_name || 'Unnamed file'}`;
-    else if (hasFile) preview = `📎 Attached file: ${note.file_name || 'File available'}`;
-    else if (note.content && note.content.trim() !== '') preview = note.content.substring(0, 100) + '...';
-    
-    const isMine = note.created_by === user?.id;
-    return {
-      id: note.id,
-      title: note.title || 'Untitled',
-      subject: note.subject || 'General',
-      author: isMine ? 'You' : 'Shared User',
-      sharedBy: isMine ? 'me' : 'Shared User',
-      date: new Date(note.created_at).toLocaleDateString(),
-      downloads: 0,
-      category: 'notes',
-      group: note.group_id ? 'Group Note' : 'Personal',
-      preview,
-      isPrivate: note.permission_level === 'private',
-      isMine,
-      user_id: note.created_by,
-      created_by: note.created_by,
-      file_url: note.file_url,
-      file_name: note.file_name,
-      content: note.content,
-      permission_level: note.permission_level,
-      hasPDF,
-      hasFile
-    };
-  });
+  const displayNotes = useMemo(() => {
+    return notes.map(note => {
+      const hasPDF = Boolean(note.file_url && note.file_url.toLowerCase().endsWith('.pdf'));
+      const hasFile = Boolean(note.file_url && note.file_url.trim() !== '');
 
-  const subjects = ['all', ...Array.from(new Set(displayNotes.map(note => note.subject || 'Unknown')))];
-  
-  const filteredNotes = displayNotes.filter(note => {
-    const matchesSearch = (note.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (note.subject || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || note.subject === selectedSubject;
-    const matchesOwnership = selectedOwnership === 'all' || 
-                           (selectedOwnership === 'mine' && note.isMine) ||
-                           (selectedOwnership === 'public' && !note.isMine);
-    return matchesSearch && matchesSubject && matchesOwnership;
-  });
+      let preview = 'No content preview';
+      if (hasPDF) preview = `📄 PDF Document: ${note.file_name || 'Unnamed file'}`;
+      else if (hasFile) preview = `📎 Attached file: ${note.file_name || 'File available'}`;
+      else if (note.content && note.content.trim() !== '') preview = note.content.substring(0, 100) + '...';
+
+      const isMine = note.created_by === user?.id;
+      const creatorName = isMine ? 'You' : (note.profiles?.display_name || 'Shared User');
+      const avatarUrl = note.profiles?.avatar_url || null;
+
+      const matchedGroup = groups.find(g => g.id === note.group_id);
+      const linkedGroup = matchedGroup ? matchedGroup.name : (note.group_id ? 'Study Group' : '—');
+
+      return {
+        id: note.id,
+        title: note.title || 'Untitled',
+        subject: note.subject || 'General',
+        author: creatorName,
+        avatarUrl,
+        linkedGroup,
+        date: new Date(note.created_at || note.updated_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+        rawDate: note.created_at || note.updated_at,
+        preview,
+        isPrivate: note.permission_level === 'private',
+        isMine,
+        user_id: note.created_by,
+        created_by: note.created_by,
+        file_url: note.file_url,
+        file_name: note.file_name,
+        content: note.content,
+        permission_level: note.permission_level || 'private',
+        hasPDF,
+        hasFile
+      };
+    });
+  }, [notes, user?.id, groups]);
+
+  const subjects = useMemo(() => {
+    return ['all', ...Array.from(new Set(displayNotes.map(n => n.subject).filter(Boolean)))];
+  }, [displayNotes]);
+
+  const tabCounts = useMemo(() => {
+    return {
+      all: displayNotes.length,
+      mine: displayNotes.filter(n => n.isMine).length,
+      shared: displayNotes.filter(n => !n.isMine).length,
+      public: displayNotes.filter(n => n.permission_level === 'public').length,
+      group: displayNotes.filter(n => n.permission_level === 'group' || (n.linkedGroup && n.linkedGroup !== '—')).length
+    };
+  }, [displayNotes]);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      searchTerm.trim() !== '' ||
+      selectedSubject !== 'all' ||
+      activeTab !== 'all' ||
+      columnFilters.name.trim() !== '' ||
+      columnFilters.subject !== 'all' ||
+      columnFilters.creator !== 'all' ||
+      columnFilters.group !== 'all' ||
+      columnFilters.visibility !== 'all'
+    );
+  }, [searchTerm, selectedSubject, activeTab, columnFilters]);
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSelectedSubject('all');
+    setSelectedOwnership('all');
+    setActiveTab('all');
+    setColumnFilters(initialColumnFilters);
+    setCurrentPage(1);
+  };
+
+  const filteredNotes = useMemo(() => {
+    return displayNotes.filter(note => {
+      // Global Search
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        !searchTerm ||
+        note.title.toLowerCase().includes(searchLower) ||
+        note.subject.toLowerCase().includes(searchLower) ||
+        note.author.toLowerCase().includes(searchLower) ||
+        note.linkedGroup.toLowerCase().includes(searchLower);
+
+      // Main Header Subject Selector
+      const matchesSubjectSelect = selectedSubject === 'all' || note.subject === selectedSubject;
+
+      // Category Pill Tabs
+      let matchesTab = true;
+      if (activeTab === 'mine') matchesTab = note.isMine;
+      else if (activeTab === 'shared') matchesTab = !note.isMine;
+      else if (activeTab === 'public') matchesTab = note.permission_level === 'public';
+      else if (activeTab === 'group') matchesTab = note.permission_level === 'group' || note.linkedGroup !== '—';
+
+      // Column Filters
+      const matchesColName = !columnFilters.name || note.title.toLowerCase().includes(columnFilters.name.toLowerCase());
+      const matchesColSubject = columnFilters.subject === 'all' || note.subject === columnFilters.subject;
+      const matchesColCreator =
+        columnFilters.creator === 'all' ||
+        (columnFilters.creator === 'mine' && note.isMine) ||
+        (columnFilters.creator === 'others' && !note.isMine);
+      const matchesColGroup =
+        columnFilters.group === 'all' ||
+        (columnFilters.group === 'linked' && note.linkedGroup !== '—') ||
+        (columnFilters.group === 'none' && note.linkedGroup === '—') ||
+        note.linkedGroup === columnFilters.group;
+      const matchesColVisibility = columnFilters.visibility === 'all' || note.permission_level === columnFilters.visibility;
+
+      return (
+        matchesSearch &&
+        matchesSubjectSelect &&
+        matchesTab &&
+        matchesColName &&
+        matchesColSubject &&
+        matchesColCreator &&
+        matchesColGroup &&
+        matchesColVisibility
+      );
+    });
+  }, [displayNotes, searchTerm, selectedSubject, activeTab, columnFilters]);
+
+  const sortedNotes = useMemo(() => {
+    const list = [...filteredNotes];
+    switch (sortOption) {
+      case 'oldest':
+        return list.sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
+      case 'title-asc':
+        return list.sort((a, b) => a.title.localeCompare(b.title));
+      case 'title-desc':
+        return list.sort((a, b) => b.title.localeCompare(a.title));
+      case 'newest':
+      default:
+        return list.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
+    }
+  }, [filteredNotes, sortOption]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedNotes.length / itemsPerPage));
+  const paginatedNotes = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedNotes.slice(start, start + itemsPerPage);
+  }, [sortedNotes, currentPage, itemsPerPage]);
+
+  const updateColumnFilter = (column: keyof ColumnFilters, value: string) => {
+    setColumnFilters(prev => ({ ...prev, [column]: value }));
+  };
 
   const handleEditNote = async (note: any) => {
     try {
       const fullNote = await NotesService.getNote(note.id);
-      const sharedGroups = await NotesService.getNoteSharedGroups?.(note.id) || [];
+      const sharedGroups = (await NotesService.getNoteSharedGroups?.(note.id)) || [];
       const groupIds = sharedGroups.map((sg: any) => sg.group_id);
       setEditingNote(fullNote);
       setEditFormData({
-        title: fullNote.title || '', content: fullNote.content || '', subject: fullNote.subject || '',
-        permission_level: fullNote.permission_level || 'private', selectedGroups: groupIds
+        title: fullNote.title || '',
+        content: fullNote.content || '',
+        subject: fullNote.subject || '',
+        permission_level: fullNote.permission_level || 'private',
+        selectedGroups: groupIds
       });
     } catch (err) {
       setEditingNote(note);
       setEditFormData({
-        title: note.title || '', content: note.preview?.replace('...', '') || '', subject: note.subject || '',
-        permission_level: note.permission_level || 'private', selectedGroups: []
+        title: note.title || '',
+        content: note.preview?.replace('...', '') || '',
+        subject: note.subject || '',
+        permission_level: note.permission_level || 'private',
+        selectedGroups: []
       });
-      toast({ title: "Warning", description: "Could not fetch full note content.", variant: "destructive" });
+      toast({ title: 'Warning', description: 'Could not fetch full note content.', variant: 'destructive' });
     }
   };
 
   const handleSaveEdit = async () => {
     if (!editingNote) return;
     if (!editFormData.title.trim()) {
-      toast({ title: "Validation Error", description: "Note title is required.", variant: "destructive" });
+      toast({ title: 'Validation Error', description: 'Note title is required.', variant: 'destructive' });
       return;
     }
     try {
       await NotesService.updateNote(editingNote.id, {
-        title: editFormData.title.trim(), content: editFormData.content.trim(),
-        subject: editFormData.subject.trim() || null, permission_level: editFormData.permission_level
+        title: editFormData.title.trim(),
+        content: editFormData.content.trim(),
+        subject: editFormData.subject.trim() || null,
+        permission_level: editFormData.permission_level
       });
       await NotesService.shareNoteWithGroups?.(editingNote.id, editFormData.selectedGroups);
-      toast({ title: "Note Updated", description: "Your note has been updated successfully." });
+      toast({ title: 'Note Updated', description: 'Your note has been updated successfully.' });
       setEditingNote(null);
       loadNotes();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
-        toast({ title: "Session Expired", description: "Your session has expired. Redirecting...", variant: "destructive" });
-        setTimeout(() => window.location.href = '/auth', 2000);
+        toast({ title: 'Session Expired', description: 'Your session has expired. Redirecting...', variant: 'destructive' });
+        setTimeout(() => (window.location.href = '/auth'), 2000);
       } else {
-        toast({ title: "Update Failed", description: errorMessage, variant: "destructive" });
+        toast({ title: 'Update Failed', description: errorMessage, variant: 'destructive' });
       }
     }
   };
 
   const handleShareNote = async (note: any) => {
     try {
-      const sharedGroups = await NotesService.getNoteSharedGroups?.(note.id) || [];
+      const sharedGroups = (await NotesService.getNoteSharedGroups?.(note.id)) || [];
       const groupIds = sharedGroups.map((share: any) => share.group_id);
       setSharingNote(note);
       setShareSelectedGroups(groupIds);
       setShareDialogOpen(true);
     } catch (err) {
-      toast({ title: "Error", description: "Failed to load sharing settings", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to load sharing settings', variant: 'destructive' });
     }
   };
 
@@ -191,13 +337,17 @@ export const useNotes = () => {
       } else if (shareSelectedGroups.length === 0 && sharingNote.permission_level === 'group') {
         await NotesService.updateNote(sharingNote.id, { permission_level: 'private' });
       }
-      toast({ title: "Sharing Updated", description: `Note is now shared with ${shareSelectedGroups.length} group(s)` });
+      toast({ title: 'Sharing Updated', description: `Note is now shared with ${shareSelectedGroups.length} group(s)` });
       setShareDialogOpen(false);
       setSharingNote(null);
       setShareSelectedGroups([]);
       loadNotes();
     } catch (err) {
-      toast({ title: "Sharing Failed", description: err instanceof Error ? err.message : 'Failed to update sharing.', variant: "destructive" });
+      toast({
+        title: 'Sharing Failed',
+        description: err instanceof Error ? err.message : 'Failed to update sharing.',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -214,48 +364,110 @@ export const useNotes = () => {
 
   const handleCreateNote = async () => {
     if (!newNoteData.title.trim()) {
-      toast({ title: "Validation Error", description: "Note title is required.", variant: "destructive" });
+      toast({ title: 'Validation Error', description: 'Note title is required.', variant: 'destructive' });
       return;
     }
     try {
       await NotesService.createNote({
-        title: newNoteData.title.trim(), content: newNoteData.content.trim(),
-        subject: newNoteData.subject.trim() || null, group_id: newNoteData.group_id || null, is_collaborative: true
+        title: newNoteData.title.trim(),
+        content: newNoteData.content.trim(),
+        subject: newNoteData.subject.trim() || null,
+        group_id: newNoteData.group_id || null,
+        is_collaborative: true
       });
-      toast({ title: "Note Created", description: "Your note has been created successfully." });
+      toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
       setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
       setIsCreateDialogOpen(false);
       loadNotes();
     } catch (err) {
-      toast({ title: "Create Failed", description: err instanceof Error ? err.message : 'Failed to create note.', variant: "destructive" });
+      toast({ title: 'Create Failed', description: err instanceof Error ? err.message : 'Failed to create note.', variant: 'destructive' });
     }
   };
 
   const handleDeleteNote = async (note: any) => {
     try {
       await NotesService.deleteNote(note.id);
-      toast({ title: "Note Deleted", description: "Your note has been permanently deleted." });
+      toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
       loadNotes();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
-        toast({ title: "Session Expired", description: "Your session has expired. Redirecting...", variant: "destructive" });
-        setTimeout(() => window.location.href = '/auth', 2000);
+        toast({ title: 'Session Expired', description: 'Your session has expired. Redirecting...', variant: 'destructive' });
+        setTimeout(() => (window.location.href = '/auth'), 2000);
       } else {
-        toast({ title: "Delete Failed", description: errorMessage, variant: "destructive" });
+        toast({ title: 'Delete Failed', description: errorMessage, variant: 'destructive' });
       }
     }
   };
 
   return {
-    searchTerm, setSearchTerm, selectedSubject, setSelectedSubject,
-    selectedOwnership, setSelectedOwnership, isUploadPopupOpen, setIsUploadPopupOpen,
-    notes, loading, error, editingNote, setEditingNote, editFormData, setEditFormData,
-    sharingNote, setSharingNote, shareDialogOpen, setShareDialogOpen, shareSelectedGroups, setShareSelectedGroups,
-    viewingNote, setViewingNote, viewDialogOpen, setViewDialogOpen, isCreateDialogOpen, setIsCreateDialogOpen,
-    groups, newNoteData, setNewNoteData, loadNotes, subjects, filteredNotes, displayNotes,
-    handleEditNote, handleSaveEdit, handleShareNote, handleSaveShare, handleViewNote, handleCreateNote, handleDeleteNote,
-    toggleGroupSelection: (groupId: string) => setEditFormData(prev => ({ ...prev, selectedGroups: prev.selectedGroups.includes(groupId) ? prev.selectedGroups.filter(id => id !== groupId) : [...prev.selectedGroups, groupId] })),
-    toggleShareGroupSelection: (groupId: string) => setShareSelectedGroups(prev => prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId])
+    searchTerm,
+    setSearchTerm,
+    selectedSubject,
+    setSelectedSubject,
+    selectedOwnership,
+    setSelectedOwnership,
+    activeTab,
+    setActiveTab,
+    sortOption,
+    setSortOption,
+    columnFilters,
+    updateColumnFilter,
+    hasActiveFilters,
+    clearAllFilters,
+    currentPage,
+    setCurrentPage,
+    itemsPerPage,
+    setItemsPerPage,
+    totalPages,
+    tabCounts,
+    isUploadPopupOpen,
+    setIsUploadPopupOpen,
+    notes,
+    loading,
+    error,
+    editingNote,
+    setEditingNote,
+    editFormData,
+    setEditFormData,
+    sharingNote,
+    setSharingNote,
+    shareDialogOpen,
+    setShareDialogOpen,
+    shareSelectedGroups,
+    setShareSelectedGroups,
+    viewingNote,
+    setViewingNote,
+    viewDialogOpen,
+    setViewDialogOpen,
+    isCreateDialogOpen,
+    setIsCreateDialogOpen,
+    groups,
+    newNoteData,
+    setNewNoteData,
+    loadNotes,
+    subjects,
+    filteredNotes: sortedNotes,
+    paginatedNotes,
+    totalNotesCount: sortedNotes.length,
+    displayNotes,
+    handleEditNote,
+    handleSaveEdit,
+    handleShareNote,
+    handleSaveShare,
+    handleViewNote,
+    handleCreateNote,
+    handleDeleteNote,
+    toggleGroupSelection: (groupId: string) =>
+      setEditFormData(prev => ({
+        ...prev,
+        selectedGroups: prev.selectedGroups.includes(groupId)
+          ? prev.selectedGroups.filter(id => id !== groupId)
+          : [...prev.selectedGroups, groupId]
+      })),
+    toggleShareGroupSelection: (groupId: string) =>
+      setShareSelectedGroups(prev =>
+        prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
+      )
   };
 };
