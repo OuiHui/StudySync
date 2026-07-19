@@ -239,9 +239,8 @@ export const NotesTable = ({
                         className="w-full h-8 text-xs bg-white dark:bg-gray-800 border rounded px-2 text-gray-700 dark:text-gray-200"
                       >
                         <option value="all">All Levels</option>
-                        <option value="private">Private</option>
                         <option value="public">Public</option>
-                        <option value="group">Group</option>
+                        <option value="private">Private</option>
                       </select>
                     </div>
                   </PopoverContent>
@@ -349,15 +348,11 @@ export const NotesTable = ({
                   )}
                 </td>
 
-                {/* Visibility */}
+                {/* Visibility (Public or Private based on Group Privacy) */}
                 <td className="py-3 px-3 whitespace-nowrap">
-                  {note.permission_level === 'public' ? (
+                  {note.effectiveVisibility === 'public' ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       <Globe size={10} className="mr-1" /> Public
-                    </span>
-                  ) : note.permission_level === 'group' ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                      <Users size={10} className="mr-1" /> Group
                     </span>
                   ) : (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200 dark:border-purple-800">

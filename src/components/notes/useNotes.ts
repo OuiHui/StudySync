@@ -122,8 +122,22 @@ export const useNotes = () => {
       const creatorName = isMine ? 'You' : (note.profiles?.display_name || 'Shared User');
       const avatarUrl = note.profiles?.avatar_url || null;
 
-      const matchedGroup = groups.find(g => g.id === note.group_id);
+      // Find linked group via note.group_id or note_group_shares
+      const matchedGroup =
+        groups.find(g => g.id === note.group_id) ||
+        note.study_group ||
+        (note.shared_groups && note.shared_groups[0]?.study_groups);
+
       const linkedGroup = matchedGroup ? matchedGroup.name : (note.group_id ? 'Study Group' : '—');
+
+      // Visibility rule: If note belongs to a group, visibility is dictated by group's public/private status
+      let isPublic = false;
+      if (matchedGroup) {
+        isPublic = matchedGroup.is_public !== false;
+      } else {
+        isPublic = note.permission_level === 'public';
+      }
+      const effectiveVisibility: 'public' | 'private' = isPublic ? 'public' : 'private';
 
       return {
         id: note.id,
@@ -139,7 +153,8 @@ export const useNotes = () => {
         }),
         rawDate: note.created_at || note.updated_at,
         preview,
-        isPrivate: note.permission_level === 'private',
+        isPrivate: effectiveVisibility === 'private',
+        effectiveVisibility,
         isMine,
         user_id: note.created_by,
         created_by: note.created_by,
@@ -162,8 +177,8 @@ export const useNotes = () => {
       all: displayNotes.length,
       mine: displayNotes.filter(n => n.isMine).length,
       shared: displayNotes.filter(n => !n.isMine).length,
-      public: displayNotes.filter(n => n.permission_level === 'public').length,
-      group: displayNotes.filter(n => n.permission_level === 'group' || (n.linkedGroup && n.linkedGroup !== '—')).length
+      public: displayNotes.filter(n => n.effectiveVisibility === 'public').length,
+      group: displayNotes.filter(n => n.linkedGroup && n.linkedGroup !== '—').length
     };
   }, [displayNotes]);
 
@@ -207,8 +222,8 @@ export const useNotes = () => {
       let matchesTab = true;
       if (activeTab === 'mine') matchesTab = note.isMine;
       else if (activeTab === 'shared') matchesTab = !note.isMine;
-      else if (activeTab === 'public') matchesTab = note.permission_level === 'public';
-      else if (activeTab === 'group') matchesTab = note.permission_level === 'group' || note.linkedGroup !== '—';
+      else if (activeTab === 'public') matchesTab = note.effectiveVisibility === 'public';
+      else if (activeTab === 'group') matchesTab = note.linkedGroup !== '—';
 
       // Column Filters
       const matchesColName = !columnFilters.name || note.title.toLowerCase().includes(columnFilters.name.toLowerCase());
@@ -222,7 +237,7 @@ export const useNotes = () => {
         (columnFilters.group === 'linked' && note.linkedGroup !== '—') ||
         (columnFilters.group === 'none' && note.linkedGroup === '—') ||
         note.linkedGroup === columnFilters.group;
-      const matchesColVisibility = columnFilters.visibility === 'all' || note.permission_level === columnFilters.visibility;
+      const matchesColVisibility = columnFilters.visibility === 'all' || note.effectiveVisibility === columnFilters.visibility;
 
       return (
         matchesSearch &&

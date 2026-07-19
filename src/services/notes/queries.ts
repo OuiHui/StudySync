@@ -24,6 +24,35 @@ async function populateNoteProfiles(notes: any[]) {
   });
 }
 
+async function populateNoteGroupShares(notes: any[]) {
+  if (!notes || notes.length === 0) return [];
+
+  const noteIds = notes.map(n => n.id);
+  const { data: shares, error } = await supabase
+    .from('note_group_shares' as any)
+    .select('note_id, group_id, study_groups(id, name, is_public)')
+    .in('note_id', noteIds);
+
+  if (error) {
+    console.error('Error populating note group shares:', error);
+    return notes;
+  }
+
+  return notes.map(note => {
+    const noteShares = (shares as any[])?.filter(s => s.note_id === note.id) || [];
+    const firstShare = noteShares[0];
+    const group_id = firstShare?.group_id || note.group_id || null;
+    const study_group = firstShare?.study_groups || null;
+
+    return {
+      ...note,
+      group_id,
+      shared_groups: noteShares,
+      study_group
+    };
+  });
+}
+
 export class NotesQueries {
   static async getNotes() {
     try {
@@ -41,7 +70,8 @@ export class NotesQueries {
         handleDbError(error, 'fetch notes');
       }
 
-      return await populateNoteProfiles(data || []);
+      const notesWithProfiles = await populateNoteProfiles(data || []);
+      return await populateNoteGroupShares(notesWithProfiles);
     } catch (error) {
       console.error('Error fetching notes:', error);
 
@@ -62,7 +92,8 @@ export class NotesQueries {
       }
 
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-      return await populateNoteProfiles(sharedNotes);
+      const notesWithProfiles = await populateNoteProfiles(sharedNotes);
+      return await populateNoteGroupShares(notesWithProfiles);
     } catch (error) {
       console.error('Error fetching group notes:', error);
 
@@ -92,7 +123,8 @@ export class NotesQueries {
         throw error;
       }
 
-      return data;
+      const [noteWithShares] = await populateNoteGroupShares([data]);
+      return noteWithShares;
     } catch (error) {
       console.error('Error getting note:', error);
       throw error;
@@ -136,7 +168,7 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('note_group_shares' as any)
-        .select('group_id, study_groups(id, name)')
+        .select('group_id, study_groups(id, name, is_public)')
         .eq('note_id', noteId);
 
       if (error) {
@@ -192,7 +224,8 @@ export class NotesQueries {
         handleDbError(error, 'fetch session notes');
       }
 
-      return await populateNoteProfiles(notes || []);
+      const notesWithProfiles = await populateNoteProfiles(notes || []);
+      return await populateNoteGroupShares(notesWithProfiles);
     } catch (error) {
       console.error('Error fetching session notes:', error);
       return [];
