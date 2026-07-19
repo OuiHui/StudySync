@@ -3,16 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Trash2, X, Save, FileText } from 'lucide-react';
+import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Save, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportNoteDialog } from './ImportNoteDialog';
+import { SharedNoteModal } from '@/components/notes/SharedNoteModal';
+import { NotesService } from '@/services/database';
 
 export interface NoteItem {
   id: string;
   title: string;
   content: string | null;
   subject?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
   created_at: string;
   created_by: string;
   profiles?: {
@@ -29,6 +32,7 @@ interface SessionNotesProps {
   groupId?: string;
   onAddNote?: (title: string, content: string, subject?: string) => Promise<void>;
   onDeleteNote?: (noteId: string) => Promise<void>;
+  onNotesChange?: () => void;
 }
 
 export const SessionNotes = ({
@@ -38,7 +42,8 @@ export const SessionNotes = ({
   isHost,
   groupId,
   onAddNote,
-  onDeleteNote
+  onDeleteNote,
+  onNotesChange
 }: SessionNotesProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [activeNote, setActiveNote] = useState<NoteItem | null>(null);
@@ -91,6 +96,21 @@ export const SessionNotes = ({
     }
   };
 
+  const handleSaveNote = async (noteId: string, updates: { title: string; content: string; subject: string }) => {
+    try {
+      await NotesService.updateNote(noteId, {
+        title: updates.title,
+        content: updates.content,
+        subject: updates.subject || null,
+      });
+      if (onNotesChange) {
+        onNotesChange();
+      }
+    } catch (err) {
+      console.error('Failed to update note:', err);
+    }
+  };
+
   const handleImportSelect = async (importedNote: { title: string; content: string; subject?: string }) => {
     if (onAddNote) {
       await onAddNote(importedNote.title, importedNote.content, importedNote.subject);
@@ -113,13 +133,9 @@ export const SessionNotes = ({
       <CardHeader className="py-3 shrink-0 flex flex-row flex-wrap items-center justify-between gap-2 border-b dark:border-gray-700/50">
         <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
           <BookOpen size={16} className="mr-2 text-indigo-500" />
-          {isCreating
-            ? 'Create Shared Note'
-            : activeNote
-            ? 'View Shared Note'
-            : 'Shared Study Materials'}
+          {isCreating ? 'Create Shared Note' : 'Shared Study Materials'}
         </CardTitle>
-        {!isCreating && !activeNote && (
+        {!isCreating && (
           <div className="flex items-center space-x-1.5 shrink-0">
             <Button
               size="sm"
@@ -212,49 +228,6 @@ export const SessionNotes = ({
               </Button>
             </div>
           </form>
-        ) : activeNote ? (
-          <div className="flex-1 flex flex-col min-h-0 justify-between">
-            <div className="flex items-center justify-between border-b pb-2 dark:border-gray-700/50 shrink-0">
-              <div className="flex-1 min-w-0 pr-4">
-                <Badge variant="secondary" className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-750 dark:text-indigo-350 text-[10px] py-0">
-                  {activeNote.subject || 'General'}
-                </Badge>
-                <h3 className="font-bold text-xs text-gray-900 dark:text-white mt-1 break-words leading-none">
-                  {activeNote.title}
-                </h3>
-                <span className="text-[9px] text-gray-400 mt-1 block">
-                  By {activeNote.profiles?.display_name || 'Anonymous'}
-                </span>
-              </div>
-              <div className="flex items-center space-x-1.5 flex-shrink-0">
-                {(activeNote.created_by === currentUserId || isHost) && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(activeNote.id)}
-                    className="h-7 px-2 text-xs text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20"
-                  >
-                    <Trash2 size={12} className="mr-1" />
-                    Delete
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setActiveNote(null)}
-                  className="h-7 w-7 p-0"
-                >
-                  <X size={14} />
-                </Button>
-              </div>
-            </div>
-
-            <ScrollArea className="h-[200px] my-2 bg-gray-50/50 dark:bg-gray-900/50 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
-              <div className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed font-sans">
-                {activeNote.content || <span className="text-gray-400 italic">No content in this note.</span>}
-              </div>
-            </ScrollArea>
-          </div>
         ) : notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 text-center py-6">
             <BookOpen size={30} className="text-gray-400 mb-1.5" />
@@ -322,6 +295,15 @@ export const SessionNotes = ({
         onImport={handleImportSelect}
         groupId={groupId}
         excludeNoteTitles={excludeNoteTitles}
+      />
+
+      <SharedNoteModal
+        note={activeNote}
+        isOpen={!!activeNote}
+        onClose={() => setActiveNote(null)}
+        onSave={handleSaveNote}
+        onDelete={handleDelete}
+        currentUserId={currentUserId}
       />
     </Card>
   );

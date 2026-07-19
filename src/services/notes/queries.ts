@@ -61,32 +61,8 @@ export class NotesQueries {
         throw new Error('Authentication required. Please log in again.');
       }
 
-      // First, get notes shared via the note_group_shares table
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-
-      // Also get notes that have this group_id directly (legacy support)
-      const { data: legacyGroupNotes, error: legacyError } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('group_id', groupId)
-        .order('updated_at', { ascending: false });
-
-      if (legacyError) {
-        console.error('Error fetching legacy group notes:', legacyError);
-      }
-
-      // Combine both results and remove duplicates
-      const allNotes = [...sharedNotes, ...(legacyGroupNotes || [])];
-      const uniqueNotes = Array.from(
-        new Map(allNotes.map(note => [note.id, note])).values()
-      );
-
-      // Sort by updated_at descending
-      uniqueNotes.sort((a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      );
-
-      return await populateNoteProfiles(uniqueNotes);
+      return await populateNoteProfiles(sharedNotes);
     } catch (error) {
       console.error('Error fetching group notes:', error);
 

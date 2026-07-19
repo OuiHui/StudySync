@@ -1,4 +1,4 @@
-﻿# Notes — Backend Implementation
+# Notes — Backend Implementation
 
 ## Overview
 
@@ -227,9 +227,16 @@ Other group members can now SELECT the note via RLS:
 
 ---
 
+## Resolved Gaps & Recent Improvements
+
+- **`permission_level = 'friends'`**: Enforced via RLS policy using `public.note_shared_with_friends(created_by)` helper function checking accepted friendships.
+- **`group_id` legacy column**: Removed from `notes` table. Note-to-group sharing is exclusively handled via `note_group_shares`.
+- **`session_id` referential integrity**: `session_id` column converted to UUID with `FOREIGN KEY (session_id) REFERENCES public.study_sessions(id) ON DELETE SET NULL`.
+- **Shared Note Modal**: Unified centered note modal (`SharedNoteModal.tsx`) shared across Notes App, Solo Study, and Group Sessions.
+
+---
+
 ## Known Gaps
 
-- **`permission_level = 'friends'`** is stored and returned by the API but has no RLS policy — it is functionally equivalent to `'private'`.
-- **`group_id` on `notes`** is a legacy column. The current sharing path is `note_group_shares`. `getGroupNotes` merges both sources and deduplicates.
-- **`session_id`** is a `TEXT` column (not a FK), so there is no referential integrity to a sessions table.
-- **`tags`** column exists but is unused in the current UI.
+- **`tags`** column exists on `notes` but is unused in the current UI.
+

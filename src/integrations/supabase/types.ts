@@ -267,7 +267,6 @@ export type Database = {
           content: string | null
           created_at: string
           created_by: string
-          group_id: string | null
           id: string
           is_collaborative: boolean | null
           permission_level: Database["public"]["Enums"]["note_permission"]
@@ -281,7 +280,6 @@ export type Database = {
           content?: string | null
           created_at?: string
           created_by: string
-          group_id?: string | null
           id?: string
           is_collaborative?: boolean | null
           permission_level?: Database["public"]["Enums"]["note_permission"]
@@ -295,7 +293,6 @@ export type Database = {
           content?: string | null
           created_at?: string
           created_by?: string
-          group_id?: string | null
           id?: string
           is_collaborative?: boolean | null
           permission_level?: Database["public"]["Enums"]["note_permission"]
@@ -306,13 +303,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "notes_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "study_groups"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "notes_session_id_fkey"
             columns: ["session_id"]

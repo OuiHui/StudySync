@@ -6,7 +6,6 @@ export class NotesMutations {
     title: string;
     content?: string;
     subject?: string;
-    group_id?: string;
     is_collaborative?: boolean;
     permission_level?: 'private' | 'friends' | 'group' | 'public';
     file_url?: string | null;
