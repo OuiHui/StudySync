@@ -135,10 +135,9 @@ export class ChatService {
         .select('*')
         .eq('group_id', groupId)
         .eq('is_group_chat', true)
-        .single();
+        .maybeSingle();
 
-      if (findError && findError.code !== 'PGRST116') {
-        // PGRST116 is "not found" error, which is expected if conversation doesn't exist
+      if (findError) {
         console.error('Error finding conversation:', findError);
         throw findError;
       }
