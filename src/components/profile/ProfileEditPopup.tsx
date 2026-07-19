@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { User, Camera, Save, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -42,30 +40,40 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <User size={20} className="mr-2" />
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <User size={18} />
+            </div>
             Edit Profile
           </DialogTitle>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-4 pt-1.5">
           {/* Profile Picture */}
           <div className="flex flex-col items-center">
-            <div className="relative w-24 h-24 mb-4">
+            <div className="relative w-24 h-24 mb-2">
               {profileImage ? (
                 <img 
                   src={profileImage} 
                   alt="Profile" 
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-full h-full rounded-full object-cover border-2 border-[#2a78d6]"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                  <User size={32} className="text-white" />
+                <div className="w-full h-full bg-[#2a78d6]/20 text-[#2a78d6] rounded-full flex items-center justify-center border-2 border-[#2a78d6]">
+                  <User size={36} />
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600">
+              <label className="absolute bottom-0 right-0 bg-[#2a78d6] text-white p-2 rounded-full cursor-pointer hover:bg-[#2268bc] shadow-md transition-colors">
                 <Camera size={14} />
                 <input 
                   type="file" 
@@ -79,56 +87,72 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
 
           {/* Form Fields */}
           <div className="space-y-3">
-            <div>
-              <Label htmlFor="name">Name</Label>
+            <div className="space-y-1">
+              <Label htmlFor="name" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                Name <span className="text-red-500 ml-0.5">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
               />
             </div>
             
-            <div>
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                Email <span className="text-red-500 ml-0.5">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
               />
             </div>
             
-            <div>
-              <Label htmlFor="year">Academic Year</Label>
+            <div className="space-y-1">
+              <Label htmlFor="year" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Academic Year</Label>
               <Input
                 id="year"
                 value={formData.year}
                 onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
               />
             </div>
             
-            <div>
-              <Label htmlFor="bio">Bio</Label>
+            <div className="space-y-1">
+              <Label htmlFor="bio" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Bio</Label>
               <Textarea
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 placeholder="Tell us about yourself..."
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
                 rows={3}
               />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              <X size={16} className="mr-2" />
+          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+            >
               Cancel
-            </Button>
-            <Button onClick={handleSave} className="flex-1 bg-blue-500 hover:bg-blue-600">
-              <Save size={16} className="mr-2" />
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!formData.name.trim() || !formData.email.trim()}
+              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex items-center gap-1.5"
+            >
+              <Save size={15} />
               Save
-            </Button>
+            </button>
           </div>
         </div>
       </DialogContent>

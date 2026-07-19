@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Settings, X, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -59,13 +58,29 @@ export const SessionSettings = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white">Session Settings</DialogTitle>
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <Settings size={18} />
+            </div>
+            Session Settings
+          </DialogTitle>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="work-duration" className="text-gray-700 dark:text-gray-300">Work Duration (minutes)</Label>
+
+        <div className="space-y-3.5 pt-1.5">
+          <div className="space-y-1">
+            <Label htmlFor="work-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Work duration (minutes) <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               id="work-duration"
               type="number"
@@ -76,11 +91,14 @@ export const SessionSettings = ({
                 ...prev, 
                 workDuration: parseInt(e.target.value) || 25 
               }))}
-              className="dark:bg-gray-950 dark:border-gray-800"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="break-duration" className="text-gray-700 dark:text-gray-300">Break Duration (minutes)</Label>
+          
+          <div className="space-y-1">
+            <Label htmlFor="break-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Break duration (minutes) <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               id="break-duration"
               type="number"
@@ -91,11 +109,14 @@ export const SessionSettings = ({
                 ...prev, 
                 breakDuration: parseInt(e.target.value) || 5 
               }))}
-              className="dark:bg-gray-950 dark:border-gray-800"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="long-break-duration" className="text-gray-700 dark:text-gray-300">Long Break Duration (minutes)</Label>
+          
+          <div className="space-y-1">
+            <Label htmlFor="long-break-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Long break duration (minutes) <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               id="long-break-duration"
               type="number"
@@ -106,11 +127,14 @@ export const SessionSettings = ({
                 ...prev, 
                 longBreakDuration: parseInt(e.target.value) || 15 
               }))}
-              className="dark:bg-gray-950 dark:border-gray-800"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="session-goal" className="text-gray-700 dark:text-gray-300">Daily Session Goal</Label>
+          
+          <div className="space-y-1">
+            <Label htmlFor="session-goal" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Daily session goal <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               id="session-goal"
               type="number"
@@ -121,15 +145,30 @@ export const SessionSettings = ({
                 ...prev, 
                 sessionGoal: parseInt(e.target.value) || 8 
               }))}
-              className="dark:bg-gray-950 dark:border-gray-800"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
             />
           </div>
-          <Button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-            <Save size={16} className="mr-2" />
-            Save Settings
-          </Button>
+
+          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold flex items-center justify-center transition-all duration-200"
+            >
+              <Save size={15} className="mr-2" />
+              Save Settings
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+

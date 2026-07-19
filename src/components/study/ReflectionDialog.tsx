@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Star } from 'lucide-react';
+import { Star, Sparkles, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReflectionDialogProps {
@@ -69,22 +68,30 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] border-0 shadow-2xl bg-white dark:bg-gray-800">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
-            🎉 Session Complete!
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <Sparkles size={18} />
+            </div>
+            Session Complete!
           </DialogTitle>
-          <DialogDescription className="text-center text-gray-500 dark:text-gray-400">
-            Take a moment to reflect on your learning and focus level.
-          </DialogDescription>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <div className="flex flex-col items-center space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              How focused were you?
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1.5">
+          <div className="flex flex-col items-center space-y-2 p-4 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
+            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              How focused were you? <span className="text-red-500 ml-0.5">*</span>
             </Label>
-            <div className="flex space-x-1">
+            <div className="flex space-x-1.5">
               {[1, 2, 3, 4, 5].map((starValue) => {
                 const isStarred = (hoverRating || rating) >= starValue;
                 return (
@@ -97,19 +104,18 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
                     className="p-1 focus:outline-none transition-transform hover:scale-125 duration-150"
                   >
                     <Star
-                      size={32}
-                      className={`${
-                        isStarred
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300 dark:text-gray-600'
-                      } transition-colors duration-150`}
+                      size={28}
+                      className={`${isStarred
+                          ? 'fill-amber-400 text-amber-400'
+                          : 'text-gray-300 dark:text-slate-600'
+                        } transition-colors duration-150`}
                     />
                   </button>
                 );
               })}
             </div>
             {rating > 0 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+              <span className="text-xs font-semibold text-[#2a78d6]">
                 {rating === 1 && "Very Distracted 🥱"}
                 {rating === 2 && "Somewhat Focused 🫤"}
                 {rating === 3 && "Focused 🙂"}
@@ -119,37 +125,38 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Session Reflections / Accomplishments
+          <div className="space-y-1">
+            <Label htmlFor="notes" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Reflections / Accomplishments
             </Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="What did you achieve? Any obstacles you overcame?"
-              rows={4}
-              className="resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              rows={3}
+              disabled={loading}
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-2">
-            <Button
+          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+            <button
               type="button"
-              variant="ghost"
               onClick={handleSkip}
               disabled={loading}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
             >
               Skip
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={loading || rating === 0}
+              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
+              {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
               {loading ? 'Saving...' : 'Submit Reflection'}
-            </Button>
+            </button>
           </div>
         </form>
       </DialogContent>

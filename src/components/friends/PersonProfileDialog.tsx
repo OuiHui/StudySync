@@ -45,12 +45,12 @@ export const PersonProfileDialog = ({
   if (loading || !person) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-gray-900 border-0">
+        <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl shadow-2xl">
           <DialogTitle className="sr-only">Loading User Profile</DialogTitle>
           <DialogDescription className="sr-only">Please wait while the user profile details are loading.</DialogDescription>
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-violet-500 mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold">Loading profile...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-[#2a78d6] mb-2" />
+            <p className="text-sm text-gray-500 dark:text-zinc-400 font-semibold">Loading profile...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -59,7 +59,7 @@ export const PersonProfileDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl shadow-2xl">
         <DialogTitle className="sr-only">{person.name}'s Profile</DialogTitle>
         <DialogDescription className="sr-only">
           Detailed profile information for {person.name}, including their major, year, study groups, and friends.
@@ -91,3 +91,4 @@ export const PersonProfileDialog = ({
     </Dialog>
   );
 };
+

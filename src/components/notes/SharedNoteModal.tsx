@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, X, Edit2, Trash2, Eye } from 'lucide-react';
+import { Save, X, Edit2, Trash2, FileText } from 'lucide-react';
 import { MarkdownEditor } from './MarkdownEditor/index';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { FileViewer } from './FileViewer';
@@ -102,10 +102,13 @@ export const SharedNoteModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`${hasFile ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto flex flex-col`}>
-        <DialogHeader className="shrink-0 pb-2 border-b dark:border-gray-800">
-          <div className="flex items-center justify-between pr-6">
-            <DialogTitle className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+      <DialogContent className={`${hasFile ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto flex flex-col w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl [&>button]:hidden`}>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <FileText size={18} />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
               {hasFile
                 ? isEditing
                   ? 'Edit PDF Note Details'
@@ -115,46 +118,54 @@ export const SharedNoteModal = ({
                 : 'View Note'}
             </DialogTitle>
             {note.subject && (
-              <Badge variant="secondary" className="text-xs bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+              <Badge variant="secondary" className="text-xs bg-[#2a78d6]/10 text-[#2a78d6]">
                 {note.subject}
               </Badge>
             )}
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
 
         <div className="space-y-6 py-4 flex-1 overflow-y-auto">
           {isEditing ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Title *
-                  </label>
+                <div className="space-y-1">
+                  <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                    Title <span className="text-red-500 ml-0.5">*</span>
+                  </Label>
                   <Input
                     value={form.title}
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                    className="dark:bg-gray-800"
                     placeholder="Note title..."
+                    className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <div className="space-y-1">
+                  <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                     Subject
-                  </label>
+                  </Label>
                   <Input
                     value={form.subject}
                     onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
-                    className="dark:bg-gray-800"
                     placeholder="e.g. Computer Science"
+                    className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
                   />
                 </div>
               </div>
 
               {!hasFile && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                <div className="space-y-1">
+                  <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                     Content
-                  </label>
+                  </Label>
                   <MarkdownEditor
                     value={form.content}
                     onChange={(val) => setForm((prev) => ({ ...prev, content: val }))}
@@ -166,22 +177,22 @@ export const SharedNoteModal = ({
 
               {hasFile && (
                 <div className="mt-4">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200 mb-2 block">
                     Attachment Preview
-                  </label>
+                  </Label>
                   <FileViewer fileUrl={note.file_url!} title={form.title} />
                 </div>
               )}
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="border-b border-gray-100 dark:border-gray-800 pb-3">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+              <div className="border-b border-gray-200 dark:border-slate-700/80 pb-3">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
                   {note.title}
                 </h2>
                 {note.profiles?.display_name && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    By <span className="font-medium text-gray-700 dark:text-gray-300">{note.profiles.display_name}</span>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+                    By <span className="font-semibold text-gray-700 dark:text-zinc-300">{note.profiles.display_name}</span>
                   </p>
                 )}
               </div>
@@ -194,10 +205,10 @@ export const SharedNoteModal = ({
 
               {note.content && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider">
                     Content
                   </h4>
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg max-h-[500px] overflow-y-auto">
+                  <div className="p-4 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-xl max-h-[500px] overflow-y-auto">
                     <MarkdownRenderer content={note.content} />
                   </div>
                 </div>
@@ -206,62 +217,58 @@ export const SharedNoteModal = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4 shrink-0">
+        <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700/80 pt-4 shrink-0">
           <div>
             {onDelete && canEdit && (
-              <Button
-                variant="destructive"
-                size="sm"
+              <button
+                type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="text-xs"
+                className="bg-red-600 hover:bg-red-700 text-white rounded-xl px-4 h-10 text-sm font-semibold inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
-              </Button>
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2.5">
             {canEdit && !isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setIsEditing(true)}
-                className="text-xs"
+                className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors inline-flex items-center gap-1.5"
               >
-                <Edit2 className="w-3.5 h-3.5 mr-1" /> Edit Note
-              </Button>
+                <Edit2 className="w-4 h-4" /> Edit Note
+              </button>
             )}
 
             {isEditing ? (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={() => setIsEditing(false)}
                   disabled={isSaving}
-                  className="text-xs"
+                  className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  <X className="w-3.5 h-3.5 mr-1" /> Cancel
-                </Button>
-                <Button
-                  size="sm"
+                  <X className="w-4 h-4" /> Cancel
+                </button>
+                <button
+                  type="button"
                   onClick={handleSave}
                   disabled={isSaving || !form.title.trim()}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                  className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
                 >
-                  <Save className="w-3.5 h-3.5 mr-1" /> Save Changes
-                </Button>
+                  <Save className="w-4 h-4" /> Save Changes
+                </button>
               </>
             ) : (
-              <Button
-                size="sm"
-                variant="secondary"
+              <button
+                type="button"
                 onClick={onClose}
-                className="text-xs"
+                className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
               >
                 Close
-              </Button>
+              </button>
             )}
           </div>
         </div>
@@ -269,3 +276,4 @@ export const SharedNoteModal = ({
     </Dialog>
   );
 };
+

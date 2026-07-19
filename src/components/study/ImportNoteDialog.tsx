@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Loader2, FileText, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Search, Loader2, FileText, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -49,7 +48,6 @@ export const ImportNoteDialog = ({
       try {
         const fetchedNotes: SimpleNote[] = [];
 
-        // 1. Fetch personal notes
         const personal = await NotesService.getNotes();
         if (personal) {
           personal.forEach((n: any) => {
@@ -63,12 +61,10 @@ export const ImportNoteDialog = ({
           });
         }
 
-        // 2. Fetch group notes if groupId is present
         if (groupId) {
           const groupNotes = await NotesService.getGroupNotes(groupId);
           if (groupNotes) {
             groupNotes.forEach((n: any) => {
-              // Avoid duplicate IDs if already added from personal
               if (!fetchedNotes.some(fn => fn.id === n.id)) {
                 fetchedNotes.push({
                   id: n.id,
@@ -82,7 +78,6 @@ export const ImportNoteDialog = ({
           }
         }
 
-        // Filter out notes already imported in the session by title
         const filtered = fetchedNotes.filter(
           n => !excludeNoteTitles.includes(n.title)
         );
@@ -131,23 +126,33 @@ export const ImportNoteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px] max-h-[85vh] flex flex-col">
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center">
-            <FileText className="mr-2 text-indigo-500" size={18} />
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <FileText size={18} />
+            </div>
             Share Existing Notes
           </DialogTitle>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
 
-        <div className="flex items-center space-x-2 shrink-0 my-2">
+        <div className="flex items-center space-x-2 shrink-0 my-3">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-slate-500" />
             <Input
               type="text"
               placeholder="Search by title, subject, or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 text-xs dark:bg-gray-950 dark:border-gray-800"
+              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm"
             />
           </div>
         </div>
@@ -155,11 +160,11 @@ export const ImportNoteDialog = ({
         <div className="flex-1 min-h-0 py-2">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-indigo-500 mb-2" />
-              <span className="text-xs text-gray-500">Loading your notes...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-[#2a78d6] mb-2" />
+              <span className="text-xs text-gray-500 dark:text-zinc-400">Loading your notes...</span>
             </div>
           ) : filteredNotes.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-xs">
+            <div className="text-center py-12 text-gray-500 dark:text-zinc-400 text-xs">
               {searchQuery ? 'No matching notes found.' : 'No study notes available to share.'}
             </div>
           ) : (
@@ -171,19 +176,19 @@ export const ImportNoteDialog = ({
                     <div
                       key={note.id}
                       onClick={() => setSelectedNoteId(note.id)}
-                      className={`p-3 rounded-lg border text-left cursor-pointer transition-all flex justify-between items-start ${
+                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex justify-between items-start ${
                         isSelected
-                          ? 'border-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/20'
-                          : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          ? 'border-[#2a78d6] bg-[#2a78d6]/10'
+                          : 'border-gray-200 dark:border-slate-700/80 bg-gray-100 dark:bg-[#12151e] hover:border-gray-300 dark:hover:border-slate-700'
                       }`}
                     >
                       <div className="flex-1 min-w-0 pr-2">
                         <div className="flex items-center space-x-1.5 mb-1.5 flex-wrap gap-y-1">
-                          <Badge variant="outline" className="text-[9px] uppercase font-semibold">
+                          <Badge variant="outline" className="text-[9px] uppercase font-semibold border-gray-300 dark:border-slate-700">
                             {note.source === 'personal' ? 'Personal' : 'Group'}
                           </Badge>
                           {note.subject && (
-                            <Badge variant="secondary" className="text-[9px] py-0">
+                            <Badge variant="secondary" className="text-[9px] py-0 bg-gray-200 dark:bg-slate-800 text-gray-800 dark:text-zinc-300">
                               {note.subject}
                             </Badge>
                           )}
@@ -192,13 +197,13 @@ export const ImportNoteDialog = ({
                           {note.title}
                         </h4>
                         {note.content && (
-                          <p className="text-[10px] text-gray-500 mt-1 line-clamp-1">
+                          <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-1 line-clamp-1">
                             {note.content}
                           </p>
                         )}
                       </div>
                       {isSelected && (
-                        <div className="shrink-0 self-center bg-indigo-500 text-white rounded-full p-0.5">
+                        <div className="shrink-0 self-center bg-[#2a78d6] text-white rounded-full p-0.5">
                           <Check size={12} />
                         </div>
                       )}
@@ -210,27 +215,27 @@ export const ImportNoteDialog = ({
           )}
         </div>
 
-        <div className="flex justify-end space-x-2 pt-3 border-t dark:border-gray-800 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-200 dark:border-slate-700/80 shrink-0">
+          <button
+            type="button"
             onClick={() => onOpenChange(false)}
             disabled={importing}
-            className="text-xs h-8"
+            className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
+            type="button"
             onClick={handleShare}
             disabled={importing || !selectedNoteId}
-            size="sm"
-            className="text-xs h-8 bg-indigo-650 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-700"
+            className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
           >
-            {importing && <Loader2 className="h-3 w-3 animate-spin mr-1.5" />}
+            {importing && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
             Share Note
-          </Button>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+

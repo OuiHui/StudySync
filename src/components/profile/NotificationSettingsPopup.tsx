@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Bell, Mail, MessageSquare, Calendar, Settings } from 'lucide-react';
+import { Bell, Mail, MessageSquare, Calendar, Settings, X, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -117,31 +116,41 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Bell size={20} className="mr-2" />
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <Bell size={18} />
+            </div>
             Notification Settings
           </DialogTitle>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-5 py-2 overflow-y-auto flex-1">
           {notificationCategories.map((category) => {
             const IconComponent = category.icon;
             return (
-              <div key={category.title} className="space-y-3">
-                <h3 className="flex items-center font-semibold text-gray-800 dark:text-white">
-                  <IconComponent size={16} className="mr-2" />
+              <div key={category.title} className="space-y-2.5">
+                <h3 className="flex items-center font-bold text-sm text-gray-800 dark:text-zinc-200">
+                  <IconComponent size={16} className="mr-2 text-[#2a78d6]" />
                   {category.title}
                 </h3>
-                <div className="space-y-3 ml-6">
+                <div className="space-y-2">
                   {category.settings.map((setting) => (
-                    <div key={setting.key} className="flex items-start justify-between space-x-3">
+                    <div key={setting.key} className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 gap-3">
                       <div className="flex-1">
-                        <Label htmlFor={setting.key} className="text-sm font-medium">
+                        <Label htmlFor={setting.key} className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                           {setting.label}
                         </Label>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
                           {setting.description}
                         </p>
                       </div>
@@ -156,15 +165,26 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
               </div>
             );
           })}
+        </div>
 
-          <div className="flex space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={loading} className="flex-1 bg-blue-500 hover:bg-blue-600">
-              {loading ? 'Saving...' : 'Save Settings'}
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-200 dark:border-slate-700/80 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+          >
+            {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
+            {loading ? 'Saving...' : 'Save Settings'}
+          </button>
         </div>
       </DialogContent>
     </Dialog>

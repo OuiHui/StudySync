@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MoreHorizontal, X, Upload, Image as ImageIcon, Minus, Plus, Loader2, Trash2 } from 'lucide-react';
+import { MoreHorizontal, X, Upload, Image as ImageIcon, Minus, Plus, Loader2, Trash2, Users } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -216,7 +216,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
 
             {/* Header */}
             <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+                  <Users size={18} />
+                </div>
                 Edit Study Group
               </DialogTitle>
               <div className="flex items-center gap-2">
@@ -291,7 +294,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
               {/* Group Name */}
               <div className="space-y-1">
                 <Label htmlFor="group-name" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-                  Group name
+                  Group name <span className="text-red-500 ml-0.5">*</span>
                 </Label>
                 <Input
                   id="group-name"

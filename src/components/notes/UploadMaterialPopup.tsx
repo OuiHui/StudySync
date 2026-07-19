@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, X, File, Loader2, Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -103,7 +102,6 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       let fileUrl = null;
       let fileName = null;
 
-      // If a file is selected, upload it to Supabase Storage
       if (file) {
         const targetGroupId = selectedGroups.length > 0 ? selectedGroups[0] : undefined;
         const uploadResult = await NotesService.uploadFile(file, targetGroupId);
@@ -113,7 +111,6 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
         }
       }
 
-      // Create note with the form data and file URL if available
       const note = await NotesService.createNote({
         title: title.trim(),
         content: description || '',
@@ -123,12 +120,10 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
         file_name: fileName
       });
 
-      // Share with selected groups if any
       if (note && selectedGroups.length > 0) {
         await NotesService.shareNoteWithGroups(note.id, selectedGroups);
       }
 
-      // Reset form
       setTitle('');
       setDescription('');
       setSubject('');
@@ -137,7 +132,6 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       setFile(null);
       setSelectedGroups([]);
       
-      // Call success callback and close
       if (onUploadSuccess) {
         onUploadSuccess();
       }
@@ -152,39 +146,47 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Upload size={20} className="mr-2" />
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <Upload size={18} />
+            </div>
             Upload Study Material
           </DialogTitle>
-          <DialogDescription>
-            Upload your study materials, notes, or documents to share with your study groups or keep private.
-          </DialogDescription>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1.5">
           {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertDescription className="text-red-800">
+            <Alert className="border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400">
+              <AlertDescription>
                 {error}
               </AlertDescription>
             </Alert>
           )}
+
           {/* File Upload */}
-          <div>
-            <Label htmlFor="file">File</Label>
+          <div className="space-y-1">
+            <Label htmlFor="file" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">File</Label>
             <div className="mt-1">
               <input
                 id="file"
                 type="file"
                 onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-xs text-gray-500 dark:text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#2a78d6]/10 file:text-[#2a78d6] hover:file:bg-[#2a78d6]/20 cursor-pointer"
                 accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
               />
               {file && (
-                <div className="mt-2 flex items-center text-sm text-gray-600">
-                  <File size={16} className="mr-1" />
+                <div className="mt-2 flex items-center text-xs font-semibold text-gray-700 dark:text-zinc-300">
+                  <File size={14} className="mr-1.5 text-[#2a78d6]" />
                   {file.name}
                 </div>
               )}
@@ -192,45 +194,47 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
           </div>
 
           {/* Title */}
-          <div>
-            <Label htmlFor="title">Title</Label>
+          <div className="space-y-1">
+            <Label htmlFor="title" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Title <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter material title..."
-              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
               required
             />
           </div>
 
           {/* Description */}
-          <div>
-            <Label htmlFor="description">Description</Label>
+          <div className="space-y-1">
+            <Label htmlFor="description" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Description</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the material..."
-              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
               rows={3}
             />
           </div>
 
           {/* Subject */}
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center justify-between mb-1">
-              <Label htmlFor="subject">Subject</Label>
-              <Button
+              <Label htmlFor="subject" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                Subject <span className="text-red-500 ml-0.5">*</span>
+              </Label>
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={() => setShowNewSubject(!showNewSubject)}
-                className="h-auto p-1 text-xs"
+                className="text-xs font-semibold text-[#2a78d6] hover:underline inline-flex items-center"
               >
-                <Plus size={14} className="mr-1" />
+                <Plus size={13} className="mr-0.5" />
                 New Subject
-              </Button>
+              </button>
             </div>
             
             {showNewSubject ? (
@@ -239,27 +243,25 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
                   value={newSubjectName}
                   onChange={(e) => setNewSubjectName(e.target.value)}
                   placeholder="Enter new subject name..."
-                  className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-9 focus-visible:ring-[#2a78d6] text-xs font-semibold"
                 />
-                <Button
+                <button
                   type="button"
-                  size="sm"
                   onClick={handleCreateSubject}
-                  className="bg-blue-500 hover:bg-blue-600"
+                  className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
                 >
                   Add
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
-                  size="sm"
-                  variant="outline"
                   onClick={() => {
                     setShowNewSubject(false);
                     setNewSubjectName('');
                   }}
+                  className="bg-white hover:bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold"
                 >
                   Cancel
-                </Button>
+                </button>
               </div>
             ) : null}
             
@@ -267,7 +269,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full h-10 px-3 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg text-sm font-semibold focus:outline-none focus:border-[#2a78d6]"
               required
             >
               <option value="">Select a subject</option>
@@ -282,13 +284,13 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
           </div>
 
           {/* Category */}
-          <div>
-            <Label htmlFor="category">Category</Label>
+          <div className="space-y-1">
+            <Label htmlFor="category" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Category</Label>
             <select
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full h-10 px-3 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg text-sm font-semibold focus:outline-none focus:border-[#2a78d6]"
             >
               <option value="notes">Notes</option>
               <option value="flashcards">Flashcards</option>
@@ -297,53 +299,35 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
             </select>
           </div>
 
-          {/* Share with Groups */}
-          {!isPrivate && userGroups.length > 0 && (
-            <div>
-              <Label>Share with Study Groups (optional)</Label>
-              <div className="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-md p-2 dark:border-gray-600">
-                {userGroups.map(group => (
-                  <div key={group.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`group-${group.id}`}
-                      checked={selectedGroups.includes(group.id)}
-                      onCheckedChange={() => toggleGroupSelection(group.id)}
-                    />
-                    <label
-                      htmlFor={`group-${group.id}`}
-                      className="text-sm cursor-pointer dark:text-white"
-                    >
-                      {group.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Selected groups: {selectedGroups.length}
-              </p>
-            </div>
-          )}
-
-          {/* Privacy */}
-          <div className="flex items-center space-x-2">
+          {/* Privacy Toggle Switch */}
+          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
+            <Label htmlFor="privacy" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+              Make this material private (only visible to you)
+            </Label>
             <input
               id="privacy"
               type="checkbox"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-4 h-4 rounded border-gray-300 text-[#2a78d6] focus:ring-[#2a78d6]"
             />
-            <Label htmlFor="privacy" className="text-sm">
-              Make this material private (only visible to you)
-            </Label>
           </div>
 
           {/* Actions */}
-          <div className="flex space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={loading}>
+          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+            >
               Cancel
-            </Button>
-            <Button type="submit" className="flex-1 bg-blue-500 hover:bg-blue-600" disabled={loading}>
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !title.trim() || !subject}
+              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -352,10 +336,11 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
               ) : (
                 'Create Note'
               )}
-            </Button>
+            </button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
 };
+

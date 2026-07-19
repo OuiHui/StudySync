@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { Lock, Eye, EyeOff, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +49,6 @@ export const ChangePasswordPopup = ({ isOpen, onClose }: ChangePasswordPopupProp
       return;
     }
 
-    // Simulate password change
     toast({
       title: "Success",
       description: "Password changed successfully"
@@ -71,17 +69,29 @@ export const ChangePasswordPopup = ({ isOpen, onClose }: ChangePasswordPopupProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Lock size={20} className="mr-2" />
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <Lock size={18} />
+            </div>
             Change Password
           </DialogTitle>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="currentPassword">Current Password</Label>
+        <div className="space-y-3.5 pt-1.5">
+          <div className="space-y-1">
+            <Label htmlFor="currentPassword" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Current Password <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <div className="relative">
               <Input
                 id="currentPassword"
@@ -89,21 +99,22 @@ export const ChangePasswordPopup = ({ isOpen, onClose }: ChangePasswordPopupProp
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter current password"
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold pr-10"
               />
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
                 onClick={() => togglePasswordVisibility('current')}
               >
                 {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
-              </Button>
+              </button>
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="newPassword">New Password</Label>
+          <div className="space-y-1">
+            <Label htmlFor="newPassword" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              New Password <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <div className="relative">
               <Input
                 id="newPassword"
@@ -111,21 +122,22 @@ export const ChangePasswordPopup = ({ isOpen, onClose }: ChangePasswordPopupProp
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold pr-10"
               />
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
                 onClick={() => togglePasswordVisibility('new')}
               >
                 {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
-              </Button>
+              </button>
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <div className="space-y-1">
+            <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              Confirm New Password <span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -133,35 +145,42 @@ export const ChangePasswordPopup = ({ isOpen, onClose }: ChangePasswordPopupProp
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold pr-10"
               />
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-zinc-200"
                 onClick={() => togglePasswordVisibility('confirm')}
               >
                 {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-              </Button>
+              </button>
             </div>
           </div>
 
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <p>Password requirements:</p>
-            <ul className="list-disc list-inside mt-1 space-y-1">
+          <div className="p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80 text-xs text-gray-600 dark:text-zinc-400">
+            <p className="font-semibold text-gray-800 dark:text-zinc-200 mb-1">Password requirements:</p>
+            <ul className="list-disc list-inside space-y-0.5">
               <li>At least 8 characters long</li>
               <li>Mix of uppercase and lowercase letters</li>
               <li>Include numbers and special characters</li>
             </ul>
           </div>
 
-          <div className="flex space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+            >
               Cancel
-            </Button>
-            <Button onClick={handleSubmit} className="flex-1 bg-blue-500 hover:bg-blue-600">
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold flex items-center justify-center transition-all duration-200"
+            >
               Update Password
-            </Button>
+            </button>
           </div>
         </div>
       </DialogContent>

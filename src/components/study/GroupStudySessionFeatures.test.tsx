@@ -151,7 +151,7 @@ describe('GroupStudySession Features Unit Tests', () => {
 
       // Click to select/view note
       fireEvent.click(noteTitleLink);
-      expect(screen.getByText('Use substitution')).toBeInTheDocument();
+      expect(screen.getAllByText('Use substitution')[0]).toBeInTheDocument();
 
       // Close the note view
       const closeBtn = screen.getAllByRole('button')[0]; // X button is the only button for participant view

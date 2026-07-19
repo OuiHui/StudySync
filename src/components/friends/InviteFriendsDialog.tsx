@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Search, Loader2, UserPlus, Check, HelpCircle, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Search, Loader2, UserPlus, Check, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FriendsService, StudyGroupsService, StudySessionsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,11 +42,9 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
   const loadData = async () => {
     try {
       setLoading(true);
-      // Fetch user's friends list
       const friendsList = await FriendsService.getUserFriends();
 
       if (type === 'group') {
-        // Fetch group, members and invitations in parallel
         const [group, members, invitations] = await Promise.all([
           StudyGroupsService.getGroupById(id),
           StudyGroupsService.getGroupMembers(id),
@@ -71,7 +68,6 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
         });
         setFriends(mapped);
       } else {
-        // Fetch session participants (both active and invited)
         const participants = await StudySessionsService.getParticipants(id);
 
         const mapped: FriendItem[] = friendsList.map(friend => {
@@ -129,106 +125,115 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold dark:text-white">
+      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+              <UserPlus size={18} />
+            </div>
             Invite Friends
           </DialogTitle>
-          <DialogDescription className="dark:text-gray-400">
-            {type === 'group' 
-              ? 'Invite your friends to join this study group.'
-              : 'Invite your friends to join this study session.'}
-          </DialogDescription>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            title="Close"
+          >
+            <X size={18} />
+          </button>
         </DialogHeader>
 
-        {isFull && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-sm text-red-650 dark:text-red-400 flex items-center gap-2">
-            <span>This group has reached its maximum member limit ({groupMaxMembers} members). You cannot invite more members.</span>
+        <div className="space-y-3 pt-1.5">
+          {isFull && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-600 dark:text-red-400 font-semibold">
+              This group has reached its maximum member limit ({groupMaxMembers} members). You cannot invite more members.
+            </div>
+          )}
+
+          <div className="relative">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search friends by name or email..."
+              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+            />
           </div>
-        )}
 
-        <div className="relative my-2">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search friends by name or email..."
-            className="pl-9 pr-4 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-          />
-        </div>
+          <div className="max-h-[300px] overflow-y-auto space-y-2 py-1 pr-1 custom-scrollbar">
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-[#2a78d6]" />
+                <span className="ml-2 text-xs font-semibold text-gray-500 dark:text-zinc-400">Loading friends...</span>
+              </div>
+            ) : filteredFriends.length === 0 ? (
+              <div className="text-center py-8">
+                <UserPlus size={36} className="mx-auto text-gray-400 dark:text-zinc-500 mb-2" />
+                <p className="text-gray-500 dark:text-zinc-400 text-xs font-semibold">
+                  {searchQuery ? 'No friends match your search.' : 'You have no friends to invite.'}
+                </p>
+              </div>
+            ) : (
+              filteredFriends.map((friend) => {
+                const initials = friend.display_name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .substring(0, 2);
 
-        <div className="max-h-[300px] overflow-y-auto space-y-3 py-1 pr-1 custom-scrollbar">
-          {loading ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              <span className="ml-2 text-gray-500 dark:text-gray-300">Loading friends...</span>
-            </div>
-          ) : filteredFriends.length === 0 ? (
-            <div className="text-center py-8">
-              <UserPlus size={40} className="mx-auto text-gray-400 dark:text-gray-500 mb-2" />
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {searchQuery ? 'No friends match your search.' : 'You have no friends to invite.'}
-              </p>
-            </div>
-          ) : (
-            filteredFriends.map((friend) => {
-              const initials = friend.display_name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
+                return (
+                  <div key={friend.user_id} className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 transition-colors">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <Avatar className="h-9 w-9 shrink-0 border border-gray-200 dark:border-slate-700">
+                        <AvatarImage src={friend.avatar_url || undefined} alt={friend.display_name} />
+                        <AvatarFallback className="bg-[#2a78d6] text-white text-xs font-semibold">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <h4 className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                          {friend.display_name}
+                        </h4>
+                        <p className="text-xs text-gray-500 dark:text-zinc-400 truncate">
+                          {friend.email}
+                        </p>
+                      </div>
+                    </div>
 
-              return (
-                <div key={friend.user_id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <Avatar className="h-9 w-9 shrink-0">
-                      <AvatarImage src={friend.avatar_url || undefined} alt={friend.display_name} />
-                      <AvatarFallback className="bg-blue-500 text-white text-xs font-semibold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-800 dark:text-white truncate">
-                        {friend.display_name}
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {friend.email}
-                      </p>
+                    <div className="shrink-0 pl-2">
+                      {friend.status === 'joined' ? (
+                        <span className="text-xs font-semibold text-green-600 dark:text-green-400 inline-flex items-center gap-1">
+                          <Check size={14} /> Joined
+                        </span>
+                      ) : friend.status === 'invited' ? (
+                        <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 px-3 py-1 bg-gray-200 dark:bg-slate-800 rounded-lg">
+                          Invited
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={invitingId === friend.user_id || isFull}
+                          onClick={() => handleInvite(friend.user_id)}
+                          className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1 transition-all duration-200"
+                        >
+                          {invitingId === friend.user_id ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <UserPlus size={13} />
+                          )}
+                          Invite
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  <div className="shrink-0 pl-2">
-                    {friend.status === 'joined' ? (
-                      <Button variant="ghost" disabled size="sm" className="h-8 text-xs text-green-600 dark:text-green-400 font-medium">
-                        <Check size={12} className="mr-1" /> Joined
-                      </Button>
-                    ) : friend.status === 'invited' ? (
-                      <Button variant="secondary" disabled size="sm" className="h-8 text-xs font-medium dark:bg-gray-700 dark:text-gray-300">
-                        Invited
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                        disabled={invitingId === friend.user_id || isFull}
-                        onClick={() => handleInvite(friend.user_id)}
-                      >
-                        {invitingId === friend.user_id ? (
-                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                        ) : (
-                          <UserPlus size={12} className="mr-1" />
-                        )}
-                        Invite
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
+
