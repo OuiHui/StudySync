@@ -174,6 +174,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
+                aria-label="Close notifications"
                 className="dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 <X size={16} />

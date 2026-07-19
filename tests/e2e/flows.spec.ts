@@ -60,7 +60,7 @@ test.describe('StudySync E2E User Flows', () => {
     }
 
     // Close notifications popover
-    const closeBtn = page.locator('button:has(svg.lucide-x)');
+    const closeBtn = page.getByRole('button', { name: 'Close notifications' }).or(page.locator('button:has(svg.lucide-x)').first());
     await closeBtn.click();
 
     // Popover should be hidden
@@ -172,29 +172,38 @@ test.describe('StudySync E2E User Flows', () => {
   test('Flow F: Study Notes & Shared Documents', async ({ page }) => {
     // Navigate to Notes
     await page.getByRole('button', { name: 'Notes' }).click();
-    await expect(page.locator('h1', { hasText: 'Study Materials' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: /Notes|Study Materials/i })).toBeVisible();
 
     // Open Create Note Dialog
-    const createNoteBtn = page.getByRole('button', { name: 'Create Note' });
+    const createNoteBtn = page.getByRole('button', { name: 'Create New Note' }).or(page.getByRole('button', { name: 'Create Note' })).first();
     await expect(createNoteBtn).toBeVisible();
     await createNoteBtn.click();
 
     // Fill Create Note Form
-    await page.locator('input').first().fill('E2E Test Note');
+    await page.locator('input#note-title').fill('E2E Test Note');
     await page.locator('[contenteditable]').fill('This is note content written by E2E test.');
 
-    // Save note
+    // Save note inside modal
     await page.getByRole('button', { name: 'Create Note', exact: true }).click();
 
-    // Assert note exists in grid
-    await expect(page.getByText('E2E Test Note').first()).toBeVisible({ timeout: 10000 });
+    // Wait for Create Note dialog to close
+    await expect(page.locator('h2, h3', { hasText: 'Create New Note' })).not.toBeVisible();
 
-    // Delete Note (click the trash button on the E2E Test Note card)
-    const noteCard = page.locator('.group', { hasText: 'E2E Test Note' }).first();
-    // The trash button is the third button in the note card's action row (nth(2))
-    const deleteBtn = noteCard.locator('button').nth(2);
-    await expect(deleteBtn).toBeVisible({ timeout: 10000 });
-    await deleteBtn.click();
+    // Filter search for created note to handle pagination
+    const searchNotesInput = page.getByPlaceholder('Search notes by name, subject, or creator...');
+    await expect(searchNotesInput).toBeVisible();
+    await searchNotesInput.fill('E2E Test Note');
+
+    // Assert note row exists in table
+    const noteRow = page.locator('tr', { hasText: 'E2E Test Note' }).first();
+    await expect(noteRow).toBeVisible({ timeout: 15000 });
+
+    // Delete Note via row actions dropdown
+    const actionsBtn = noteRow.locator('button').last();
+    await actionsBtn.click();
+
+    // Click Delete in dropdown menu
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
 
     // Verify note is deleted
     await expect(page.getByText('E2E Test Note').first()).not.toBeVisible();

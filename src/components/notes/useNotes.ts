@@ -146,12 +146,12 @@ export const useNotes = () => {
         author: creatorName,
         avatarUrl,
         linkedGroup,
-        date: new Date(note.created_at || note.updated_at).toLocaleDateString('en-US', {
+        date: new Date(note.created_at || note.updated_at || Date.now()).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
           year: 'numeric'
         }),
-        rawDate: note.created_at || note.updated_at,
+        rawDate: note.created_at || note.updated_at || new Date().toISOString(),
         preview,
         isPrivate: effectiveVisibility === 'private',
         effectiveVisibility,
@@ -383,13 +383,15 @@ export const useNotes = () => {
       return;
     }
     try {
-      await NotesService.createNote({
+      const createdNote = await NotesService.createNote({
         title: newNoteData.title.trim(),
         content: newNoteData.content.trim(),
         subject: newNoteData.subject.trim() || null,
-        group_id: newNoteData.group_id || null,
         is_collaborative: true
       });
+      if (newNoteData.group_id && createdNote?.id) {
+        await NotesService.shareNoteWithGroups?.(createdNote.id, [newNoteData.group_id]);
+      }
       toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
       setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
       setIsCreateDialogOpen(false);

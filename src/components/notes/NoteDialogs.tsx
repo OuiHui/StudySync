@@ -42,10 +42,11 @@ export const NoteDialogs = (props: any) => {
           <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-180px)] pt-1.5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                <Label htmlFor="note-title" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                   Title <span className="text-red-500 ml-0.5">*</span>
                 </Label>
                 <Input
+                  id="note-title"
                   value={newNoteData.title}
                   onChange={(e) => setNewNoteData((prev: any) => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter note title..."
