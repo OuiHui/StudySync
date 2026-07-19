@@ -142,3 +142,19 @@ Study groups support real-time updates for membership changes (joins, leaves, an
 - **Database Replication**: The `group_members` table is enrolled in the `supabase_realtime` publication with `REPLICA IDENTITY FULL` to ensure delete event payloads replicate the `group_id` column to subscribers.
 - **Client Subscription**: The `useGroupData` React hook establishes a Supabase Realtime channel subscription listening to changes on the `group_members` table for the active `group_id`.
 - **Query Cache Invalidation**: Upon receiving a real-time event (`INSERT`, `UPDATE`, or `DELETE`), the client automatically invalidates the React Query cache key `['group', groupId]`, triggering a background refresh of the members list and instantly updating the user interface.
+
+---
+
+## 7. Edit Study Group Modal Layout Specification
+
+The Edit Study Group modal (`GroupSettingsDialog.tsx`) provides group creators/admins with a unified dark-mode single-page configuration dialog:
+
+- **Header**: Contains the modal title `"Edit study group"`, a `...` action menu (with **Delete Group** trigger), and a `X` close button.
+- **Group Image**: A square thumbnail avatar preview alongside an `"Upload image"` button supporting PNG/JPG files up to 5MB.
+- **Group Name**: Text input field mapped to `study_groups.name`.
+- **Course**: Text input field mapped to `study_groups.subject`.
+- **Description**: Textarea field mapped to `study_groups.description`, featuring a live character counter (`x/500 characters`).
+- **Member Limit**: Stepper control with `-` / `+` buttons and a numeric input box mapped to `study_groups.max_members`.
+- **Who Can Join**: Segmented pill toggle control switching between `"Anyone can join"` (`is_public = true`) and `"Requires approval"` (`is_public = false`).
+- **Footer**: Contains `"Cancel"` and `"Save changes"` buttons to persist updates or close the modal.
+
