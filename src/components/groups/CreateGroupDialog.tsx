@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudyGroupsService } from '@/services/database';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Users, X, Loader2 } from 'lucide-react';
+import { Plus, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreateGroupDialogProps {
@@ -76,29 +76,12 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           Create Group
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
-              <Users size={18} />
-            </div>
-            Create Study Group
-          </DialogTitle>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </DialogHeader>
+      <StandardDialogContent size="lg">
+        <ModalHeader title="Create Study Group" icon={<Users size={18} />} onClose={() => setOpen(false)} />
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-1.5">
           <div className="space-y-1">
-            <Label htmlFor="name" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Group name <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel htmlFor="name" required>Group name</FormLabel>
             <Input
               id="name"
               value={formData.name}
@@ -111,7 +94,7 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="course" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Course</Label>
+            <FormLabel htmlFor="course">Course</FormLabel>
             <Input
               id="course"
               value={formData.subject}
@@ -123,7 +106,7 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="description" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Description</Label>
+            <FormLabel htmlFor="description">Description</FormLabel>
             <Textarea
               id="description"
               value={formData.description}
@@ -136,7 +119,7 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="maxMembers" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Max Members</Label>
+            <FormLabel htmlFor="maxMembers">Max Members</FormLabel>
             <Input
               id="maxMembers"
               type="number"
@@ -152,9 +135,9 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
           {/* Who Can Join Switch */}
           <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
             <div>
-              <Label htmlFor="isPublic" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+              <FormLabel htmlFor="isPublic" className="cursor-pointer">
                 Public group
-              </Label>
+              </FormLabel>
               <p className="text-xs text-gray-500 dark:text-zinc-400">
                 Anyone can search for and join this study group
               </p>
@@ -168,15 +151,7 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
             />
           </div>
           
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
+          <ModalFooter onCancel={() => setOpen(false)}>
             <button
               type="submit"
               disabled={loading || !formData.name.trim()}
@@ -185,9 +160,10 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
               {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
               {loading ? 'Creating...' : 'Create Group'}
             </button>
-          </div>
+          </ModalFooter>
         </form>
-      </DialogContent>
+      </StandardDialogContent>
     </Dialog>
   );
-};
+};
+

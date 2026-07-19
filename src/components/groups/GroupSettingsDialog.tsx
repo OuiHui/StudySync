@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { MoreHorizontal, X, Upload, Image as ImageIcon, Minus, Plus, Loader2, Trash2, Users } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { MoreHorizontal, Upload, Image as ImageIcon, Minus, Plus, Loader2, Trash2, Users } from 'lucide-react';
+import { Dialog } from '@/components/ui/dialog';
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -20,146 +15,125 @@ import { StudyGroupsService } from '@/services/database';
 import { DeleteGroupModal } from './settings/DeleteGroupModal';
 
 interface GroupSettingsDialogProps {
-  group: {
-    id: string;
-    name: string;
-    description?: string;
-    subject?: string;
-    is_public: boolean;
-    max_members?: number;
-    member_count?: number;
-    created_at: string;
-    color?: string;
-    icon?: string;
-  } | null;
+  groupId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGroupUpdated?: (updatedGroup: any) => void;
-  onGroupDeleted?: (groupId: string) => void;
+  onGroupUpdated?: () => void;
+  onGroupDeleted?: () => void;
 }
 
 export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
-  group,
+  groupId,
   open,
   onOpenChange,
   onGroupUpdated,
   onGroupDeleted,
 }) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [fetching, setFetching] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [useCustomImage, setUseCustomImage] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
     subject: '',
+    description: '',
     is_public: true,
-    max_members: 12,
-    color: 'from-blue-500 to-blue-600',
-    icon: 'Users',
+    max_members: 50,
+    avatar_url: '',
   });
 
-  // Reset form when group changes or modal opens
+  const { toast } = useToast();
+
   useEffect(() => {
-    if (group) {
-      setFormData({
-        name: group.name || '',
-        description: group.description || '',
-        subject: group.subject || '',
-        is_public: group.is_public ?? true,
-        max_members: group.max_members || 12,
-        color: group.color || 'from-blue-500 to-blue-600',
-        icon: group.icon || 'Users',
-      });
-
-      if (group.icon && (group.icon.startsWith('data:') || group.icon.startsWith('http'))) {
-        setUploadedImage(group.icon);
-        setUseCustomImage(true);
-      } else {
-        setUploadedImage(null);
-        setUseCustomImage(false);
-      }
+    if (open && groupId) {
+      fetchGroupData();
     }
-    setDeleteConfirm('');
-    setShowDeleteConfirm(false);
-  }, [group, open]);
+  }, [open, groupId]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const fetchGroupData = async () => {
+    try {
+      setFetching(true);
+      const data = await StudyGroupsService.getGroupById(groupId);
+      if (data) {
+        setFormData({
+          name: data.name || '',
+          subject: data.subject || '',
+          description: data.description || '',
+          is_public: data.is_public ?? true,
+          max_members: data.max_members || 50,
+          avatar_url: data.avatar_url || '',
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load group details:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to load group settings.',
+        variant: 'destructive',
+      });
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: 'File too large',
-          description: 'Please select an image smaller than 5MB.',
+          description: 'Image size must be less than 5MB.',
           variant: 'destructive',
         });
         return;
       }
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please select an image file.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
+      setNewImageFile(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setUploadedImage(result);
-        setUseCustomImage(true);
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleUpdateGroup = async () => {
-    if (!group) return;
+    if (!formData.name.trim()) return;
 
-    if (!formData.name.trim()) {
-      toast({
-        title: 'Validation Error',
-        description: 'Group name is required.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoading(true);
     try {
-      const updatedGroup = await StudyGroupsService.updateGroup(group.id, {
+      setLoading(true);
+      let updatedAvatarUrl = formData.avatar_url;
+
+      if (newImageFile) {
+        const uploaded = await StudyGroupsService.uploadGroupAvatar(groupId, newImageFile);
+        if (uploaded) {
+          updatedAvatarUrl = uploaded;
+        }
+      }
+
+      await StudyGroupsService.updateGroup(groupId, {
         name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        subject: formData.subject.trim() || null,
+        subject: formData.subject.trim() || undefined,
+        description: formData.description.trim() || undefined,
         is_public: formData.is_public,
         max_members: formData.max_members,
-        icon: useCustomImage ? uploadedImage : formData.icon,
-        color: formData.color,
-      } as any);
-
-      const groupWithUIUpdates = {
-        ...updatedGroup,
-        color: formData.color,
-        icon: useCustomImage ? uploadedImage : formData.icon,
-      };
-
-      toast({
-        title: 'Group Updated',
-        description: 'Your group settings have been saved successfully.',
+        avatar_url: updatedAvatarUrl,
       });
 
-      onGroupUpdated?.(groupWithUIUpdates);
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error updating group:', error);
       toast({
-        title: 'Update Failed',
-        description: error instanceof Error ? error.message : 'Failed to update group. Please try again.',
+        title: 'Settings Saved',
+        description: 'Study group settings have been updated.',
+      });
+
+      onGroupUpdated?.();
+      onOpenChange(false);
+    } catch (err: any) {
+      console.error('Failed to update group:', err);
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to save group settings.',
         variant: 'destructive',
       });
     } finally {
@@ -168,24 +142,23 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
   };
 
   const handleDeleteGroup = async () => {
-    if (!group || deleteConfirm !== group.name) return;
+    if (deleteConfirm !== formData.name) return;
 
-    setLoading(true);
     try {
-      await StudyGroupsService.deleteGroup(group.id);
-
+      setLoading(true);
+      await StudyGroupsService.deleteGroup(groupId);
       toast({
         title: 'Group Deleted',
-        description: 'Your group has been permanently deleted.',
+        description: 'The study group has been permanently deleted.',
       });
-
-      onGroupDeleted?.(group.id);
+      setShowDeleteConfirm(false);
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error deleting group:', error);
+      onGroupDeleted?.();
+    } catch (err: any) {
+      console.error('Failed to delete group:', err);
       toast({
-        title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Failed to delete group. Please try again.',
+        title: 'Error',
+        description: err.message || 'Failed to delete study group.',
         variant: 'destructive',
       });
     } finally {
@@ -193,41 +166,43 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
     }
   };
 
-  const displayImage = useCustomImage && uploadedImage ? uploadedImage : null;
+  const displayImage = imagePreview || formData.avatar_url;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Modal Panel: Rich dark blue background (#1a1f2c / slate-800) matching other study modals */}
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        {group && (
-          <>
-            <DeleteGroupModal
-              show={showDeleteConfirm}
-              onClose={() => {
-                setShowDeleteConfirm(false);
-                setDeleteConfirm('');
-              }}
-              groupName={group.name}
-              deleteConfirm={deleteConfirm}
-              setDeleteConfirm={setDeleteConfirm}
-              onDelete={handleDeleteGroup}
-              loading={loading}
-            />
+      <StandardDialogContent size="lg" className="relative">
+        <DeleteGroupModal
+          show={showDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setDeleteConfirm('');
+          }}
+          groupName={formData.name}
+          deleteConfirm={deleteConfirm}
+          setDeleteConfirm={setDeleteConfirm}
+          onDelete={handleDeleteGroup}
+          loading={loading}
+        />
 
-            {/* Header */}
-            <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-              <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
-                  <Users size={18} />
-                </div>
-                Edit Study Group
-              </DialogTitle>
-              <div className="flex items-center gap-2">
+        {fetching ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-[#2a78d6] mb-3" />
+            <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">
+              Loading settings...
+            </p>
+          </div>
+        ) : (
+          <>
+            <ModalHeader
+              title="Edit Study Group"
+              icon={<Users size={18} />}
+              onClose={() => onOpenChange(false)}
+              titleBadge={
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+                      className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700 ml-auto"
                       title="More options"
                     >
                       <MoreHorizontal size={18} />
@@ -243,21 +218,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              }
+            />
 
-                <button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
-                  title="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </DialogHeader>
-
-            {/* Content Form */}
             <div className="space-y-3 pt-1.5">
-              {/* Group Image */}
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-dashed border-gray-300 dark:border-slate-700/80 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                   {displayImage ? (
@@ -267,7 +231,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   )}
                 </div>
                 <div className="flex-1">
-                  <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Group image</Label>
+                  <FormLabel>Group image</FormLabel>
                   <div className="mt-1">
                     <input
                       type="file"
@@ -291,11 +255,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 </div>
               </div>
 
-              {/* Group Name */}
               <div className="space-y-1">
-                <Label htmlFor="group-name" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-                  Group name <span className="text-red-500 ml-0.5">*</span>
-                </Label>
+                <FormLabel htmlFor="group-name" required>
+                  Group name
+                </FormLabel>
                 <Input
                   id="group-name"
                   value={formData.name}
@@ -306,11 +269,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 />
               </div>
 
-              {/* Course */}
               <div className="space-y-1">
-                <Label htmlFor="group-course" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                <FormLabel htmlFor="group-course">
                   Course
-                </Label>
+                </FormLabel>
                 <Input
                   id="group-course"
                   value={formData.subject}
@@ -321,11 +283,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 />
               </div>
 
-              {/* Description */}
               <div className="space-y-1">
-                <Label htmlFor="group-description" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                <FormLabel htmlFor="group-description">
                   Description
-                </Label>
+                </FormLabel>
                 <Textarea
                   id="group-description"
                   value={formData.description}
@@ -342,9 +303,8 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 </p>
               </div>
 
-              {/* Member Limit */}
               <div className="space-y-1">
-                <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Member limit</Label>
+                <FormLabel>Member limit</FormLabel>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -382,10 +342,8 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 </div>
               </div>
 
-              {/* Who Can Join */}
               <div className="space-y-1">
-                <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Who can join</Label>
-                {/* Elevated dark container (#12151e) inside dark blue modal (#1a1f2c) */}
+                <FormLabel>Who can join</FormLabel>
                 <div className="bg-gray-100 dark:bg-[#12151e] p-1 rounded-xl border border-gray-200 dark:border-slate-700/80 flex items-center gap-1">
                   <button
                     type="button"
@@ -414,17 +372,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                 </div>
               </div>
 
-              {/* Footer Actions */}
-              <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  disabled={loading}
-                  className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                {/* Interactive Fill Token: blue-450 / var(--fill-accent) (#2a78d6) */}
+              <ModalFooter onCancel={() => onOpenChange(false)}>
                 <button
                   type="button"
                   onClick={handleUpdateGroup}
@@ -434,11 +382,11 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   {loading && <Loader2 size={14} className="mr-2 animate-spin" />}
                   Save changes
                 </button>
-              </div>
+              </ModalFooter>
             </div>
           </>
         )}
-      </DialogContent>
+      </StandardDialogContent>
     </Dialog>
   );
 };

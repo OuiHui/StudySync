@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Settings, X, Save } from 'lucide-react';
+import { Settings, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
 
 interface SessionSettingsProps {
   workDuration: number;
@@ -58,29 +53,14 @@ export const SessionSettings = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
-              <Settings size={18} />
-            </div>
-            Session Settings
-          </DialogTitle>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </DialogHeader>
+      <StandardDialogContent size="lg">
+        <ModalHeader title="Session Settings" icon={<Settings size={18} />} onClose={() => onOpenChange(false)} />
 
         <div className="space-y-3.5 pt-1.5">
           <div className="space-y-1">
-            <Label htmlFor="work-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Work duration (minutes) <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel htmlFor="work-duration" required>
+              Work duration (minutes)
+            </FormLabel>
             <Input
               id="work-duration"
               type="number"
@@ -96,9 +76,9 @@ export const SessionSettings = ({
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="break-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Break duration (minutes) <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel htmlFor="break-duration" required>
+              Break duration (minutes)
+            </FormLabel>
             <Input
               id="break-duration"
               type="number"
@@ -114,9 +94,9 @@ export const SessionSettings = ({
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="long-break-duration" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Long break duration (minutes) <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel htmlFor="long-break-duration" required>
+              Long break duration (minutes)
+            </FormLabel>
             <Input
               id="long-break-duration"
               type="number"
@@ -132,9 +112,9 @@ export const SessionSettings = ({
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="session-goal" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Daily session goal <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel htmlFor="session-goal" required>
+              Daily session goal
+            </FormLabel>
             <Input
               id="session-goal"
               type="number"
@@ -149,14 +129,7 @@ export const SessionSettings = ({
             />
           </div>
 
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
-            >
-              Cancel
-            </button>
+          <ModalFooter onCancel={() => onOpenChange(false)}>
             <button
               type="button"
               onClick={handleSave}
@@ -165,10 +138,11 @@ export const SessionSettings = ({
               <Save size={15} className="mr-2" />
               Save Settings
             </button>
-          </div>
+          </ModalFooter>
         </div>
-      </DialogContent>
+      </StandardDialogContent>
     </Dialog>
   );
 };
+
 

@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MarkdownEditor } from './MarkdownEditor/index';
-import { FilePlus, X } from 'lucide-react';
+import { FilePlus } from 'lucide-react';
 
 interface CreateNoteDialogProps {
   isOpen: boolean;
@@ -22,29 +22,14 @@ interface CreateNoteDialogProps {
 export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNewNote, onCreate }: CreateNoteDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
-              <FilePlus size={18} />
-            </div>
-            Create New Note
-          </DialogTitle>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </DialogHeader>
+      <StandardDialogContent size="xl">
+        <ModalHeader title="Create New Note" icon={<FilePlus size={18} />} onClose={() => onOpenChange(false)} />
 
         <div className="space-y-4 pt-1.5">
           <div className="space-y-1">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              Title <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel required>
+              Title
+            </FormLabel>
             <Input
               value={newNote.title}
               onChange={(e) => setNewNote((prev: any) => ({ ...prev, title: e.target.value }))}
@@ -54,7 +39,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
           </div>
           
           <div className="space-y-1">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Subject</Label>
+            <FormLabel>Subject</FormLabel>
             <Input
               value={newNote.subject}
               onChange={(e) => setNewNote((prev: any) => ({ ...prev, subject: e.target.value }))}
@@ -64,13 +49,13 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
           </div>
           
           <div className="space-y-1">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Content</Label>
+            <FormLabel>Content</FormLabel>
             <MarkdownEditor value={newNote.content || ''} onChange={(val) => setNewNote((prev: any) => ({ ...prev, content: val }))} placeholder="Write your note content..." />
           </div>
           
           {!groupId && (
             <div className="space-y-1">
-              <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Permission</Label>
+              <FormLabel>Permission</FormLabel>
               <Select value={newNote.permission_level} onValueChange={(value) => setNewNote((prev: any) => ({ ...prev, permission_level: value }))}>
                 <SelectTrigger className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus:ring-[#2a78d6] text-sm font-semibold">
                   <SelectValue />
@@ -84,14 +69,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
             </div>
           )}
           
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
-            >
-              Cancel
-            </button>
+          <ModalFooter onCancel={() => onOpenChange(false)}>
             <button
               type="button"
               onClick={onCreate}
@@ -100,10 +78,11 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
             >
               Create Note
             </button>
-          </div>
+          </ModalFooter>
         </div>
-      </DialogContent>
+      </StandardDialogContent>
     </Dialog>
   );
 };
+
 

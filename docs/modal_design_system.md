@@ -64,3 +64,33 @@ This document specifies the unified design system for all modal dialogs and popu
 - **Footer Container**: `pt-4 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5`
 - **Primary Action**: `bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold transition-all duration-200`
 - **Secondary / Cancel**: `bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors`
+
+---
+
+## 6. Reusable Modal Primitives (`src/components/ui/modal-primitives.tsx`)
+
+To maximize code re-use and guarantee visual consistency across the codebase, use the shared modal primitive wrappers:
+
+```tsx
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
+
+<Dialog open={isOpen} onOpenChange={onOpenChange}>
+  <StandardDialogContent size="lg">
+    <ModalHeader title="Modal Title" icon={<Users size={18} />} onClose={() => onOpenChange(false)} />
+    
+    <form className="space-y-4 pt-1.5">
+      <div className="space-y-1">
+        <FormLabel htmlFor="field" required>Field Label</FormLabel>
+        <Input id="field" />
+      </div>
+      
+      <ModalFooter onCancel={() => onOpenChange(false)}>
+        <button type="submit" className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold">
+          Save
+        </button>
+      </ModalFooter>
+    </form>
+  </StandardDialogContent>
+</Dialog>
+```
+

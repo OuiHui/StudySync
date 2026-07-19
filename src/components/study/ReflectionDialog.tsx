@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Dialog } from '@/components/ui/dialog';
+import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/components/ui/modal-primitives';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Sparkles, X, Loader2 } from 'lucide-react';
+import { Star, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ReflectionDialogProps {
@@ -68,29 +68,14 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
-              <Sparkles size={18} />
-            </div>
-            Session Complete!
-          </DialogTitle>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
-            title="Close"
-          >
-            <X size={18} />
-          </button>
-        </DialogHeader>
+      <StandardDialogContent size="lg">
+        <ModalHeader title="Session Complete!" icon={<Sparkles size={18} />} onClose={onClose} />
 
         <form onSubmit={handleSubmit} className="space-y-5 pt-1.5">
           <div className="flex flex-col items-center space-y-2 p-4 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-              How focused were you? <span className="text-red-500 ml-0.5">*</span>
-            </Label>
+            <FormLabel required>
+              How focused were you?
+            </FormLabel>
             <div className="flex space-x-1.5">
               {[1, 2, 3, 4, 5].map((starValue) => {
                 const isStarred = (hoverRating || rating) >= starValue;
@@ -126,9 +111,9 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="notes" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+            <FormLabel htmlFor="notes">
               Reflections / Accomplishments
-            </Label>
+            </FormLabel>
             <Textarea
               id="notes"
               value={notes}
@@ -140,15 +125,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
             />
           </div>
 
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={handleSkip}
-              disabled={loading}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
-            >
-              Skip
-            </button>
+          <ModalFooter onCancel={handleSkip} cancelText="Skip">
             <button
               type="submit"
               disabled={loading || rating === 0}
@@ -157,9 +134,10 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
               {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
               {loading ? 'Saving...' : 'Submit Reflection'}
             </button>
-          </div>
+          </ModalFooter>
         </form>
-      </DialogContent>
+      </StandardDialogContent>
     </Dialog>
   );
 };
+
