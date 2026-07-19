@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NotesService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +26,7 @@ const initialColumnFilters: ColumnFilters = {
 export const useNotes = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
@@ -37,9 +39,6 @@ export const useNotes = () => {
   const [itemsPerPage, setItemsPerPage] = useState(8);
 
   const [isUploadPopupOpen, setIsUploadPopupOpen] = useState(false);
-  const [notes, setNotes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [editingNote, setEditingNote] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -58,7 +57,6 @@ export const useNotes = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [groups, setGroups] = useState<any[]>([]);
   const [newNoteData, setNewNoteData] = useState({
     title: '',
     content: '',
@@ -66,46 +64,40 @@ export const useNotes = () => {
     group_id: ''
   });
 
-  useEffect(() => {
-    loadNotes();
-    loadGroups();
-  }, [user]);
+  const {
+    data: notes = [],
+    isLoading: loading,
+    error: notesQueryError,
+    refetch: refetchNotes
+  } = useQuery<any[], Error>({
+    queryKey: ['notes', 'user', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      return (await NotesService.getNotes()) || [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: groups = [] } = useQuery<any[], Error>({
+    queryKey: ['user-groups', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      return (await StudyGroupsService.getUserGroups()) || [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const error = notesQueryError ? notesQueryError.message : null;
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedSubject, activeTab, sortOption, columnFilters, itemsPerPage]);
 
-  const loadGroups = async () => {
-    if (!user) return;
-    try {
-      const userGroups = await StudyGroupsService.getUserGroups();
-      setGroups(userGroups || []);
-    } catch (err) {
-      console.error('Error loading groups:', err);
-    }
-  };
-
-  const loadNotes = async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const userNotes = await NotesService.getNotes();
-      setNotes(userNotes || []);
-    } catch (err) {
-      console.error('Error loading notes:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load notes. Please try again.';
-      if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
-        setError('Your session has expired. Please log in again.');
-        setTimeout(() => {
-          window.location.href = '/auth';
-        }, 3000);
-      } else {
-        setError(errorMessage);
-      }
-    } finally {
-      setLoading(false);
-    }
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ['notes'] });
+    queryClient.invalidateQueries({ queryKey: ['user-groups'] });
   };
 
   const displayNotes = useMemo(() => {
@@ -122,7 +114,6 @@ export const useNotes = () => {
       const creatorName = isMine ? 'You' : (note.profiles?.display_name || 'Shared User');
       const avatarUrl = note.profiles?.avatar_url || null;
 
-      // Find linked group via note.group_id or note_group_shares
       const matchedGroup =
         groups.find(g => g.id === note.group_id) ||
         note.study_group ||
@@ -130,7 +121,6 @@ export const useNotes = () => {
 
       const linkedGroup = matchedGroup ? matchedGroup.name : (note.group_id ? 'Study Group' : '—');
 
-      // Visibility rule: If note belongs to a group, visibility is dictated by group's public/private status
       let isPublic = false;
       if (matchedGroup) {
         isPublic = matchedGroup.is_public !== false;
@@ -206,7 +196,6 @@ export const useNotes = () => {
 
   const filteredNotes = useMemo(() => {
     return displayNotes.filter(note => {
-      // Global Search
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         !searchTerm ||
@@ -215,17 +204,14 @@ export const useNotes = () => {
         note.author.toLowerCase().includes(searchLower) ||
         note.linkedGroup.toLowerCase().includes(searchLower);
 
-      // Main Header Subject Selector
       const matchesSubjectSelect = selectedSubject === 'all' || note.subject === selectedSubject;
 
-      // Category Pill Tabs
       let matchesTab = true;
       if (activeTab === 'mine') matchesTab = note.isMine;
       else if (activeTab === 'shared') matchesTab = !note.isMine;
       else if (activeTab === 'public') matchesTab = note.effectiveVisibility === 'public';
       else if (activeTab === 'group') matchesTab = note.linkedGroup !== '—';
 
-      // Column Filters
       const matchesColName = !columnFilters.name || note.title.toLowerCase().includes(columnFilters.name.toLowerCase());
       const matchesColSubject = columnFilters.subject === 'all' || note.subject === columnFilters.subject;
       const matchesColCreator =
@@ -319,7 +305,7 @@ export const useNotes = () => {
       await NotesService.shareNoteWithGroups?.(editingNote.id, editFormData.selectedGroups);
       toast({ title: 'Note Updated', description: 'Your note has been updated successfully.' });
       setEditingNote(null);
-      loadNotes();
+      refreshData();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
@@ -356,7 +342,7 @@ export const useNotes = () => {
       setShareDialogOpen(false);
       setSharingNote(null);
       setShareSelectedGroups([]);
-      loadNotes();
+      refreshData();
     } catch (err) {
       toast({
         title: 'Sharing Failed',
@@ -395,7 +381,7 @@ export const useNotes = () => {
       toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
       setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
       setIsCreateDialogOpen(false);
-      loadNotes();
+      refreshData();
     } catch (err) {
       toast({ title: 'Create Failed', description: err instanceof Error ? err.message : 'Failed to create note.', variant: 'destructive' });
     }
@@ -405,7 +391,7 @@ export const useNotes = () => {
     try {
       await NotesService.deleteNote(note.id);
       toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
-      loadNotes();
+      refreshData();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
@@ -462,7 +448,7 @@ export const useNotes = () => {
     groups,
     newNoteData,
     setNewNoteData,
-    loadNotes,
+    loadNotes: refetchNotes,
     subjects,
     filteredNotes: sortedNotes,
     paginatedNotes,

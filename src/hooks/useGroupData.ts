@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { StudySessionsService, StudyGroupsService } from '@/services/database';
+import { StudySessionsService, StudyGroupsService, NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,6 +8,7 @@ export interface GroupData {
   group: any;
   members: any[];
   sessions: any[];
+  notes: any[];
 }
 
 export const useGroupData = (groupId: string) => {
@@ -22,17 +23,23 @@ export const useGroupData = (groupId: string) => {
       const groupDataPromise = StudyGroupsService.getGroupById(groupId);
       const groupMembersPromise = StudyGroupsService.getGroupMembers(groupId);
       const sessionsPromise = user ? StudySessionsService.getSessionsByGroup(groupId) : Promise.resolve([]);
+      const notesPromise = user ? NotesService.getGroupNotes(groupId) : Promise.resolve([]);
 
-      const [groupData, groupMembers, groupSessions] = await Promise.all([
+      const [groupData, groupMembers, groupSessions, groupNotes] = await Promise.all([
         groupDataPromise,
         groupMembersPromise,
-        sessionsPromise
+        sessionsPromise,
+        notesPromise
       ]);
       
+      // Populate React Query cache for group notes so the Notes sub-tab is preloaded
+      queryClient.setQueryData(['notes', 'group', groupId], groupNotes);
+
       return {
         group: groupData,
         members: groupMembers,
-        sessions: user ? groupSessions : []
+        sessions: user ? groupSessions : [],
+        notes: user ? groupNotes : []
       };
     },
     enabled: !!groupId,
@@ -71,6 +78,7 @@ export const useGroupData = (groupId: string) => {
     group: data?.group || null, 
     members: data?.members || [], 
     sessions: data?.sessions || [], 
+    notes: data?.notes || [],
     loading, 
     error: error ? error.message : null 
   };

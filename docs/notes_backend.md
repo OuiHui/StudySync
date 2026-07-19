@@ -175,12 +175,16 @@ All queries call `populateNoteProfiles` internally, which batch-fetches `profile
 
 ## React Data Layer
 
+Both personal and group notes leverage **TanStack React Query** for client-side caching, background updates, and zero-reload tab transitions.
+
 ### `useNotes` (`src/components/notes/useNotes.ts`)
 
 Used by the personal Notes page. Handles:
-- Loading notes and groups on mount
-- Client-side filtering by search term, subject, and ownership
-- CRUD event handlers that call `NotesService` and re-fetch on success
+- Query caching via `useQuery` with key `['notes', 'user', userId]` and 5-minute stale time
+- Background prefetching in `MainLayout.tsx` upon application launch for 0ms tab load times
+- User group caching with key `['user-groups', userId]`
+- Client-side filtering by search term, subject, category tabs, and column filters
+- CRUD event handlers that mutate data via `NotesService` and invalidate React Query caches on completion
 - Sharing flow: `handleShareNote` → `shareNoteWithGroups` + `updateNote(permission_level)`
 
 **Permission auto-sync rule:** when saving group shares:
@@ -189,11 +193,14 @@ Used by the personal Notes page. Handles:
 
 ### `useCollaborativeNotes` (`src/hooks/useCollaborativeNotes.ts`)
 
-Used by `CollaborativeNotes` inside study group pages. Extends the basic service with:
+Used by `CollaborativeNotes` inside study group pages. Extends notes queries with:
+- Query caching via `useQuery` with key `['notes', 'group', groupId]` or `['notes', 'user', userId]`
+- Automatic pre-seeding when loading study groups (`useGroupData.ts`), enabling instant zero-reload sub-tab switching between Sessions, Notes, and Members
+- Direct mutation of React Query cache (`queryClient.setQueryData`) when real-time database changes arrive
 
 | Feature | Mechanism |
 |---|---|
-| Real-time note list sync | `RealtimeService.subscribeToNotes({ groupId \| userId })` — Supabase Postgres Changes |
+| Real-time note list sync | `RealtimeService.subscribeToNotes({ groupId \| userId })` — updates React Query cache via `queryClient.setQueryData` |
 | Online presence | `RealtimeService.trackPresence(groupId, ...)` — Supabase Presence |
 | Cursor broadcast | `RealtimeService.broadcast(channel, 'cursor_position', ...)` — Supabase Broadcast |
 | Cursor subscription | `RealtimeService.subscribeToBroadcast(channel, 'cursor_position', cb)` |

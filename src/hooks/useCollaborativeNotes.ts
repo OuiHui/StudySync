@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { RealtimeService, RealtimeNote } from '@/services/realtime';
 import { NotesService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,40 +24,37 @@ export interface CollaborativeNote {
   };
 }
 
+export const getNotesQueryKey = (groupId?: string, userId?: string) =>
+  groupId ? ['notes', 'group', groupId] : ['notes', 'user', userId];
+
 export const useCollaborativeNotes = (groupId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [notes, setNotes] = useState<CollaborativeNote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [onlineCollaborators, setOnlineCollaborators] = useState<Record<string, any[]>>({});
 
-  // Load notes
-  const loadNotes = useCallback(async () => {
-    if (!user) return;
+  const queryKey = getNotesQueryKey(groupId, user?.id);
 
-    try {
-      setLoading(true);
-      setError(null);
-      
-      let userNotes;
+  const {
+    data: notes = [],
+    isLoading: loading,
+    error,
+    refetch: loadNotes
+  } = useQuery<CollaborativeNote[], Error>({
+    queryKey,
+    queryFn: async () => {
+      if (!user) return [];
       if (groupId) {
-        // Load group notes
-        userNotes = await NotesService.getGroupNotes(groupId);
+        const res = await NotesService.getGroupNotes(groupId);
+        return (res || []) as CollaborativeNote[];
       } else {
-        // Load user's personal notes
-        userNotes = await NotesService.getNotes();
+        const res = await NotesService.getNotes();
+        return (res || []) as CollaborativeNote[];
       }
-      
-      setNotes(userNotes as CollaborativeNote[]);
-    } catch (err) {
-      console.error('Error loading notes:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load notes';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, groupId]);
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -69,7 +67,10 @@ export const useCollaborativeNotes = (groupId?: string) => {
       params,
       (newNote: RealtimeNote) => {
         const collaborativeNote = newNote as unknown as CollaborativeNote;
-        setNotes(prev => [...prev, collaborativeNote]);
+        queryClient.setQueryData<CollaborativeNote[]>(queryKey, (old = []) => {
+          if (old.some(n => n.id === collaborativeNote.id)) return old;
+          return [...old, collaborativeNote];
+        });
         
         // Show toast for notes from other users
         if (newNote.created_by !== user.id) {
@@ -81,10 +82,8 @@ export const useCollaborativeNotes = (groupId?: string) => {
       },
       (updatedNote: RealtimeNote) => {
         const collaborativeNote = updatedNote as unknown as CollaborativeNote;
-        setNotes(prev =>
-          prev.map(note =>
-            note.id === updatedNote.id ? collaborativeNote : note
-          )
+        queryClient.setQueryData<CollaborativeNote[]>(queryKey, (old = []) =>
+          old.map(note => (note.id === updatedNote.id ? collaborativeNote : note))
         );
         
         // Show toast for updates from other users
@@ -96,7 +95,9 @@ export const useCollaborativeNotes = (groupId?: string) => {
         }
       },
       (deletedNoteId: string) => {
-        setNotes(prev => prev.filter(note => note.id !== deletedNoteId));
+        queryClient.setQueryData<CollaborativeNote[]>(queryKey, (old = []) =>
+          old.filter(note => note.id !== deletedNoteId)
+        );
         
         toast({
           title: "Note deleted",
@@ -118,9 +119,6 @@ export const useCollaborativeNotes = (groupId?: string) => {
       });
     }
 
-    // Load initial data
-    loadNotes();
-
     // Cleanup on unmount
     return () => {
       const channelName = groupId ? `group_notes:${groupId}` : `user_notes:${user.id}`;
@@ -131,7 +129,7 @@ export const useCollaborativeNotes = (groupId?: string) => {
         RealtimeService.untrackPresence(groupId);
       }
     };
-  }, [user, groupId, loadNotes, toast]);
+  }, [user, groupId, queryKey, queryClient, toast]);
 
   // Create a new note
   const createNote = useCallback(async (noteData: {
@@ -151,13 +149,16 @@ export const useCollaborativeNotes = (groupId?: string) => {
         permission_level: noteData.permission_level || (groupId ? 'group' : 'private'),
       });
 
-      // Note will be added via real-time subscription
+      queryClient.invalidateQueries({ queryKey });
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: ['notes', 'user', user.id] });
+      }
       return newNote;
     } catch (error) {
       console.error('Error creating note:', error);
       throw error;
     }
-  }, [user, groupId]);
+  }, [user, groupId, queryKey, queryClient]);
 
   // Update a note
   const updateNote = useCallback(async (noteId: string, updates: {
@@ -169,14 +170,16 @@ export const useCollaborativeNotes = (groupId?: string) => {
 
     try {
       const updatedNote = await NotesService.updateNote(noteId, updates);
-      
-      // Note will be updated via real-time subscription
+      queryClient.invalidateQueries({ queryKey });
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: ['notes', 'user', user.id] });
+      }
       return updatedNote;
     } catch (error) {
       console.error('Error updating note:', error);
       throw error;
     }
-  }, [user]);
+  }, [user, groupId, queryKey, queryClient]);
 
   // Delete a note
   const deleteNote = useCallback(async (noteId: string) => {
@@ -184,13 +187,15 @@ export const useCollaborativeNotes = (groupId?: string) => {
 
     try {
       await NotesService.deleteNote(noteId);
-      
-      // Note will be removed via real-time subscription
+      queryClient.invalidateQueries({ queryKey });
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: ['notes', 'user', user.id] });
+      }
     } catch (error) {
       console.error('Error deleting note:', error);
       throw error;
     }
-  }, [user]);
+  }, [user, groupId, queryKey, queryClient]);
 
   // Broadcast cursor position for collaborative editing
   const broadcastCursor = useCallback((noteId: string, position: number) => {
@@ -223,7 +228,7 @@ export const useCollaborativeNotes = (groupId?: string) => {
   return {
     notes,
     loading,
-    error,
+    error: error ? error.message : null,
     onlineCollaborators,
     createNote,
     updateNote,

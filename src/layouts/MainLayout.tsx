@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getDashboardQueryOptions } from '@/hooks/useDashboardData';
 import { getProfileQueryOptions } from '@/hooks/useProfileData';
 import { getStudyEventsQueryOptions } from '@/hooks/useStudyEvents';
-import { StudySessionsService } from '@/services/database';
+import { StudySessionsService, StudyGroupsService, NotesService } from '@/services/database';
 
 const initialTheme = {
   name: 'Default Blue',
@@ -44,6 +44,21 @@ export const MainLayout = () => {
       queryClient.prefetchQuery(getDashboardQueryOptions(user));
       queryClient.prefetchQuery(getProfileQueryOptions(user, authLoading));
       queryClient.prefetchQuery(getStudyEventsQueryOptions(user));
+      queryClient.prefetchQuery({
+        queryKey: ['notes', 'user', user.id],
+        queryFn: () => NotesService.getNotes(),
+        staleTime: 5 * 60 * 1000
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['user-groups', user.id],
+        queryFn: () => StudyGroupsService.getUserGroups(),
+        staleTime: 5 * 60 * 1000
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['available-sessions', user.id],
+        queryFn: () => StudySessionsService.getAvailableSessions(),
+        staleTime: 5 * 60 * 1000
+      });
     }
   }, [user, authLoading, queryClient]);
 
