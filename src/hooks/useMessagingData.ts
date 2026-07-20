@@ -25,6 +25,8 @@ export interface FormattedConversation {
   // For direct chats
   targetUserId?: string | null;
   targetUserProfile?: any | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 interface MessagingData {
@@ -90,7 +92,9 @@ export function useMessagingData() {
             senderId: cData.latest_message.sender_id,
             senderName: cData.latest_message.sender?.display_name || 'Member'
           } : null,
-          activeSession: activeMap[cData.group_id] || null
+          activeSession: activeMap[cData.group_id] || null,
+          createdAt: cData.created_at || matchingGroup?.created_at || null,
+          updatedAt: cData.updated_at || matchingGroup?.updated_at || null,
         });
       }
     }
@@ -106,7 +110,9 @@ export function useMessagingData() {
           avatarUrl: group.image_url || group.avatar_url || null,
           groupSubject: group.subject || null,
           latestMessage: null,
-          activeSession: activeMap[group.id] || null
+          activeSession: activeMap[group.id] || null,
+          createdAt: group.created_at || null,
+          updatedAt: group.updated_at || null,
         });
       }
     }
@@ -160,14 +166,43 @@ export function useMessagingData() {
             createdAt: cData.latest_message.created_at,
             senderId: cData.latest_message.sender_id,
             senderName: senderName || (cData.latest_message.sender_id === user.id ? 'You' : displayName)
-          } : null
+          } : null,
+          createdAt: cData.created_at || null,
+          updatedAt: cData.updated_at || null,
         });
       }
     }
 
+    const getSortTime = (conv: FormattedConversation): number => {
+      if (conv.latestMessage?.createdAt) {
+        const time = new Date(conv.latestMessage.createdAt).getTime();
+        if (!isNaN(time)) return time;
+      }
+      if (conv.updatedAt) {
+        const time = new Date(conv.updatedAt).getTime();
+        if (!isNaN(time)) return time;
+      }
+      if (conv.createdAt) {
+        const time = new Date(conv.createdAt).getTime();
+        if (!isNaN(time)) return time;
+      }
+      return 0;
+    };
+
+    const sortConversationsByRecent = (list: FormattedConversation[]): FormattedConversation[] => {
+      return [...list].sort((a, b) => {
+        const timeA = getSortTime(a);
+        const timeB = getSortTime(b);
+        if (timeA !== timeB) {
+          return timeB - timeA;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    };
+
     return {
-      groupConversations: groupConvs,
-      directConversations: directConvs,
+      groupConversations: sortConversationsByRecent(groupConvs),
+      directConversations: sortConversationsByRecent(directConvs),
       activeSessionsMap: activeMap,
       userFriends: friendsList || [],
     };

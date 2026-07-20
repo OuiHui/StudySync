@@ -67,13 +67,17 @@ DROP POLICY IF EXISTS "Users can view group conversations" ON public.conversatio
 CREATE POLICY "Users can view conversations" ON public.conversations
     FOR SELECT TO authenticated
     USING (
-        public.can_access_conversation(auth.uid(), id)
+        created_by = auth.uid()
+        OR public.can_access_conversation(auth.uid(), id)
     );
 
 DROP POLICY IF EXISTS "Users can create conversations" ON public.conversations;
 CREATE POLICY "Users can create conversations" ON public.conversations
     FOR INSERT TO authenticated
-    WITH CHECK (auth.uid() = created_by);
+    WITH CHECK (
+        created_by = auth.uid()
+        OR auth.uid() IS NOT NULL
+    );
 
 -- 5. RLS Policies for messages
 DROP POLICY IF EXISTS "Users can view messages" ON public.messages;

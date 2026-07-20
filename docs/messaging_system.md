@@ -54,11 +54,15 @@ Conversations in the Messaging Tab are strictly separated into two distinct cate
 - Leverages `@tanstack/react-query` (`['messaging-data', userId]`) with 5-minute staleTime caching so navigation back to `/messages` loads instantly without re-fetching or showing loading spinners.
 - Subscribes via Supabase Realtime to `messages`, `study_sessions`, and `conversations` table changes to invalidate and revalidate data automatically.
 
+### 3. Recent Message Ordering & Dynamic Scrollbar Management
+- **Most Recent Message Ordering**: Group chats and Direct Messages are dynamically ordered by the timestamp of their latest message (`latestMessage.createdAt` descending). Conversations with recent activity move to the top of the sidebar. If no messages exist yet, sorting falls back to conversation creation/update timestamps.
+- **Empty Chat Scrollbar Prevention**: When a conversation or list has no messages or items (`displayMessages.length === 0` or `currentConversations.length === 0`), scrollbars and scrollbar tracks are suppressed (`overflow-hidden`) to ensure clean empty state visuals without blank scrollbar gutters.
+
 ### Conversation Message Caching (`src/pages/Messages/index.tsx`)
 - Uses React Query (`['chat-messages', activeConvId]`) to cache message histories for each conversation thread.
 - Switching between conversations or tabs renders messages immediately from in-memory cache without clearing the view.
 - Realtime incoming, edited, or deleted messages optimistically update the query cache via `queryClient.setQueryData`.
-- Styled with `scrollbar-gutter: stable` to ensure vertical layout stability and prevent scrollbar flashing during interactions.
+- Non-empty message threads are styled with `.custom-scrollbar` (`scrollbar-gutter: stable`) to prevent scrollbar layout flashing during message expansion.
 
 ---
 
