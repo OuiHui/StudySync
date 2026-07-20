@@ -113,7 +113,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
               e.stopPropagation();
               onAddFriend(person.id);
             }}
-            className="h-7 px-3 text-xs bg-violet-600 hover:bg-violet-700 text-white shadow-sm font-semibold"
+            className="h-7 px-3 text-xs bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold"
           >
             <UserPlus size={12} className="mr-1" />
             Add

@@ -63,6 +63,10 @@ All Study Groups, regardless of their public or private status, are visible and 
    - Direct join is blocked. Joining strictly requires a pending invitation in `group_invitations` with `'pending'` status.
    - Access to internal details (chat, notes, active sessions, and member list) is restricted to members, creators, or users with pending invitations. Non-members will see the group metadata and an inline locked/invite-required notice.
 
+3. **Browse Search & Course Filtering**:
+   - The **Browse Study Groups** page includes dynamic search across group names, descriptions, and courses/subjects.
+   - The subject dropdown dynamically aggregates all unique courses (`study_groups.subject`) from available public groups along with standard subject options, allowing users to toggle and filter groups by specific course (e.g., `"CS 1331"`, `"MATH 1552"`, `"Physics"`).
+
 ---
 
 ## 3. Roles and Permissions Matrix

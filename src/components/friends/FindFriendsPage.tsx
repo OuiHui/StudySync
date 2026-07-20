@@ -177,7 +177,7 @@ export const FindFriendsPage = () => {
               onClick={() => setActiveFilter(f.id)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                 activeFilter === f.id
-                  ? 'bg-violet-600 text-white shadow-sm'
+                  ? 'bg-brand text-white shadow-sm'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -200,7 +200,7 @@ export const FindFriendsPage = () => {
       {/* People Grid */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-violet-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-brand rounded-full animate-spin" />
         </div>
       ) : filteredPeople.length === 0 ? (
         <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-12 text-center">

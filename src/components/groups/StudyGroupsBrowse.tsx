@@ -11,30 +11,43 @@ import { GroupCard } from './GroupCard';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
+  groupEnrollments?: Record<string, boolean>;
   onUpdateEnrollment?: (groupId: string, enrolled: boolean) => void;
 }
 
-export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
+export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
 
-  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup, handleJoinGroup } = usePublicGroups({}, onUpdateEnrollment);
+  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup, handleJoinGroup } = usePublicGroups(groupEnrollments, onUpdateEnrollment);
   const { studyGroups: myGroups } = useUserGroups();
 
   const myGroupIds = useMemo(() => new Set(myGroups.map(g => g.id)), [myGroups]);
 
-  const subjects = [
-    'all', 'Mathematics', 'Physics', 'Chemistry', 'Biology',
-    'Computer Science', 'History', 'Literature', 'Psychology', 'Economics'
-  ];
+  const subjects = useMemo(() => {
+    const dynamicSubjects = availableGroups
+      .map(g => g.subject?.trim())
+      .filter((s): s is string => Boolean(s));
+
+    const sortedSubjects = Array.from(new Set(dynamicSubjects)).sort((a, b) => 
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+
+    return ['all', ...sortedSubjects];
+  }, [availableGroups]);
 
   const filteredGroups = useMemo(() => {
     return availableGroups.filter(group => {
       if (myGroupIds.has(group.id)) return false;
-      const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            group.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSubject = selectedSubject === 'all' || group.subject === selectedSubject;
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesSearch = !searchLower ||
+                            group.name.toLowerCase().includes(searchLower) ||
+                            group.description.toLowerCase().includes(searchLower) ||
+                            (group.subject && group.subject.toLowerCase().includes(searchLower));
+      
+      const matchesSubject = selectedSubject === 'all' || 
+                            (group.subject && group.subject.trim().toLowerCase() === selectedSubject.trim().toLowerCase());
       return matchesSearch && matchesSubject;
     });
   }, [availableGroups, myGroupIds, searchTerm, selectedSubject]);
@@ -44,7 +57,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
       <div>
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Browse Study Groups</h1>
         <p className="text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center gap-x-2">
-          <span>Find and join study groups by subject</span>
+          <span>Find and join study groups by subject or course</span>
           {!loading && (
             <>
               <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">|</span>
@@ -69,7 +82,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
         <div className="relative flex-1">
           <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder="Search groups by name or description..."
+            placeholder="Search groups by name, course, or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 dark:bg-gray-800 dark:text-white dark:border-gray-600"
@@ -79,12 +92,12 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
         <select
           value={selectedSubject}
           onChange={(e) => setSelectedSubject(e.target.value)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-600 cursor-pointer"
           disabled={loading}
         >
           {subjects.map(subject => (
             <option key={subject} value={subject}>
-              {subject === 'all' ? 'All Subjects' : subject}
+              {subject === 'all' ? 'All Subjects / Courses' : subject}
             </option>
           ))}
         </select>
@@ -118,10 +131,10 @@ export const StudyGroupsBrowse = ({ onSelectGroup, onUpdateEnrollment }: StudyGr
             <div className="text-center py-12">
               <Users size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">
-                {error ? 'Unable to load groups' : searchTerm || selectedSubject !== 'all' ? 'No groups match your search' : 'No public groups available'}
+                {error ? 'Unable to load groups' : searchTerm || selectedSubject !== 'all' ? 'No groups match your search or selected course' : 'No public groups available'}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                {error ? 'Please try again later or check your connection' : searchTerm || selectedSubject !== 'all' ? 'Try adjusting your search criteria' : 'Check back later for new study groups'}
+                {error ? 'Please try again later or check your connection' : searchTerm || selectedSubject !== 'all' ? 'Try selecting a different course or adjusting your search' : 'Check back later for new study groups'}
               </p>
               {error && (
                 <Button onClick={loadPublicGroups} variant="outline" className="mt-4">
