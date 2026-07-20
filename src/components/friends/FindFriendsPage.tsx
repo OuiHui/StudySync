@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Users, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { FriendsService } from '@/services/database';
@@ -39,6 +40,7 @@ const mapToPerson = (d: any): Person => {
 };
 
 export const FindFriendsPage = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
@@ -46,6 +48,11 @@ export const FindFriendsPage = () => {
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+
+  const handleMessageUser = (userId: string) => {
+    setSelectedPerson(null);
+    navigate(`/messages?userId=${userId}`);
+  };
 
   const handleOpenProfile = async (userId: string) => {
     if (!user) return;
@@ -211,6 +218,7 @@ export const FindFriendsPage = () => {
               onAddFriend={handleAddFriend}
               onCancelRequest={handleCancelRequest}
               onViewProfile={setSelectedPerson}
+              onMessage={handleMessageUser}
             />
           ))}
         </div>
@@ -231,6 +239,7 @@ export const FindFriendsPage = () => {
         }
         loading={loadingProfile}
         onOpenProfile={handleOpenProfile}
+        onMessage={handleMessageUser}
       />
     </div>
   );

@@ -380,8 +380,8 @@ export class SimulatedUserBot {
       await this.client
         .from('conversation_participants')
         .insert([
-          { conversation_id: conversationId, user_id: this.user.id },
-          { conversation_id: conversationId, user_id: targetId }
+          { conversation_id: conversationId, user_id: this.user.id, is_active: true },
+          { conversation_id: conversationId, user_id: targetId, is_active: true }
         ]);
     }
 
@@ -444,7 +444,8 @@ export class SimulatedUserBot {
         .from('conversation_participants')
         .insert({
           conversation_id: conversationId,
-          user_id: this.user.id
+          user_id: this.user.id,
+          is_active: true
         });
     }
 

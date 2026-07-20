@@ -6,9 +6,10 @@ interface ActionButtonProps {
   status: FriendStatus;
   onAddFriend: () => void;
   onCancelRequest: () => void;
+  onMessage?: () => void;
 }
 
-export const ActionButton = ({ status, onAddFriend, onCancelRequest }: ActionButtonProps) => {
+export const ActionButton = ({ status, onAddFriend, onCancelRequest, onMessage }: ActionButtonProps) => {
   if (status === 'none') {
     return (
       <Button
@@ -39,6 +40,7 @@ export const ActionButton = ({ status, onAddFriend, onCancelRequest }: ActionBut
       <Button
         size="sm"
         variant="ghost"
+        onClick={onMessage}
         className="w-full h-9 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-100 dark:border-white/[0.08] font-bold"
       >
         <MessageSquare size={14} className="mr-1.5" />

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { FriendsService } from '@/services/database';
 import { PersonProfileDialog } from '@/components/friends/PersonProfileDialog';
@@ -13,6 +14,7 @@ interface UserProfileModalContextType {
 const UserProfileModalContext = createContext<UserProfileModalContextType | undefined>(undefined);
 
 export const UserProfileModalProvider = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -111,6 +113,11 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
     }
   };
 
+  const handleMessagePerson = (userId: string) => {
+    closeProfile();
+    navigate(`/messages?userId=${userId}`);
+  };
+
   return (
     <UserProfileModalContext.Provider value={{ openProfile, closeProfile }}>
       {children}
@@ -124,6 +131,7 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
         // We'll update the Dialog to handle a loading state
         loading={loading}
         onOpenProfile={openProfile}
+        onMessage={handleMessagePerson}
       />
     </UserProfileModalContext.Provider>
   );

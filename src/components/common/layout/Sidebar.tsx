@@ -13,7 +13,8 @@ import {
   FileText,
   BarChart3,
   UserPlus,
-  Calendar
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './UserMenu';
@@ -34,6 +35,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'study-session', label: 'Solo Study', icon: BookOpen },
     { id: 'available-sessions', label: 'Group Sessions', icon: Calendar },
     { id: 'groups', label: 'Study Groups', icon: Users },
+    { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'notes', label: 'Notes', icon: FileText },
     { id: 'find-friends', label: 'Find Friends', icon: UserPlus },
     { id: 'profile', label: 'Profile', icon: User },
@@ -42,8 +44,8 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
   const isTabDisabled = (tabId: string) => {
     if (!globalTimer.isActive) return false;
 
-    // Notes tab is always enabled
-    if (tabId === 'notes') return false;
+    // Notes and Messages tabs are always enabled
+    if (tabId === 'notes' || tabId === 'messages') return false;
 
     // Solo Study is enabled if the active timer is a solo study timer
     if (tabId === 'study-session' && !globalTimer.isGroupTimer) return false;

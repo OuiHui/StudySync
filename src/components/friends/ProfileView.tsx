@@ -24,6 +24,7 @@ interface ProfileViewProps {
   onAddFriend: (id: string) => void;
   onCancelRequest: (id: string) => void;
   onOpenProfile?: (userId: string) => void;
+  onMessage?: () => void;
 }
 
 const GROUPS_PAGE_SIZE = 6;
@@ -52,6 +53,7 @@ export const ProfileView = ({
   onAddFriend,
   onCancelRequest,
   onOpenProfile,
+  onMessage,
 }: ProfileViewProps) => {
   const [groupsExpanded, setGroupsExpanded] = useState(false);
   const avatarBg = getAvatarColor(person.name);
@@ -88,6 +90,7 @@ export const ProfileView = ({
             status={person.status}
             onAddFriend={() => onAddFriend(person.id)}
             onCancelRequest={() => onCancelRequest(person.id)}
+            onMessage={onMessage}
           />
         </div>
       </div>

@@ -17,7 +17,7 @@ export class ChatService {
           conversations (*)
         `)
         .eq('user_id', session.user.id)
-        .eq('is_active', true);
+        .neq('is_active', false);
 
       if (error) {
         console.error('Error fetching conversations:', error);
@@ -39,7 +39,7 @@ export class ChatService {
             .eq('conversation_id', conversation.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           // Get sender profile if message exists
           let senderProfile = null;
@@ -48,7 +48,7 @@ export class ChatService {
               .from('profiles')
               .select('id, display_name, avatar_url')
               .eq('user_id', latestMessage.sender_id)
-              .single();
+              .maybeSingle();
             senderProfile = sender;
           }
 
@@ -74,6 +74,10 @@ export class ChatService {
 
   static async getMessages(conversationId: string) {
     try {
+      if (!conversationId || !conversationId.match(/^[0-9a-fA-F-]{36}$/)) {
+        return [];
+      }
+
       // Get messages with sender profile information
       // We need to do a separate query for profiles since sender_id references auth.users, not profiles
       const { data: messages, error: messagesError } = await supabase
@@ -263,6 +267,48 @@ export class ChatService {
       return conversation;
     } catch (error) {
       console.error('Error creating conversation:', error);
+      throw error;
+    }
+  }
+
+  static async getOrCreateDirectConversation(targetUserId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) {
+        throw new Error('Authentication required');
+      }
+
+      // Find user's direct conversation participations
+      const { data: myParticipations } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true);
+
+      if (myParticipations && myParticipations.length > 0) {
+        const myConvIds = myParticipations.map(p => p.conversation_id);
+
+        // Check which of those conversations are 1-on-1 (is_group_chat = false) and also include targetUserId
+        const { data: targetParticipations } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id, conversations(id, is_group_chat)')
+          .eq('user_id', targetUserId)
+          .eq('is_active', true)
+          .in('conversation_id', myConvIds);
+
+        const existingDirectConv = targetParticipations?.find(
+          (tp: any) => tp.conversations && tp.conversations.is_group_chat === false
+        );
+
+        if (existingDirectConv?.conversations) {
+          return existingDirectConv.conversations;
+        }
+      }
+
+      // If no existing conversation found, create a new one
+      return await ChatService.createConversation(targetUserId);
+    } catch (error) {
+      console.error('Error getting or creating direct conversation:', error);
       throw error;
     }
   }

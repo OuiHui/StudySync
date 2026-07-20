@@ -16,6 +16,7 @@ interface PersonProfileDialogProps {
   onRequestSent?: (friendUserId: string) => void;
   loading?: boolean;
   onOpenProfile?: (userId: string) => void;
+  onMessage?: (userId: string) => void;
 }
 
 export const PersonProfileDialog = ({
@@ -28,6 +29,7 @@ export const PersonProfileDialog = ({
   onRequestSent,
   loading = false,
   onOpenProfile,
+  onMessage,
 }: PersonProfileDialogProps) => {
   const [view, setView] = useState<'profile' | 'friends'>('profile');
 
@@ -75,6 +77,7 @@ export const PersonProfileDialog = ({
               onAddFriend={onAddFriend}
               onCancelRequest={onCancelRequest}
               onOpenProfile={onOpenProfile}
+              onMessage={() => onMessage?.(person.id)}
             />
           ) : (
             <FriendsListView

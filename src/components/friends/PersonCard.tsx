@@ -17,9 +17,10 @@ interface PersonCardProps {
   onAddFriend: (id: string) => void;
   onCancelRequest: (id: string) => void;
   onViewProfile: (person: Person) => void;
+  onMessage?: (id: string) => void;
 }
 
-export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile }: PersonCardProps) => {
+export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile, onMessage }: PersonCardProps) => {
   const avatarBg = getAvatarColor(person.name);
 
   const firstGroup = person.publicGroups[0];
@@ -138,7 +139,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
             variant="ghost"
             onClick={(e) => {
               e.stopPropagation();
-              // Standard message action
+              onMessage?.(person.id);
             }}
             className="h-7 px-3 text-xs text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 font-semibold"
           >

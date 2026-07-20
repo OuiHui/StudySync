@@ -100,9 +100,16 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
     RealtimeService.subscribeToMessages(
       convId,
       (newMessage: RealtimeMessage) => {
-        setMessages(prev => [...prev, newMessage]);
+        setMessages(prev => {
+          if (prev.some(msg => msg.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
         if (groupId) {
-          localStorage.setItem(`studysync_chat_last_read_${groupId}`, newMessage.id);
+          try {
+            localStorage.setItem(`studysync_chat_last_read_${groupId}`, newMessage.id);
+          } catch (e) {
+            // Ignore storage access errors
+          }
         }
         
         // Show toast notification for messages from other users
@@ -151,7 +158,11 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
       
       if (groupMessages && groupMessages.length > 0 && groupId) {
         const latestMsg = groupMessages[groupMessages.length - 1];
-        localStorage.setItem(`studysync_chat_last_read_${groupId}`, latestMsg.id);
+        try {
+          localStorage.setItem(`studysync_chat_last_read_${groupId}`, latestMsg.id);
+        } catch (e) {
+          // Ignore storage access errors
+        }
       }
       
       // Set up real-time message subscription
@@ -233,7 +244,10 @@ export const ChatPopup = ({ isOpen, onClose, groupName, groupId, isInline = fals
       
       // Add message to local state immediately (optimistic update)
       if (sentMessage) {
-        setMessages(prev => [...prev, sentMessage]);
+        setMessages(prev => {
+          if (prev.some(msg => msg.id === sentMessage.id)) return prev;
+          return [...prev, sentMessage];
+        });
       }
     } catch (err) {
       console.error('Error sending message:', err);

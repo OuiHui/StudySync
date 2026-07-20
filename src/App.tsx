@@ -24,6 +24,7 @@ import MyGroups from "@/pages/MyGroups";
 import Notes from "@/pages/Notes";
 import Profile from "@/pages/Profile";
 import FindFriends from "@/pages/FindFriends";
+import Messages from "@/pages/Messages";
 import { SimulationConsole } from "@/components/common/developer/SimulationConsole";
 
 const queryClient = new QueryClient();
@@ -74,15 +75,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="study-app-theme">
       <AuthProvider>
-        <UserProfileModalProvider>
-          <GlobalTimerProvider>
-            <GroupEnrollmentProvider>
-              <NotificationProvider>
-                <SessionProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    <HashRouter>
+        <GlobalTimerProvider>
+          <GroupEnrollmentProvider>
+            <NotificationProvider>
+              <SessionProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <HashRouter>
+                    <UserProfileModalProvider>
                       <Routes>
                         <Route path="/auth" element={
                           <AuthRoute>
@@ -99,6 +100,7 @@ const App = () => (
                           <Route path="group-study-session" element={<GroupSessions />} />
                           <Route path="available-sessions" element={<AvailableSessions />} />
                           <Route path="groups" element={<MyGroups />} />
+                          <Route path="messages" element={<Messages />} />
                           <Route path="notes" element={<Notes />} />
                           <Route path="find-friends" element={<FindFriends />} />
                           <Route path="profile" element={<Profile />} />
@@ -106,13 +108,13 @@ const App = () => (
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                       {import.meta.env.DEV && <SimulationConsole />}
-                    </HashRouter>
-                  </TooltipProvider>
-                </SessionProvider>
-              </NotificationProvider>
-            </GroupEnrollmentProvider>
-          </GlobalTimerProvider>
-        </UserProfileModalProvider>
+                    </UserProfileModalProvider>
+                  </HashRouter>
+                </TooltipProvider>
+              </SessionProvider>
+            </NotificationProvider>
+          </GroupEnrollmentProvider>
+        </GlobalTimerProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
