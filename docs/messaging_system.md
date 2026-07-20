@@ -51,7 +51,14 @@ Conversations in the Messaging Tab are strictly separated into two distinct cate
 
 ### `useMessagingData` (`src/hooks/useMessagingData.ts`)
 - Custom hook managing conversation lists, real-time message subscriptions, and active group session mapping.
-- Subscribes via Supabase Realtime to `messages`, `study_sessions`, and `conversations` table changes to keep status indicators and message previews live.
+- Leverages `@tanstack/react-query` (`['messaging-data', userId]`) with 5-minute staleTime caching so navigation back to `/messages` loads instantly without re-fetching or showing loading spinners.
+- Subscribes via Supabase Realtime to `messages`, `study_sessions`, and `conversations` table changes to invalidate and revalidate data automatically.
+
+### Conversation Message Caching (`src/pages/Messages/index.tsx`)
+- Uses React Query (`['chat-messages', activeConvId]`) to cache message histories for each conversation thread.
+- Switching between conversations or tabs renders messages immediately from in-memory cache without clearing the view.
+- Realtime incoming, edited, or deleted messages optimistically update the query cache via `queryClient.setQueryData`.
+- Styled with `scrollbar-gutter: stable` to ensure vertical layout stability and prevent scrollbar flashing during interactions.
 
 ---
 

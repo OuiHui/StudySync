@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Users, 
   MessageSquare, 
@@ -42,6 +43,7 @@ export const Messages: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { openProfile } = useUserProfileModal();
+  const queryClient = useQueryClient();
   const { 
     loading: dataLoading, 
     groupConversations, 
@@ -57,8 +59,6 @@ export const Messages: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<FormattedConversation | null>(null);
 
   // Chat message state
-  const [messages, setMessages] = useState<any[]>([]);
-  const [messagesLoading, setMessagesLoading] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   
@@ -72,6 +72,14 @@ export const Messages: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeConvRef = useRef<string | null>(null);
   const handledUserIdRef = useRef<string | null>(null);
+
+  // Fetch conversation messages with React Query cache
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<any[]>({
+    queryKey: ['chat-messages', activeConvId],
+    queryFn: () => (activeConvId ? ChatService.getMessages(activeConvId) : Promise.resolve([])),
+    enabled: !!activeConvId && !activeConvId.startsWith('temp_group_'),
+    staleTime: 2 * 60 * 1000,
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,7 +98,7 @@ export const Messages: React.FC = () => {
         handleSelectConversation(directConversations[0]);
       }
     }
-  }, [groupConversations, directConversations, activeCategory, targetUserIdParam]);
+  }, [groupConversations, directConversations, activeCategory, targetUserIdParam, selectedConversation]);
 
   // Handle direct navigation to a chat with a specific user (e.g. from Friends page)
   useEffect(() => {
@@ -135,7 +143,7 @@ export const Messages: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [targetUserIdParam, dataLoading, user, directConversations]);
+  }, [targetUserIdParam, dataLoading, user, directConversations, selectedConversation]);
 
   // Clean up realtime subscriptions on unmount or conversation switch
   useEffect(() => {
@@ -148,8 +156,6 @@ export const Messages: React.FC = () => {
 
   const loadConversationMessages = async (convId: string, groupOrUserObj: FormattedConversation) => {
     try {
-      setMessagesLoading(true);
-      
       let targetConvId = convId;
       // If it's a temporary group conversation that hasn't been created in backend DB yet
       if (convId.startsWith('temp_group_') && groupOrUserObj.groupId) {
@@ -158,15 +164,11 @@ export const Messages: React.FC = () => {
           targetConvId = createdId;
           groupOrUserObj.id = createdId;
         } else {
-          setMessages([]);
-          setMessagesLoading(false);
           return;
         }
       }
 
       if (targetConvId.startsWith('temp_group_')) {
-        setMessages([]);
-        setMessagesLoading(false);
         return;
       }
 
@@ -177,32 +179,24 @@ export const Messages: React.FC = () => {
       RealtimeService.subscribeToMessages(
         targetConvId,
         (newMessage: RealtimeMessage) => {
-          setMessages((prev) => {
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) => {
             if (prev.some((m) => m.id === newMessage.id)) return prev;
             return [...prev, newMessage];
           });
         },
         (updatedMessage: RealtimeMessage) => {
-          setMessages((prev) =>
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) =>
             prev.map((msg) => (msg.id === updatedMessage.id ? updatedMessage : msg))
           );
         },
         (deletedMessageId: string) => {
-          setMessages((prev) => prev.filter((msg) => msg.id !== deletedMessageId));
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) =>
+            prev.filter((msg) => msg.id !== deletedMessageId)
+          );
         }
       );
-
-      const msgs = await ChatService.getMessages(targetConvId);
-      setMessages(msgs || []);
     } catch (err) {
       console.error('Error loading conversation messages:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to load messages for this conversation.',
-        variant: 'destructive',
-      });
-    } fontFinally: {
-      setMessagesLoading(false);
     }
   };
 
@@ -225,7 +219,7 @@ export const Messages: React.FC = () => {
     try {
       const sentMessage = await ChatService.sendMessage(activeConvId, content);
       if (sentMessage) {
-        setMessages((prev) => {
+        queryClient.setQueryData(['chat-messages', activeConvId], (prev: any[] = []) => {
           if (prev.some((m) => m.id === sentMessage.id)) return prev;
           return [...prev, sentMessage];
         });
