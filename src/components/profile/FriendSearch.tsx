@@ -51,7 +51,7 @@ export const FriendSearch = ({
           <Button 
             onClick={handleSearch} 
             disabled={searching || !searchTerm.trim()}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
+            className="bg-brand hover:bg-brand-hover text-white"
           >
             {searching ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
           </Button>
@@ -96,7 +96,7 @@ export const FriendSearch = ({
                   <Button 
                     size="sm"
                     onClick={() => handleSendRequest(result.id)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    className="bg-brand hover:bg-brand-hover text-white font-semibold"
                   >
                     <UserPlus size={14} className="mr-1" />
                     Add

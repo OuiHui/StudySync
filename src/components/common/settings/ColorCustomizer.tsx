@@ -1,30 +1,14 @@
 
 import { useState } from 'react';
 import { Palette, RotateCcw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
-const colorThemes = [
-  { name: 'Default Blue', primary: '#3b82f6', secondary: '#1e40af', gradient: 'from-blue-50 to-indigo-100' },
-  { name: 'Ocean Blue', primary: '#1e40af', secondary: '#3b82f6', gradient: 'from-blue-100 to-blue-200' },
-  { name: 'Forest Green', primary: '#166534', secondary: '#22c55e', gradient: 'from-green-100 to-green-200' },
-  { name: 'Royal Purple', primary: '#7c3aed', secondary: '#a855f7', gradient: 'from-purple-100 to-purple-200' },
-  { name: 'Sunset Orange', primary: '#ea580c', secondary: '#f97316', gradient: 'from-orange-100 to-orange-200' },
-  { name: 'Rose Pink', primary: '#be185d', secondary: '#ec4899', gradient: 'from-pink-100 to-pink-200' },
-  { name: 'Teal Ocean', primary: '#0f766e', secondary: '#14b8a6', gradient: 'from-teal-100 to-teal-200' },
-  // Dark themes with proper readability
-  { name: 'Dark Navy', primary: '#1e293b', secondary: '#334155', gradient: 'from-slate-900 to-slate-800' },
-  { name: 'Dark Forest', primary: '#1f2937', secondary: '#374151', gradient: 'from-gray-900 to-gray-800' },
-  { name: 'Dark Purple', primary: '#4c1d95', secondary: '#6d28d9', gradient: 'from-purple-900 to-purple-800' },
-  { name: 'Dark Red', primary: '#7f1d1d', secondary: '#b91c1c', gradient: 'from-red-900 to-red-800' },
-  { name: 'Dark Emerald', primary: '#064e3b', secondary: '#047857', gradient: 'from-emerald-900 to-emerald-800' },
-  { name: 'Midnight', primary: '#0f172a', secondary: '#1e293b', gradient: 'from-slate-950 to-slate-900' },
-];
+import { COLOR_THEMES, DEFAULT_THEME, Theme } from '@/constants/theme';
 
 interface ColorCustomizerProps {
-  onThemeChange: (theme: typeof colorThemes[0]) => void;
-  currentTheme: typeof colorThemes[0];
+  onThemeChange: (theme: Theme) => void;
+  currentTheme: Theme;
 }
 
 export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizerProps) => {
@@ -44,12 +28,12 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
   };
 
   const resetToDefault = () => {
-    onThemeChange(colorThemes[0]);
+    onThemeChange(DEFAULT_THEME);
     document.documentElement.classList.remove('dark');
     setIsOpen(false);
   };
 
-  const isDarkTheme = (theme: typeof colorThemes[0]) => {
+  const isDarkTheme = (theme: Theme) => {
     return theme.name.toLowerCase().includes('dark') || theme.name.toLowerCase().includes('midnight');
   };
 
@@ -72,7 +56,7 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
           </div>
           
           <div className="grid grid-cols-3 gap-3">
-            {colorThemes.map((theme) => (
+            {COLOR_THEMES.map((theme) => (
               <Card 
                 key={theme.name}
                 className={`cursor-pointer transition-all border-2 ${

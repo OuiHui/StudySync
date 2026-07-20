@@ -17,6 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 
+import { DEFAULT_THEME } from '@/constants/theme';
+
 interface StudySessionProps {
   onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;
   globalTimerState?: {
@@ -160,10 +162,10 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
     }
   };
 
-  const gradientClass = currentTheme?.gradient || 'from-blue-50 to-indigo-100';
+  const gradientClass = currentTheme?.gradient || DEFAULT_THEME.gradient;
 
   return (
-    <div className={`p-6 overflow-y-auto min-h-screen bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-900 flex flex-col justify-center items-center`}>
+    <div className="p-6 overflow-y-auto min-h-[calc(100vh-2rem)] flex flex-col justify-center items-center">
       <div className="max-w-3xl w-full space-y-6 animate-fade-in flex flex-col items-center">
         {showCompletionEffect && (
           <div className="fixed inset-0 bg-green-500/20 dark:bg-green-400/20 flex items-center justify-center z-50 animate-fade-in">

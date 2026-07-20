@@ -13,11 +13,12 @@ import { SessionInfoPanel } from './SessionInfoPanel';
 import { ReflectionDialog } from './ReflectionDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useGroupStudySessionData } from '@/hooks/useGroupStudySessionData';
+import { DEFAULT_THEME, Theme } from '@/constants/theme';
 
 interface GroupStudySessionProps {
   onLeaveSession?: () => void;
-  onThemeChange?: (theme: { name: string; primary: string; secondary: string; gradient: string }) => void;
-  currentTheme?: { name: string; primary: string; secondary: string; gradient: string };
+  onThemeChange?: (theme: Theme) => void;
+  currentTheme?: Theme;
   onChatWithParticipant?: (participant: { id: string; name: string; status: string; avatar: string }) => void;
 }
 
@@ -105,11 +106,11 @@ export const GroupStudySession = ({
     );
   }
 
-  const gradientClass = currentTheme?.gradient || 'from-blue-50 to-indigo-100';
+  const gradientClass = currentTheme?.gradient || DEFAULT_THEME.gradient;
 
   if (loading) {
     return (
-      <div className={`flex flex-col items-center justify-center h-screen bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-900`}>
+      <div className="flex flex-col items-center justify-center h-screen">
         <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
         <p className="text-gray-700 dark:text-gray-400 font-medium">Entering study room...</p>
       </div>
@@ -117,7 +118,7 @@ export const GroupStudySession = ({
   }
 
   return (
-    <div className={`h-[100vh] flex flex-col p-4 bg-gradient-to-br ${gradientClass} dark:bg-none dark:bg-gray-900 overflow-hidden`}>
+    <div className="h-[100vh] flex flex-col p-4 overflow-hidden">
       {/* Row 1: Header */}
       <div className="flex justify-between items-center pb-3 border-b dark:border-gray-800 shrink-0">
         <div className="flex items-center space-x-3">
@@ -160,12 +161,7 @@ export const GroupStudySession = ({
           </Button>
           <ColorCustomizer
             onThemeChange={onThemeChange || (() => {})}
-            currentTheme={currentTheme || {
-              name: 'Default Blue',
-              primary: '#3b82f6',
-              secondary: '#1e40af',
-              gradient: 'from-blue-50 to-indigo-100'
-            }}
+            currentTheme={currentTheme || DEFAULT_THEME}
           />
         </div>
       </div>

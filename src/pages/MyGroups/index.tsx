@@ -70,7 +70,7 @@ function TabButton({ label, isActive, onClick }: { label: string; isActive: bool
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
         isActive
-          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+          ? 'border-brand text-brand dark:text-brand font-semibold'
           : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
       }`}
     >

@@ -62,6 +62,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				brand: {
+					DEFAULT: 'hsl(var(--brand-primary, 213 67% 50%))',
+					primary: 'hsl(var(--brand-primary, 213 67% 50%))',
+					hover: 'hsl(var(--brand-primary-hover, 213 69% 44%))'
 				}
 			},
 			borderRadius: {

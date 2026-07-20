@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { ColorCustomizer } from './ColorCustomizer';
+import { DEFAULT_THEME } from '@/constants/theme';
 
-const defaultTheme = { name: 'Default Blue', primary: '#3b82f6', secondary: '#1e40af', gradient: 'from-blue-50 to-indigo-100' };
+const defaultTheme = DEFAULT_THEME;
 const darkTheme = { name: 'Dark Navy', primary: '#1e293b', secondary: '#334155', gradient: 'from-slate-900 to-slate-800' };
 
 describe('ColorCustomizer Component', () => {

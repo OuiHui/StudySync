@@ -147,7 +147,7 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
             </Badge>
           )}
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white">
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-brand hover:bg-brand-hover text-white rounded-xl font-semibold transition-all">
           <Plus className="w-4 h-4 mr-2" /> New Note
         </Button>
       </div>

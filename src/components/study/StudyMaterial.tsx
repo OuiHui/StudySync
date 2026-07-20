@@ -142,7 +142,7 @@ export const StudyMaterial = () => {
           <Button
             size="sm"
             onClick={() => setIsCreating(true)}
-            className="h-8 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 flex items-center space-x-1"
+            className="h-8 bg-brand hover:bg-brand-hover text-white font-medium flex items-center space-x-1"
           >
             <Plus size={14} />
             <span>New Note</span>
@@ -201,7 +201,7 @@ export const StudyMaterial = () => {
               <Button
                 onClick={handleCreateNote}
                 disabled={isCreatingNote}
-                className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+                className="bg-brand hover:bg-brand-hover text-white font-medium"
               >
                 {isCreatingNote ? (
                   <Loader2 size={16} className="animate-spin mr-1.5" />

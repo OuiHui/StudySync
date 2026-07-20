@@ -29,7 +29,7 @@ export function UserMenu({ onProfileClick, isProfileDisabled }: UserMenuProps) {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-blue-500 text-white">
+            <AvatarFallback className="bg-[#2a78d6] text-white">
               {user?.email ? getInitials(user.email) : 'U'}
             </AvatarFallback>
           </Avatar>

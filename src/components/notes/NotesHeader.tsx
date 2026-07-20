@@ -44,7 +44,7 @@ export const NotesHeader = ({
           Upload Note
         </Button>
         <Button
-          className="h-10 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:hover:bg-indigo-500 font-medium shadow-sm transition-all"
+          className="h-10 bg-brand hover:bg-brand-hover text-white font-semibold shadow-sm transition-all rounded-xl border-0"
           onClick={() => setIsCreateDialogOpen(true)}
         >
           <Plus size={18} className="mr-1.5" />

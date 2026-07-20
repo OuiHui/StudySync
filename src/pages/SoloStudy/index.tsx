@@ -18,7 +18,7 @@ export default function SoloStudy() {
         </p>
         <button
           onClick={() => navigate('/group-study-session')}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
+          className="bg-brand hover:bg-brand-hover text-white px-6 py-2 rounded-xl font-semibold text-sm transition-all"
         >
           Return to Group Session
         </button>

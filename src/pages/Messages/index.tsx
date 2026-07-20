@@ -314,7 +314,7 @@ export const Messages: React.FC = () => {
         <Button
           onClick={() => setIsNewChatOpen(true)}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-sm"
+          className="bg-brand hover:bg-brand-hover text-white gap-1.5 shadow-sm rounded-xl font-semibold"
         >
           <Plus className="w-4 h-4" />
           <span>New Chat</span>

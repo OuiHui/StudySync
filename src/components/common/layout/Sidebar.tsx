@@ -96,7 +96,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
                     } ${isDisabled
                       ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600'
                       : isActive
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-[#2a78d6] text-white shadow-sm font-medium'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   title={!isOpen ? item.label : undefined}

@@ -12,13 +12,7 @@ import { getDashboardQueryOptions } from '@/hooks/useDashboardData';
 import { getProfileQueryOptions } from '@/hooks/useProfileData';
 import { getStudyEventsQueryOptions } from '@/hooks/useStudyEvents';
 import { StudySessionsService, StudyGroupsService, NotesService } from '@/services/database';
-
-const initialTheme = {
-  name: 'Default Blue',
-  primary: '#3b82f6',
-  secondary: '#1e40af',
-  gradient: 'from-blue-50 to-indigo-100'
-};
+import { DEFAULT_THEME, getBackgroundGradient as getThemeBackgroundGradient } from '@/constants/theme';
 
 export const MainLayout = () => {
   const location = useLocation();
@@ -26,7 +20,7 @@ export const MainLayout = () => {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState(initialTheme);
+  const [currentTheme, setCurrentTheme] = useState(DEFAULT_THEME);
   
   const { globalTimer, handleGlobalTimerToggle, handleCancelTimer } = useGlobalTimer();
   const { 
@@ -82,14 +76,7 @@ export const MainLayout = () => {
   };
 
   const getBackgroundGradient = () => {
-    if (globalTimer.isActive && globalTimer.timeLeft > 0) {
-      if (globalTimer.mode === 'work') {
-        return 'from-blue-100 via-purple-50 to-pink-100 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20';
-      } else {
-        return 'from-green-100 via-emerald-50 to-teal-100 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20';
-      }
-    }
-    return 'from-background to-muted dark:from-background dark:to-muted';
+    return getThemeBackgroundGradient(globalTimer);
   };
 
   const isSessionPage = location.pathname.includes('study-session') || location.pathname.includes('group-study-session');

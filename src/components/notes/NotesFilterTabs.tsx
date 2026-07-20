@@ -37,7 +37,7 @@ export const NotesFilterTabs = ({ activeTab, setActiveTab, counts }: NotesFilter
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm transition-all whitespace-nowrap border ${
               isActive
-                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-950/60 dark:border-indigo-800 dark:text-indigo-300 font-semibold shadow-xs'
+                ? 'bg-brand/10 border-brand/30 text-brand dark:bg-brand/20 dark:border-brand/40 dark:text-brand font-semibold shadow-xs'
                 : 'bg-white dark:bg-gray-800/60 border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium'
             }`}
           >
@@ -45,7 +45,7 @@ export const NotesFilterTabs = ({ activeTab, setActiveTab, counts }: NotesFilter
             <span
               className={`px-2 py-0.5 text-xs rounded-full font-semibold transition-colors ${
                 isActive
-                  ? 'bg-indigo-200/70 text-indigo-800 dark:bg-indigo-900/80 dark:text-indigo-200'
+                  ? 'bg-brand/20 text-brand dark:bg-brand/30 dark:text-brand'
                   : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
               }`}
             >
