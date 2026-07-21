@@ -159,6 +159,7 @@ Study groups support real-time updates for membership changes (joins, leaves, an
 
 The Edit Study Group modal (`GroupSettingsDialog.tsx`) provides group creators/admins with a unified dark-mode single-page configuration dialog:
 
+- **Positioning**: Uses viewport-centered modal styling (`StandardDialogContent`) with `max-h-[90vh]` and `overflow-y-auto` to prevent dialog overflow at the bottom of the screen.
 - **Header**: Contains the modal title `"Edit study group"`, a `...` action menu (with **Delete Group** trigger), and a `X` close button.
 - **Group Image**: A square thumbnail avatar preview alongside an `"Upload image"` button supporting PNG/JPG files up to 5MB.
 - **Group Name**: Text input field mapped to `study_groups.name`.
@@ -167,4 +168,5 @@ The Edit Study Group modal (`GroupSettingsDialog.tsx`) provides group creators/a
 - **Member Limit**: Stepper control with `-` / `+` buttons and a numeric input box mapped to `study_groups.max_members`.
 - **Who Can Join**: Segmented pill toggle control switching between `"Anyone can join"` (`is_public = true`) and `"Requires approval"` (`is_public = false`).
 - **Footer**: Contains `"Cancel"` and `"Save changes"` buttons to persist updates or close the modal.
+
 

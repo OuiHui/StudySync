@@ -15,20 +15,23 @@ import { StudyGroupsService } from '@/services/database';
 import { DeleteGroupModal } from './settings/DeleteGroupModal';
 
 interface GroupSettingsDialogProps {
-  groupId: string;
+  groupId?: string;
+  group?: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGroupUpdated?: () => void;
-  onGroupDeleted?: () => void;
+  onGroupUpdated?: (updatedGroup?: any) => void;
+  onGroupDeleted?: (groupId?: string) => void;
 }
 
 export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
-  groupId,
+  groupId: passedGroupId,
+  group,
   open,
   onOpenChange,
   onGroupUpdated,
   onGroupDeleted,
 }) => {
+  const targetGroupId = passedGroupId || group?.id;
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -48,15 +51,27 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (open && groupId) {
-      fetchGroupData();
+    if (open) {
+      if (group) {
+        setFormData({
+          name: group.name || '',
+          subject: group.subject || '',
+          description: group.description || '',
+          is_public: group.is_public ?? true,
+          max_members: group.max_members || 50,
+          avatar_url: group.icon || group.avatar_url || '',
+        });
+      }
+      if (targetGroupId) {
+        fetchGroupData(targetGroupId);
+      }
     }
-  }, [open, groupId]);
+  }, [open, targetGroupId, group]);
 
-  const fetchGroupData = async () => {
+  const fetchGroupData = async (idToFetch: string) => {
     try {
       setFetching(true);
-      const data = await StudyGroupsService.getGroupById(groupId);
+      const data = await StudyGroupsService.getGroupById(idToFetch);
       if (data) {
         setFormData({
           name: data.name || '',
@@ -64,7 +79,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
           description: data.description || '',
           is_public: data.is_public ?? true,
           max_members: data.max_members || 50,
-          avatar_url: data.avatar_url || '',
+          avatar_url: data.icon || data.avatar_url || '',
         });
       }
     } catch (err) {
@@ -106,20 +121,22 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
       setLoading(true);
       let updatedAvatarUrl = formData.avatar_url;
 
-      if (newImageFile) {
-        const uploaded = await StudyGroupsService.uploadGroupAvatar(groupId, newImageFile);
+      if (newImageFile && targetGroupId) {
+        const uploaded = await StudyGroupsService.uploadGroupAvatar(targetGroupId, newImageFile);
         if (uploaded) {
           updatedAvatarUrl = uploaded;
         }
       }
 
-      await StudyGroupsService.updateGroup(groupId, {
+      if (!targetGroupId) return;
+
+      const result = await StudyGroupsService.updateGroup(targetGroupId, {
         name: formData.name.trim(),
         subject: formData.subject.trim() || undefined,
         description: formData.description.trim() || undefined,
         is_public: formData.is_public,
         max_members: formData.max_members,
-        avatar_url: updatedAvatarUrl,
+        icon: updatedAvatarUrl,
       });
 
       toast({
@@ -127,7 +144,17 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
         description: 'Study group settings have been updated.',
       });
 
-      onGroupUpdated?.();
+      const updatedPayload = result || {
+        id: targetGroupId,
+        name: formData.name.trim(),
+        subject: formData.subject.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        is_public: formData.is_public,
+        max_members: formData.max_members,
+        icon: updatedAvatarUrl,
+      };
+
+      onGroupUpdated?.(updatedPayload);
       onOpenChange(false);
     } catch (err: any) {
       console.error('Failed to update group:', err);
@@ -142,18 +169,18 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
   };
 
   const handleDeleteGroup = async () => {
-    if (deleteConfirm !== formData.name) return;
+    if (deleteConfirm !== formData.name || !targetGroupId) return;
 
     try {
       setLoading(true);
-      await StudyGroupsService.deleteGroup(groupId);
+      await StudyGroupsService.deleteGroup(targetGroupId);
       toast({
         title: 'Group Deleted',
         description: 'The study group has been permanently deleted.',
       });
       setShowDeleteConfirm(false);
       onOpenChange(false);
-      onGroupDeleted?.();
+      onGroupDeleted?.(targetGroupId);
     } catch (err: any) {
       console.error('Failed to delete group:', err);
       toast({
@@ -170,7 +197,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <StandardDialogContent size="lg" className="relative">
+      <StandardDialogContent size="lg">
         <DeleteGroupModal
           show={showDeleteConfirm}
           onClose={() => {
@@ -224,8 +251,13 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
             <div className="space-y-3 pt-1.5">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-dashed border-gray-300 dark:border-slate-700/80 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                  {displayImage ? (
-                    <img src={displayImage} alt="Group avatar" className="w-full h-full object-cover rounded-xl" />
+                  {displayImage && (displayImage.startsWith('data:') || displayImage.startsWith('http://') || displayImage.startsWith('https://') || displayImage.startsWith('/')) ? (
+                    <img
+                      src={displayImage}
+                      alt="Group image preview"
+                      className="w-full h-full object-cover rounded-xl"
+                      onError={() => setImagePreview(null)}
+                    />
                   ) : (
                     <ImageIcon className="w-7 h-7 text-gray-400 dark:text-slate-500" />
                   )}
@@ -257,7 +289,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
 
               <div className="space-y-1">
                 <FormLabel htmlFor="group-name" required>
-                  Group name
+                  Group Name
                 </FormLabel>
                 <Input
                   id="group-name"
@@ -349,11 +381,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: true }))}
                     disabled={loading}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      formData.is_public
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${formData.is_public
                         ? 'bg-[#2a78d6] text-white shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     Anyone can join
                   </button>
@@ -361,11 +392,10 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: false }))}
                     disabled={loading}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      !formData.is_public
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${!formData.is_public
                         ? 'bg-[#2a78d6] text-white shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     Requires approval
                   </button>

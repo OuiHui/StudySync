@@ -54,7 +54,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
   }, [availableGroups, myGroupIds, searchTerm, selectedSubject]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
 
       {error && (
         <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
@@ -88,10 +88,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             </option>
           ))}
         </select>
-        
-        {user && (
-          <CreateGroupDialog onGroupCreated={handleCreateGroup} />
-        )}
       </div>
 
       {loading ? (

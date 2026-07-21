@@ -23,7 +23,7 @@ export const StandardDialogContent = React.forwardRef<
   return (
     <DialogContent
       ref={ref}
-      className={`${sizeClasses[size]} w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden ${className}`}
+      className={`${sizeClasses[size]} w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto [&>button]:hidden ${className}`}
       {...props}
     >
       {children}

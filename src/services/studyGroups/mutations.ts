@@ -136,18 +136,25 @@ export class StudyGroupsMutations {
     }
   }
 
-  static async updateGroup(id: string, updates: Partial<StudyGroup>) {
+  static async updateGroup(id: string, updates: Partial<StudyGroup> & { avatar_url?: string; icon?: string }) {
     try {
       const session = await checkAuth();
       if (!session) {
         throw new Error('Authentication required to update groups');
       }
 
+      // Map avatar_url to icon column if present and remove avatar_url
+      const cleanUpdates: any = { ...updates };
+      if (cleanUpdates.avatar_url) {
+        cleanUpdates.icon = cleanUpdates.avatar_url;
+        delete cleanUpdates.avatar_url;
+      }
+
       // First try to update with all fields including icon and color
       try {
         const { data, error } = await supabase
           .from('study_groups')
-          .update(updates)
+          .update(cleanUpdates)
           .eq('id', id)
           .eq('created_by', session.user.id)
           .select()
@@ -159,12 +166,17 @@ export class StudyGroupsMutations {
 
         return data;
       } catch (error: any) {
-        // If the error is about unknown columns (icon/color), try without them
-        if (error.message?.includes('column') || error.code === '42703') {
-          console.warn('Icon/color columns not available, updating without them');
+        // Handle missing column errors (e.g. icon/color/avatar_url not in schema cache)
+        if (
+          error.message?.includes('column') ||
+          error.message?.includes('schema cache') ||
+          error.code === '42703' ||
+          error.code === 'PGRST204'
+        ) {
+          console.warn('Appearance columns (icon/color/avatar_url) not supported in database schema, updating core fields');
           
-          // Remove icon and color from updates and try again
-          const { icon, color, ...safeUpdates } = updates as any;
+          // Remove icon, color, and avatar_url from updates and save core fields
+          const { icon, color, avatar_url, ...safeUpdates } = cleanUpdates as any;
           
           const { data, error: fallbackError } = await supabase
             .from('study_groups')
@@ -178,11 +190,11 @@ export class StudyGroupsMutations {
             handleDbError(fallbackError, 'update group (fallback)');
           }
 
-          // Add the icon and color back to the returned data for UI consistency
+          // Return merged data for seamless UI display
           return {
             ...data,
-            icon: (updates as any).icon || 'Users',
-            color: (updates as any).color || 'from-blue-500 to-blue-600'
+            icon: cleanUpdates.icon || 'Users',
+            color: cleanUpdates.color || 'from-blue-500 to-blue-600'
           };
         } else {
           throw error;
@@ -294,6 +306,47 @@ export class StudyGroupsMutations {
       console.error('Error accepting group invitation:', error);
       throw error;
     }
+  }
+
+  static async uploadGroupAvatar(groupId: string, file: File): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 300;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          } else {
+            resolve((event.target?.result as string) || '');
+          }
+        };
+        img.onerror = () => resolve((event.target?.result as string) || '');
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
   }
 
   static async declineGroupInvitation(groupId: string) {

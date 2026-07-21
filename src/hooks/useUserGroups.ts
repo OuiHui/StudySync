@@ -119,7 +119,11 @@ export function useUserGroups() {
     }
   };
 
-  const handleGroupUpdated = (updatedGroup: any) => {
+  const handleGroupUpdated = (updatedGroup?: any) => {
+    if (!updatedGroup?.id) {
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      return;
+    }
     queryClient.setQueryData<GroupInfo[]>(['user-groups', user?.id, isAnonymous], (old) => {
       if (!old) return old;
       return old.map(group =>
@@ -136,7 +140,11 @@ export function useUserGroups() {
     queryClient.invalidateQueries({ queryKey: ['group', updatedGroup.id] });
   };
 
-  const handleGroupDeleted = (groupId: string) => {
+  const handleGroupDeleted = (groupId?: string) => {
+    if (!groupId) {
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      return;
+    }
     queryClient.setQueryData<GroupInfo[]>(['user-groups', user?.id, isAnonymous], (old) => {
       if (!old) return old;
       return old.filter(group => group.id !== groupId);

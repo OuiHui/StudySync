@@ -16,6 +16,7 @@ export class StudyGroupsService {
   static removeMember = StudyGroupsMutations.removeMember;
   static updateGroup = StudyGroupsMutations.updateGroup;
   static deleteGroup = StudyGroupsMutations.deleteGroup;
+  static uploadGroupAvatar = StudyGroupsMutations.uploadGroupAvatar;
   static inviteUserToGroup = StudyGroupsMutations.inviteUserToGroup;
   static getGroupInvitations = StudyGroupsMutations.getGroupInvitations;
   static acceptGroupInvitation = StudyGroupsMutations.acceptGroupInvitation;
