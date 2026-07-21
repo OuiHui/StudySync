@@ -37,7 +37,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
     { id: 'groups', label: 'Study Groups', icon: Users },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'notes', label: 'Notes', icon: FileText },
-    { id: 'find-friends', label: 'Find Friends', icon: UserPlus },
+    { id: 'friends', label: 'Friends', icon: UserPlus },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 

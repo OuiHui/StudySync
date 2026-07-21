@@ -60,10 +60,15 @@ To manage queries and calculate relationships, friendships are queried via Datab
 - **`FriendsService.getUserProfile(targetUserId, currentUserId)`**: Fetches profile data, friends/groups counts, friendship status, and calculates the mutual friends count.
 
 ### B. Component Layer
+- **`FriendsPage` (`src/components/friends/FindFriendsPage.tsx`)**:
+  - Main Friends view accessible via the `/friends` route.
+  - Implements a two-tab format:
+    - **`My Friends`**: Displays current friends and pending requests formatted as `PersonCard` cards with search capability.
+    - **`Browse`**: Displays search bar, category filters (All People, Friends, Pending), and `PersonCard` grid for discovering and connecting with new students.
+- **`PersonCard`**:
+  - Displays user profile summary, mutual friends, study hours, and contextual action buttons (Add Friend, Cancel Request, Message, View Profile).
 - **`PersonProfileDialog`**:
   - Displays the profile overview (name, bio, major, year, study stats, public groups, public sessions).
   - Shows the target user's friends preview count and list of friends under a general **Friends** tab.
-  - Friends preview avatar items are clickable buttons that fetch and load that friend's profile in-place, resetting the view back to `'profile'`.
-- **`FriendsListView`**:
-  - Lists the target user's friends. If they are also friends with the current user, marks them with a "Mutual!" tag. Otherwise, displays an "Add Friend" button.
-  - Clicking on a friend item in the list fetches and opens that friend's profile, updating the parent profile dialog contents dynamically.
+- **Note on Profile Page**:
+  - Profile page (`src/components/profile/Profile.tsx`) has been streamlined; friends list and find friends search are housed exclusively within the **Friends** page.

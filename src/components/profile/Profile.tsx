@@ -10,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useProfileData } from '@/hooks/useProfileData';
 
 import { ProfileOverview } from './ProfileOverview';
-import { FriendsSection } from './FriendsSection';
 import { ProfileSettings } from './ProfileSettings';
 import { SessionHistoryList } from './SessionHistoryList';
 
@@ -87,8 +86,6 @@ export const Profile = () => {
       <ProfileOverview profile={userProfile} />
 
       <SessionHistoryList />
-
-      <FriendsSection />
 
       <ProfileSettings 
         onChangePassword={() => setChangePasswordOpen(true)}

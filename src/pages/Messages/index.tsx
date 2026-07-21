@@ -739,7 +739,7 @@ export const Messages: React.FC = () => {
             >
               {userFriends.length === 0 ? (
                 <div className="p-4 text-center text-xs text-gray-500">
-                  You haven&apos;t added any friends yet. Go to Find Friends to connect!
+                  You haven&apos;t added any friends yet. Go to Friends to connect!
                 </div>
               ) : (
                 userFriends.map((friend) => (

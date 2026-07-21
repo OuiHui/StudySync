@@ -23,7 +23,7 @@ import AvailableSessions from "@/pages/AvailableSessions";
 import MyGroups from "@/pages/MyGroups";
 import Notes from "@/pages/Notes";
 import Profile from "@/pages/Profile";
-import FindFriends from "@/pages/FindFriends";
+import Friends from "@/pages/Friends";
 import Messages from "@/pages/Messages";
 import { SimulationConsole } from "@/components/common/developer/SimulationConsole";
 
@@ -102,7 +102,7 @@ const App = () => (
                           <Route path="groups" element={<MyGroups />} />
                           <Route path="messages" element={<Messages />} />
                           <Route path="notes" element={<Notes />} />
-                          <Route path="find-friends" element={<FindFriends />} />
+                          <Route path="friends" element={<Friends />} />
                           <Route path="profile" element={<Profile />} />
                         </Route>
                         <Route path="*" element={<NotFound />} />

@@ -9,7 +9,7 @@ import { PersonProfileDialog } from './PersonProfileDialog';
 import { Person, FriendStatus } from './types';
 import { getInitials } from './avatarUtils';
 
-type FilterOption = 'all' | 'friends' | 'pending';
+type FilterOption = 'all' | 'pending';
 
 const mapToPerson = (d: any): Person => {
   const name = d.display_name || d.email.split('@')[0];
@@ -39,9 +39,12 @@ const mapToPerson = (d: any): Person => {
   };
 };
 
+type FriendsTab = 'my-friends' | 'browse';
+
 export const FindFriendsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<FriendsTab>('my-friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,32 +122,52 @@ export const FindFriendsPage = () => {
     }
   };
 
-  const filteredPeople = useMemo(() => {
-    if (activeFilter === 'friends') return people.filter((p) => p.status === 'friends');
-    if (activeFilter === 'pending') return people.filter((p) => p.status === 'pending');
-    return people;
+  const myFriendsList = useMemo(() => {
+    return people.filter((p) => p.status === 'friends');
+  }, [people]);
+
+  const browsePeople = useMemo(() => {
+    const nonFriends = people.filter((p) => p.status !== 'friends');
+    if (activeFilter === 'pending') return nonFriends.filter((p) => p.status === 'pending');
+    return nonFriends;
   }, [people, activeFilter]);
 
   const stats = useMemo(() => ({
     total: people.length,
     friends: people.filter((p) => p.status === 'friends').length,
+    nonFriends: people.filter((p) => p.status !== 'friends').length,
     pending: people.filter((p) => p.status === 'pending').length,
   }), [people]);
 
   const filters: { id: FilterOption; label: string; count: number }[] = [
-    { id: 'all', label: 'All People', count: stats.total },
-    { id: 'friends', label: 'Friends', count: stats.friends },
-    { id: 'pending', label: 'Pending', count: stats.pending },
+    { id: 'all', label: 'All People', count: stats.nonFriends },
+    { id: 'pending', label: 'Pending Requests', count: stats.pending },
   ];
+
+  const displayedPeople = activeTab === 'my-friends' ? myFriendsList : browsePeople;
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Find Friends</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Friends</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Connect with fellow students and build your study network
+          Connect with fellow students and manage your study network
         </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
+        <TabButton
+          label={`My Friends (${stats.friends})`}
+          isActive={activeTab === 'my-friends'}
+          onClick={() => setActiveTab('my-friends')}
+        />
+        <TabButton
+          label="Browse"
+          isActive={activeTab === 'browse'}
+          onClick={() => setActiveTab('browse')}
+        />
       </div>
 
       {/* Search & Filters */}
@@ -156,10 +179,14 @@ export const FindFriendsPage = () => {
           />
           <Input
             type="text"
-            placeholder="Search by name, email, or major..."
+            placeholder={
+              activeTab === 'my-friends'
+                ? 'Search your friends...'
+                : 'Search by name, email, or major...'
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 dark:bg-gray-800/60 dark:border-gray-700 dark:text-white"
+            className="pl-9 dark:bg-gray-800/60 dark:border-gray-700 dark:text-white rounded-xl"
           />
           {searchQuery && (
             <button
@@ -170,31 +197,33 @@ export const FindFriendsPage = () => {
             </button>
           )}
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setActiveFilter(f.id)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                activeFilter === f.id
-                  ? 'bg-brand text-white shadow-sm'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              <Filter size={12} />
-              {f.label}
-              <span
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+        {activeTab === 'browse' && (
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {filters.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setActiveFilter(f.id)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                   activeFilter === f.id
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
-                {f.count}
-              </span>
-            </button>
-          ))}
-        </div>
+                <Filter size={12} />
+                {f.label}
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    activeFilter === f.id
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  {f.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* People Grid */}
@@ -202,16 +231,22 @@ export const FindFriendsPage = () => {
         <div className="flex justify-center items-center py-20">
           <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-brand rounded-full animate-spin" />
         </div>
-      ) : filteredPeople.length === 0 ? (
+      ) : displayedPeople.length === 0 ? (
         <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-12 text-center">
           <Users size={32} className="text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {searchQuery ? `No results for "${searchQuery}"` : 'No people match the current filter.'}
+            {activeTab === 'my-friends'
+              ? searchQuery
+                ? `No friends found matching "${searchQuery}"`
+                : 'No friends yet — switch to Browse to find and add study partners!'
+              : searchQuery
+              ? `No results for "${searchQuery}"`
+              : 'No people match the current filter.'}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPeople.map((person) => (
+          {displayedPeople.map((person) => (
             <PersonCard
               key={person.id}
               person={person}
@@ -244,3 +279,18 @@ export const FindFriendsPage = () => {
     </div>
   );
 };
+
+function TabButton({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+        isActive
+          ? 'border-brand text-brand dark:text-brand font-semibold'
+          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
