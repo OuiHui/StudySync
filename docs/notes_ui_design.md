@@ -48,3 +48,18 @@ A dedicated **"Clear Filters"** button in `NotesHeader.tsx` activates whenever a
 ### 4. Pagination & Sorting
 - **Sorting**: Order by Newest, Oldest, Title (A-Z), Title (Z-A).
 - **Pagination**: Configurable page size (5, 8, 10, 20 items per page) with page navigation buttons and a summary string (`Showing 1–8 of 56 notes`).
+
+---
+
+## Shared Note Modal State Management
+
+`SharedNoteModal` (`src/components/notes/SharedNoteModal.tsx`) manages viewing and editing notes across Notes, Solo Study, and Group Study Sessions:
+
+1. **Save Flow**:
+   - `handleSave` executes `onSave(note.id, form)`.
+   - On success, `note.title`, `note.content`, `note.subject`, and `note.permission_level` are directly updated on the note reference in addition to updating parent component `activeNote` state and calling `onNotesChange` / `loadNotes`.
+   - This ensures view mode reflects the updated note content immediately without requiring a page refresh.
+
+2. **Cancel Flow**:
+   - `handleCancel` explicitly resets the form state (`setForm`) back to the original `note` properties (`title`, `subject`, `content`, `permission_level`) before setting `isEditing` to `false`.
+   - `handleStartEdit` re-synchronizes the form state with current `note` properties when re-entering edit mode, preventing discarded changes from re-appearing.

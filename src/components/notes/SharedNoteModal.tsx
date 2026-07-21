@@ -74,11 +74,39 @@ export const SharedNoteModal = ({
     }
   }, [note]);
 
+  const handleStartEdit = () => {
+    if (note) {
+      setForm({
+        title: note.title || '',
+        subject: note.subject || '',
+        content: note.content || '',
+        permission_level: note.permission_level || 'private',
+      });
+    }
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    if (note) {
+      setForm({
+        title: note.title || '',
+        subject: note.subject || '',
+        content: note.content || '',
+        permission_level: note.permission_level || 'private',
+      });
+    }
+    setIsEditing(false);
+  };
+
   const handleSave = async () => {
     if (!onSave || !form.title.trim()) return;
     try {
       setIsSaving(true);
       await onSave(note.id, form);
+      note.title = form.title;
+      note.content = form.content;
+      note.subject = form.subject;
+      note.permission_level = form.permission_level;
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to save note:', err);
@@ -235,7 +263,7 @@ export const SharedNoteModal = ({
             {canEdit && !isEditing && (
               <button
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={handleStartEdit}
                 className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors inline-flex items-center gap-1.5"
               >
                 <Edit2 className="w-4 h-4" /> Edit Note
@@ -246,7 +274,7 @@ export const SharedNoteModal = ({
               <>
                 <button
                   type="button"
-                  onClick={() => setIsEditing(false)}
+                  onClick={handleCancel}
                   disabled={isSaving}
                   className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                 >

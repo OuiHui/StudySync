@@ -108,6 +108,12 @@ To protect database operations and prevent recursive query loops, Row Level Secu
   - A group admin or creator can delete memberships of other users (removing a member).
 - **UPDATE**: Group creators can update memberships (promoting/demoting).
 
+### Policies on `group_invitations`
+- **SELECT**: Senders (`invited_by_id`), recipients (`invited_user_id`), and group members/creators can view group invitations.
+- **INSERT**: Authenticated users can create invitations or join requests as long as they are the sender (`auth.uid() = invited_by_id`).
+- **UPDATE**: Recipients, senders, and group members/creators can update invitation status (e.g. accepting/declining).
+- **DELETE**: Senders, recipients, or group creators can delete invitation records.
+
 ### Database Triggers & Validation Rules
 - **Group Member Limit validation**: A `BEFORE INSERT` trigger (`tr_check_group_member_limit`) on `group_members` checks that the group's current member count does not exceed `max_members`. If the limit has been reached, database operations throw an exception: `'Group member limit of % reached'`.
 

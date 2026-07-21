@@ -553,6 +553,7 @@ export const useGroupStudySessionData = () => {
         session_id: sessionId,
         permission_level: 'public'
       });
+      await loadNotes(sessionId);
     } catch (err) {
       console.error("Failed to add note:", err);
     } finally {
@@ -563,6 +564,9 @@ export const useGroupStudySessionData = () => {
   const handleDeleteNote = async (noteId: string) => {
     try {
       await NotesService.deleteNote(noteId);
+      if (sessionId) {
+        await loadNotes(sessionId);
+      }
       toast({
         title: "Note deleted",
         description: "Shared note removed successfully."
@@ -636,6 +640,7 @@ export const useGroupStudySessionData = () => {
     handleDeleteGoal,
     handleAddNote,
     handleDeleteNote,
+    loadNotes: () => sessionId && loadNotes(sessionId),
     handleReflectionSubmit,
     workDuration,
     breakDuration,

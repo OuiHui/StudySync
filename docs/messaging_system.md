@@ -9,7 +9,7 @@ StudySync provides realtime messaging capabilities for study group members and d
 
 ### 1. Conversation Separation & Deep Linking
 Conversations in the Messaging Tab are strictly separated into two distinct categories:
-- **Study Groups**: Group chat channels automatically linked to study groups the user belongs to (`group_id IS NOT NULL`, `is_group_chat = true`).
+- **Study Groups**: Group chat channels automatically linked to study groups the user belongs to (`group_id IS NOT NULL`, `is_group_chat = true`). Study Groups that do not have any messages in them do not appear in the sidebar conversation list until someone initiates a chat and says something (via "New Chat" or the Study Groups page).
 - **Direct Messages**: 1-on-1 private conversations between friends / individual people (`is_group_chat = false`).
 - **Deep Linking / Direct Navigation**: Navigating to `/messages?userId=<target_user_id>` (such as when clicking "Message" on a friend card or profile dialog on the Friends page) automatically switches to the Direct Messages tab, retrieves or creates the 1-on-1 conversation with `<target_user_id>`, and selects it in the chat workspace.
 

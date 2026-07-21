@@ -103,6 +103,16 @@ export const SessionNotes = ({
         content: updates.content,
         subject: updates.subject || null,
       });
+      setActiveNote((prev) =>
+        prev && prev.id === noteId
+          ? {
+              ...prev,
+              title: updates.title,
+              content: updates.content,
+              subject: updates.subject || null,
+            }
+          : prev
+      );
       if (onNotesChange) {
         onNotesChange();
       }

@@ -55,6 +55,7 @@ export const GroupStudySession = ({
     handleDeleteGoal,
     handleAddNote,
     handleDeleteNote,
+    loadNotes,
     handleReflectionSubmit,
     workDuration,
     breakDuration,
@@ -308,6 +309,7 @@ export const GroupStudySession = ({
               groupId={sessionData?.group_id || undefined}
               onAddNote={handleAddNote}
               onDeleteNote={handleDeleteNote}
+              onNotesChange={loadNotes}
             />
           </div>
         </div>

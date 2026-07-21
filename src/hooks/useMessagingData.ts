@@ -34,6 +34,7 @@ interface MessagingData {
   directConversations: FormattedConversation[];
   activeSessionsMap: Record<string, any>;
   userFriends: any[];
+  userGroups: any[];
 }
 
 export function useMessagingData() {
@@ -47,10 +48,11 @@ export function useMessagingData() {
         directConversations: [],
         activeSessionsMap: {},
         userFriends: [],
+        userGroups: [],
       };
     }
 
-    // 1. Fetch user's study groups & ensure conversation exists for each
+    // 1. Fetch user's study groups & conversations
     const [userGroups, rawConversations, availableSessions, friendsList] = await Promise.all([
       StudyGroupsService.getUserGroups(),
       ChatService.getConversations(),
@@ -68,7 +70,7 @@ export function useMessagingData() {
       }
     });
 
-    // Process existing group conversations
+    // Process existing group conversations - only include groups with at least one message sent
     const groupConvs: FormattedConversation[] = [];
     const processedGroupIds = new Set<string>();
 
@@ -76,6 +78,12 @@ export function useMessagingData() {
       const cData = conv.conversations || conv;
       if (cData.is_group_chat && cData.group_id) {
         processedGroupIds.add(cData.group_id);
+        
+        // Study Groups that do not have any messages in them should not appear
+        if (!cData.latest_message) {
+          continue;
+        }
+
         const matchingGroup = (userGroups || []).find((g: any) => g.id === cData.group_id);
         
         groupConvs.push({
@@ -85,34 +93,16 @@ export function useMessagingData() {
           name: cData.name || matchingGroup?.name || 'Study Group',
           avatarUrl: matchingGroup?.image_url || matchingGroup?.avatar_url || null,
           groupSubject: matchingGroup?.subject || null,
-          latestMessage: cData.latest_message ? {
+          latestMessage: {
             id: cData.latest_message.id,
             content: cData.latest_message.content,
             createdAt: cData.latest_message.created_at,
             senderId: cData.latest_message.sender_id,
             senderName: cData.latest_message.sender?.display_name || 'Member'
-          } : null,
+          },
           activeSession: activeMap[cData.group_id] || null,
           createdAt: cData.created_at || matchingGroup?.created_at || null,
           updatedAt: cData.updated_at || matchingGroup?.updated_at || null,
-        });
-      }
-    }
-
-    // Add missing study groups that don't have conversations created yet
-    for (const group of (userGroups || [])) {
-      if (!processedGroupIds.has(group.id)) {
-        groupConvs.push({
-          id: `temp_group_${group.id}`,
-          isGroupChat: true,
-          groupId: group.id,
-          name: group.name,
-          avatarUrl: group.image_url || group.avatar_url || null,
-          groupSubject: group.subject || null,
-          latestMessage: null,
-          activeSession: activeMap[group.id] || null,
-          createdAt: group.created_at || null,
-          updatedAt: group.updated_at || null,
         });
       }
     }
@@ -205,6 +195,7 @@ export function useMessagingData() {
       directConversations: sortConversationsByRecent(directConvs),
       activeSessionsMap: activeMap,
       userFriends: friendsList || [],
+      userGroups: userGroups || [],
     };
   };
 
@@ -261,6 +252,7 @@ export function useMessagingData() {
     directConversations: data?.directConversations || [],
     activeSessionsMap: data?.activeSessionsMap || {},
     userFriends: data?.userFriends || [],
+    userGroups: data?.userGroups || [],
     refetch,
     startDirectChatWithUser,
     getOrCreateGroupChat

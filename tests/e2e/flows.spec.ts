@@ -113,7 +113,7 @@ test.describe('StudySync E2E User Flows', () => {
     await expect(page.locator('h1', { hasText: 'Browse Study Groups' })).toBeVisible();
 
     // Perform a search query
-    const searchInput = page.getByPlaceholder('Search groups by name or description...');
+    const searchInput = page.getByPlaceholder(/Search groups by name/i);
     await expect(searchInput).toBeVisible();
     await searchInput.fill('Calculus');
 

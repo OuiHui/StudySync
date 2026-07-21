@@ -51,6 +51,16 @@ export const StudyMaterial = () => {
         subject: updates.subject.trim() || null,
         content: updates.content.trim(),
       });
+      setActiveNote((prev) =>
+        prev && prev.id === noteId
+          ? {
+              ...prev,
+              title: updates.title.trim(),
+              subject: updates.subject.trim() || null,
+              content: updates.content.trim(),
+            }
+          : prev
+      );
       toast({
         title: "Success",
         description: "Note updated successfully.",

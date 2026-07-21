@@ -49,6 +49,8 @@ export const Messages: React.FC = () => {
     groupConversations, 
     directConversations, 
     userFriends,
+    userGroups,
+    activeSessionsMap,
     startDirectChatWithUser,
     getOrCreateGroupChat
   } = useMessagingData();
@@ -64,6 +66,7 @@ export const Messages: React.FC = () => {
   
   // New conversation modal
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [newChatTab, setNewChatTab] = useState<'direct' | 'groups'>('direct');
   const [mobileShowChat, setMobileShowChat] = useState(false);
 
   const [searchParams] = useSearchParams();
@@ -247,6 +250,32 @@ export const Messages: React.FC = () => {
     }
   };
 
+  const handleStartGroupChat = async (group: any) => {
+    setIsNewChatOpen(false);
+    const convId = await getOrCreateGroupChat(group.id);
+    if (convId) {
+      setActiveCategory('groups');
+      const existing = groupConversations.find((c) => c.id === convId || c.groupId === group.id);
+      if (existing) {
+        handleSelectConversation(existing);
+      } else {
+        const newGroupConv: FormattedConversation = {
+          id: convId,
+          isGroupChat: true,
+          groupId: group.id,
+          name: group.name,
+          avatarUrl: group.image_url || group.avatar_url || null,
+          groupSubject: group.subject || null,
+          latestMessage: null,
+          activeSession: activeSessionsMap[group.id] || null,
+          createdAt: group.created_at || null,
+          updatedAt: group.updated_at || null,
+        };
+        handleSelectConversation(newGroupConv);
+      }
+    }
+  };
+
   // Filter conversations based on search query
   const filteredGroupConversations = groupConversations.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -395,7 +424,7 @@ export const Messages: React.FC = () => {
                 {searchQuery ? (
                   <p>No conversations matching &quot;{searchQuery}&quot;</p>
                 ) : activeCategory === 'groups' ? (
-                  <p>No study group chats found. Join a study group to start chatting!</p>
+                  <p>No study group chats found yet. Click &quot;New Chat&quot; or start a chat from your Study Groups page to say something!</p>
                 ) : (
                   <p>No direct messages yet. Click &quot;New Chat&quot; to message a friend.</p>
                 )}
@@ -665,48 +694,114 @@ export const Messages: React.FC = () => {
         </div>
       </Card>
 
-      {/* New Direct Chat Modal */}
+      {/* New Chat Modal */}
       <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-base">Start a New Direct Chat</DialogTitle>
+            <DialogTitle className="text-base">Start a New Chat</DialogTitle>
             <DialogDescription className="text-xs">
-              Select a friend to begin a private 1-on-1 conversation.
+              Select a friend or study group to begin a conversation.
             </DialogDescription>
           </DialogHeader>
 
-          <div
-            className={`max-h-60 space-y-1 py-2 ${
-              userFriends.length === 0 ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
-            }`}
-          >
-            {userFriends.length === 0 ? (
-              <div className="p-4 text-center text-xs text-gray-500">
-                You haven&apos;t added any friends yet. Go to Find Friends to connect!
-              </div>
-            ) : (
-              userFriends.map((friend) => (
-                <button
-                  key={friend.user_id}
-                  onClick={() => handleStartDirectChat(friend.user_id)}
-                  className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors text-left"
-                >
-                  <Avatar className="w-8 h-8 border">
-                    {friend.avatar_url && <AvatarImage src={friend.avatar_url} alt={friend.display_name} />}
-                    <AvatarFallback className="bg-blue-600 text-white font-bold text-xs">
-                      {friend.display_name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {friend.display_name}
-                    </h4>
-                    <p className="text-[10px] text-gray-500">{friend.email}</p>
-                  </div>
-                </button>
-              ))
-            )}
+          <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-semibold my-1">
+            <button
+              type="button"
+              onClick={() => setNewChatTab('direct')}
+              className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                newChatTab === 'direct'
+                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Direct Message</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewChatTab('groups')}
+              className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                newChatTab === 'groups'
+                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Study Group</span>
+            </button>
           </div>
+
+          {newChatTab === 'direct' ? (
+            <div
+              className={`max-h-60 space-y-1 py-2 ${
+                userFriends.length === 0 ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
+              }`}
+            >
+              {userFriends.length === 0 ? (
+                <div className="p-4 text-center text-xs text-gray-500">
+                  You haven&apos;t added any friends yet. Go to Find Friends to connect!
+                </div>
+              ) : (
+                userFriends.map((friend) => (
+                  <button
+                    key={friend.user_id}
+                    onClick={() => handleStartDirectChat(friend.user_id)}
+                    className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors text-left"
+                  >
+                    <Avatar className="w-8 h-8 border">
+                      {friend.avatar_url && <AvatarImage src={friend.avatar_url} alt={friend.display_name} />}
+                      <AvatarFallback className="bg-blue-600 text-white font-bold text-xs">
+                        {friend.display_name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {friend.display_name}
+                      </h4>
+                      <p className="text-[10px] text-gray-500">{friend.email}</p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : (
+            <div
+              className={`max-h-60 space-y-1 py-2 ${
+                userGroups.length === 0 ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
+              }`}
+            >
+              {userGroups.length === 0 ? (
+                <div className="p-4 text-center text-xs text-gray-500">
+                  You are not a member of any study groups yet.
+                </div>
+              ) : (
+                userGroups.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => handleStartGroupChat(group)}
+                    className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors text-left"
+                  >
+                    <Avatar className="w-8 h-8 border">
+                      {(group.image_url || group.avatar_url) && (
+                        <AvatarImage src={group.image_url || group.avatar_url} alt={group.name} />
+                      )}
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
+                        {group.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {group.name}
+                      </h4>
+                      {group.subject && (
+                        <p className="text-[10px] text-gray-500">{group.subject}</p>
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
