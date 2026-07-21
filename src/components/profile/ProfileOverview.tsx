@@ -1,4 +1,4 @@
-import { Mail, Calendar } from 'lucide-react';
+import { Mail, Calendar, GraduationCap } from 'lucide-react';
 import { UserProfile } from '@/hooks/useProfileData';
 
 interface ProfileOverviewProps {
@@ -31,6 +31,7 @@ export const ProfileOverview = ({ profile }: ProfileOverviewProps) => {
   };
 
   const gradient = getAvatarGradient(profile.display_name);
+  const academicDetails = [profile.major, profile.year].filter(Boolean).join(' • ');
 
   return (
     <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-6">
@@ -62,6 +63,12 @@ export const ProfileOverview = ({ profile }: ProfileOverviewProps) => {
               <Mail size={13} className="shrink-0" />
               {profile.email}
             </span>
+            {academicDetails && (
+              <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 font-medium">
+                <GraduationCap size={14} className="shrink-0 text-gray-400 dark:text-gray-500" />
+                {academicDetails}
+              </span>
+            )}
             {profile.created_at && (
               <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
                 <Calendar size={13} className="shrink-0" />

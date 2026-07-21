@@ -27,13 +27,19 @@ export const Profile = () => {
     try {
       await ProfileService.updateProfile({
         display_name: updatedProfile.name,
-        bio: updatedProfile.bio
+        major: updatedProfile.major,
+        year: updatedProfile.year,
+        bio: updatedProfile.bio,
+        avatar_url: updatedProfile.profilePicture
       });
       
       setUserProfile(prev => ({
         ...prev,
         display_name: updatedProfile.name,
-        bio: updatedProfile.bio
+        major: updatedProfile.major,
+        year: updatedProfile.year,
+        bio: updatedProfile.bio,
+        avatar_url: updatedProfile.profilePicture || prev.avatar_url
       }));
 
       toast({
@@ -100,8 +106,10 @@ export const Profile = () => {
         profile={{
           name: userProfile.display_name,
           email: userProfile.email,
-          year: '', 
-          bio: userProfile.bio
+          major: userProfile.major || '',
+          year: userProfile.year || '', 
+          bio: userProfile.bio,
+          profilePicture: userProfile.avatar_url || ''
         }}
         onSave={handleSaveProfile}
       />

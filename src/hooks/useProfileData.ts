@@ -10,6 +10,8 @@ export interface UserProfile {
   avatar_url: string;
   created_at: string;
   updated_at: string;
+  major?: string;
+  year?: string;
 }
 
 export interface UserStats {
@@ -44,7 +46,9 @@ export const getProfileQueryOptions = (user: any, authLoading: boolean) => ({
       bio: '',
       avatar_url: '',
       created_at: user.created_at || new Date().toISOString(),
-      updated_at: user.updated_at || new Date().toISOString()
+      updated_at: user.updated_at || new Date().toISOString(),
+      major: '',
+      year: ''
     };
 
     if (profileResult.status === 'fulfilled' && profileResult.value) {
@@ -56,7 +60,9 @@ export const getProfileQueryOptions = (user: any, authLoading: boolean) => ({
         bio: profile.bio || '',
         avatar_url: profile.avatar_url || '',
         created_at: profile.created_at,
-        updated_at: profile.updated_at
+        updated_at: profile.updated_at,
+        major: profile.major || '',
+        year: profile.year || ''
       };
     }
 
