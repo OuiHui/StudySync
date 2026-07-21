@@ -10,6 +10,7 @@ export const BRAND_PRIMARY_HOVER = '#2268bc';
 export const BRAND_BUTTON_CLASS = 'bg-brand hover:bg-brand-hover text-white';
 export const BRAND_TEXT_CLASS = 'text-brand';
 export const BRAND_BORDER_CLASS = 'border-brand';
+export const PAGE_TITLE_CLASS = 'text-3xl font-bold text-gray-800 dark:text-white';
 
 export const DEFAULT_THEME: Theme = {
   name: 'Default Blue',

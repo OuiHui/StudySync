@@ -8,6 +8,8 @@ import { PersonCard } from './PersonCard';
 import { PersonProfileDialog } from './PersonProfileDialog';
 import { Person, FriendStatus } from './types';
 import { getInitials } from './avatarUtils';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
+import { PageTabs } from '@/components/common/navigation/PageTabs';
 
 type FilterOption = 'all' | 'pending';
 
@@ -144,31 +146,29 @@ export const FindFriendsPage = () => {
     { id: 'pending', label: 'Pending Requests', count: stats.pending },
   ];
 
+  const tabs = [
+    { id: 'my-friends' as FriendsTab, label: 'My Friends', count: stats.friends },
+    { id: 'browse' as FriendsTab, label: 'Browse' },
+  ];
+
   const displayedPeople = activeTab === 'my-friends' ? myFriendsList : browsePeople;
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Friends</h1>
+        <h1 className={PAGE_TITLE_CLASS}>Friends</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Connect with fellow students and manage your study network
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
-        <TabButton
-          label={`My Friends (${stats.friends})`}
-          isActive={activeTab === 'my-friends'}
-          onClick={() => setActiveTab('my-friends')}
-        />
-        <TabButton
-          label="Browse"
-          isActive={activeTab === 'browse'}
-          onClick={() => setActiveTab('browse')}
-        />
-      </div>
+      {/* Shared Tabs below title */}
+      <PageTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId)}
+      />
 
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -279,18 +279,3 @@ export const FindFriendsPage = () => {
     </div>
   );
 };
-
-function TabButton({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-        isActive
-          ? 'border-brand text-brand dark:text-brand font-semibold'
-          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}

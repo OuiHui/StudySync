@@ -12,6 +12,7 @@ import { useProfileData } from '@/hooks/useProfileData';
 import { ProfileOverview } from './ProfileOverview';
 import { ProfileSettings } from './ProfileSettings';
 import { SessionHistoryList } from './SessionHistoryList';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 export const Profile = () => {
   const { toast } = useToast();
@@ -71,7 +72,7 @@ export const Profile = () => {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Profile</h1>
+        <h1 className={PAGE_TITLE_CLASS}>Profile</h1>
         <Button
           onClick={() => setEditOpen(true)}
           variant="outline"

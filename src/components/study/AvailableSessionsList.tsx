@@ -13,6 +13,7 @@ import { StudySessionsService } from '@/services/database';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { StudyCalendar } from '@/components/calendar/StudyCalendar';
 import { useToast } from '@/hooks/use-toast';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface StudySession {
   id: string;
@@ -217,7 +218,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Study Sessions</h1>
+          <h1 className={PAGE_TITLE_CLASS}>Study Sessions</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Join or create collaborative study sessions</p>
         </div>
         <CreateSessionDialog onSessionCreated={loadSessions} />

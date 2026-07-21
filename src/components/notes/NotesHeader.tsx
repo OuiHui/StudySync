@@ -2,6 +2,7 @@ import { Plus, Upload, Search, FilterX, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SortOption } from './useNotes';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface NotesHeaderProps {
   searchTerm: string;
@@ -28,7 +29,7 @@ export const NotesHeader = ({
     {/* Top Bar: Title & Primary Action Buttons */}
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Notes</h1>
+        <h1 className={PAGE_TITLE_CLASS}>Notes</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
           Create, organize, and share your study notes.
         </p>

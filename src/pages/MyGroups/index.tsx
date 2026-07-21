@@ -3,7 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { StudyGroups } from '@/components/groups/StudyGroups';
 import { StudyGroupsBrowse } from '@/components/groups/StudyGroupsBrowse';
 import { GroupPage } from '@/components/groups/GroupPage';
+import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
+import { PageTabs } from '@/components/common/navigation/PageTabs';
 import { useGroupEnrollment } from '@/contexts/GroupEnrollmentContext';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 type GroupsTab = 'my-groups' | 'browse';
 
@@ -37,20 +40,28 @@ export default function Groups() {
     );
   }
 
+  const tabs = [
+    { id: 'my-groups' as GroupsTab, label: 'My Groups' },
+    { id: 'browse' as GroupsTab, label: 'Browse Groups' },
+  ];
+
   return (
-    <div>
-      <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-6">
-        <TabButton
-          label="My Groups"
-          isActive={activeTab === 'my-groups'}
-          onClick={() => setActiveTab('my-groups')}
-        />
-        <TabButton
-          label="Browse Groups"
-          isActive={activeTab === 'browse'}
-          onClick={() => setActiveTab('browse')}
-        />
+    <div className="space-y-6 animate-fade-in">
+      {/* Title */}
+      <div>
+        <h1 className={PAGE_TITLE_CLASS}>Study Groups</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Collaborate, share resources, and study with peers
+        </p>
       </div>
+
+      {/* Shared Tabs below title with Create Group button on the same line */}
+      <PageTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => setActiveTab(tabId)}
+        action={<CreateGroupDialog onGroupCreated={() => window.location.reload()} />}
+      />
 
       {activeTab === 'my-groups' ? (
         <StudyGroups onSelectGroup={handleSelectGroup} />
@@ -61,20 +72,5 @@ export default function Groups() {
         />
       )}
     </div>
-  );
-}
-
-function TabButton({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-        isActive
-          ? 'border-brand text-brand dark:text-brand font-semibold'
-          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-      }`}
-    >
-      {label}
-    </button>
   );
 }

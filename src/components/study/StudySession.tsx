@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
 
-import { DEFAULT_THEME } from '@/constants/theme';
+import { DEFAULT_THEME, PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface StudySessionProps {
   onTimerUpdate?: (isActive: boolean, timeLeft: number, initialTime?: number, mode?: 'work' | 'break') => void;
@@ -181,7 +181,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
 
         {/* Inline Details Panel */}
         <div className="w-full max-w-xl text-center space-y-2 select-none shrink-0 bg-white/40 dark:bg-gray-900/40 p-4 rounded-xl border border-gray-200/10 backdrop-blur-sm shadow-sm">
-          <h1 className="text-xl font-extrabold text-gray-800 dark:text-white leading-tight">
+          <h1 className={PAGE_TITLE_CLASS}>
             Solo Study Session
           </h1>
           

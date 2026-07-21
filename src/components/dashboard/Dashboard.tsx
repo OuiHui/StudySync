@@ -8,6 +8,7 @@ import { QuickActions } from './QuickActions';
 import { RecentActivity } from './RecentActivity';
 import { StudyProgress } from './StudyProgress';
 import { NotificationsService } from '@/services/database';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface DashboardProps {
   onNavigate?: (tab: string) => void;
@@ -43,7 +44,7 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
+          <h1 className={PAGE_TITLE_CLASS}>Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">Welcome back! Here's your study overview.</p>
         </div>
         <Button

@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePublicGroups } from '@/hooks/usePublicGroups';
 import { useUserGroups } from '@/hooks/useUserGroups';
 import { GroupCard } from './GroupCard';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
@@ -54,20 +55,6 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Browse Study Groups</h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center gap-x-2">
-          <span>Find and join study groups by subject or course</span>
-          {!loading && (
-            <>
-              <span className="text-gray-300 dark:text-gray-700 hidden sm:inline">|</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredGroups.length}</span> available
-              </span>
-            </>
-          )}
-        </p>
-      </div>
 
       {error && (
         <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">

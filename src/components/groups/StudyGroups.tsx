@@ -8,6 +8,7 @@ import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserGroups } from '@/hooks/useUserGroups';
 import { GroupsGrid } from '@/components/groups/GroupsGrid';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 interface StudyGroupsProps {
   onSelectGroup?: (groupId: string) => void;
@@ -68,21 +69,6 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">My Groups</h1>
-          {!loading && (
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">
-              {studyGroups.length === 0
-                ? 'No groups yet — create or join one to get started'
-                : `${studyGroups.length} group${studyGroups.length !== 1 ? 's' : ''} you're part of`}
-            </p>
-          )}
-        </div>
-        <CreateGroupDialog onGroupCreated={() => window.location.reload()} />
-      </div>
-
       {/* Search */}
       <div className="relative">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 pointer-events-none" />

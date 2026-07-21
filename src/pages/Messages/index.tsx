@@ -38,6 +38,7 @@ import { RealtimeService, RealtimeMessage } from '@/services/realtime';
 import { useMessagingData, FormattedConversation } from '@/hooks/useMessagingData';
 import { ActiveSessionBanner } from '@/components/messages/ActiveSessionBanner';
 import { MOCK_USERS } from '@/services/simulation';
+import { PAGE_TITLE_CLASS } from '@/constants/theme';
 
 export const Messages: React.FC = () => {
   const { user } = useAuth();
@@ -331,10 +332,7 @@ export const Messages: React.FC = () => {
       {/* Header Bar */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-blue-500" />
-            Messages
-          </h1>
+          <h1 className={PAGE_TITLE_CLASS}>Messages</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             Connect with your study groups and friends in real time
           </p>
