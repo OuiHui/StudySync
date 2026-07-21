@@ -70,7 +70,7 @@ export const Messages: React.FC = () => {
   const [newChatTab, setNewChatTab] = useState<'direct' | 'groups'>('direct');
   const [mobileShowChat, setMobileShowChat] = useState(false);
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const targetUserIdParam = searchParams.get('userId');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -113,6 +113,9 @@ export const Messages: React.FC = () => {
       !selectedConversation.isGroupChat &&
       selectedConversation.targetUserId === targetUserIdParam
     ) {
+      if (searchParams.has('userId')) {
+        setSearchParams({}, { replace: true });
+      }
       return;
     }
 
@@ -138,6 +141,9 @@ export const Messages: React.FC = () => {
           if (newlyLoaded) {
             handleSelectConversation(newlyLoaded);
           }
+          if (searchParams.has('userId')) {
+            setSearchParams({}, { replace: true });
+          }
         }
       }
     };
@@ -147,7 +153,7 @@ export const Messages: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [targetUserIdParam, dataLoading, user, directConversations, selectedConversation]);
+  }, [targetUserIdParam, dataLoading, user, directConversations, selectedConversation, setSearchParams, searchParams]);
 
   // Clean up realtime subscriptions on unmount or conversation switch
   useEffect(() => {
@@ -205,6 +211,10 @@ export const Messages: React.FC = () => {
   };
 
   const handleSelectConversation = (conv: FormattedConversation) => {
+    if (searchParams.has('userId')) {
+      setSearchParams({}, { replace: true });
+    }
+
     if (activeConvRef.current && activeConvRef.current !== conv.id) {
       RealtimeService.unsubscribe(`messages:${activeConvRef.current}`);
     }
