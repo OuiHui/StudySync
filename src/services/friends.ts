@@ -212,7 +212,7 @@ export class FriendsService {
         .from('friendships' as any)
         .select('*')
         .or(`and(user_id.eq.${session.user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${session.user.id})`)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         throw new Error('Friend request already exists or you are already friends');
@@ -226,7 +226,7 @@ export class FriendsService {
           status: 'pending'
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error sending friend request:', error);
@@ -257,7 +257,7 @@ export class FriendsService {
         .eq('id', requestId)
         .eq('friend_id', session.user.id) // Only the receiver can accept
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error accepting friend request:', error);
@@ -357,7 +357,7 @@ export class FriendsService {
         .from('profiles')
         .select('*')
         .eq('user_id', targetUserId)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         console.error('Error fetching profile:', profileError);

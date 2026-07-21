@@ -57,6 +57,7 @@ To manage queries and calculate relationships, friendships are queried via Datab
 ### A. Service Layer (`src/services/friends.ts`)
 - **`FriendsService.getUserFriends()`**: Fetches the authenticated user's accepted friends.
 - **`FriendsService.getMutualFriends(targetUserId)`**: Invokes the `get_mutual_friends` database RPC.
+- **`FriendsService.sendFriendRequest(friendId)`**: Checks for existing friendship status using `.maybeSingle()` to prevent PostgREST 406 (Not Acceptable) errors when no relationship exists, then inserts a new pending request.
 - **`FriendsService.getUserProfile(targetUserId, currentUserId)`**: Fetches profile data, friends/groups counts, friendship status, and calculates the mutual friends count.
 
 ### B. Component Layer

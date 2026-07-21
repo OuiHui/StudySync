@@ -84,9 +84,18 @@ describe('FriendsService', () => {
             }
             return Promise.resolve({ data: null, error: null });
           }),
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: null,
-            error: null,
+          maybeSingle: vi.fn().mockImplementation(() => {
+            if (table === 'profiles') {
+              return Promise.resolve({
+                data: {
+                  user_id: 'target-user-456',
+                  display_name: 'Target User',
+                  email: 'target@example.com',
+                },
+                error: null,
+              });
+            }
+            return Promise.resolve({ data: null, error: null });
           }),
         };
 
