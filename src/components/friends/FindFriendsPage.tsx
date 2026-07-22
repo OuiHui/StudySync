@@ -10,6 +10,7 @@ import { Person, FriendStatus } from './types';
 import { getInitials } from './avatarUtils';
 import { PAGE_TITLE_CLASS } from '@/constants/theme';
 import { PageTabs } from '@/components/common/navigation/PageTabs';
+import { useTabQueryState } from '@/hooks/useTabQueryState';
 
 type FilterOption = 'all' | 'pending';
 
@@ -46,7 +47,7 @@ type FriendsTab = 'my-friends' | 'browse';
 export const FindFriendsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<FriendsTab>('my-friends');
+  const [activeTab, setActiveTab] = useTabQueryState<FriendsTab>('my-friends', ['my-friends', 'browse']);
   const [searchQuery, setSearchQuery] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);

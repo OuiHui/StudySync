@@ -63,6 +63,7 @@ To manage queries and calculate relationships, friendships are queried via Datab
 ### B. Component Layer
 - **`FriendsPage` (`src/components/friends/FindFriendsPage.tsx`)**:
   - Main Friends view accessible via the `/friends` route.
+  - Synchronizes active tab state (`my-friends` vs `browse`) with URL query parameters (`?tab=...`) via `useTabQueryState`, ensuring active tab persists across browser refreshes.
   - Implements a two-tab format:
     - **`My Friends`**: Displays current friends and pending requests formatted as `PersonCard` cards with search capability.
     - **`Browse`**: Displays search bar, category filters (All People, Friends, Pending), and `PersonCard` grid for discovering and connecting with new students.

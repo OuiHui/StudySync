@@ -67,6 +67,10 @@ All Study Groups, regardless of their public or private status, are visible and 
    - The **Browse Study Groups** page includes dynamic search across group names, descriptions, and courses/subjects.
    - The subject dropdown dynamically aggregates all unique courses (`study_groups.subject`) from available public groups along with standard subject options, allowing users to toggle and filter groups by specific course (e.g., `"CS 1331"`, `"MATH 1552"`, `"Physics"`).
 
+4. **Tab Query Parameter Persistence**:
+   - The Study Groups page synchronizes active tab selection (`My Groups` vs `Browse Groups`) with URL query parameters (`?tab=...`) via `useTabQueryState`.
+   - Refreshing the page while on `Browse Groups` (`/groups?tab=browse`) preserves the active tab, and exiting group details restores the previous tab.
+
 ---
 
 ## 3. Roles and Permissions Matrix
