@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { StudyGroups } from '@/components/groups/StudyGroups';
 import { StudyGroupsBrowse } from '@/components/groups/StudyGroupsBrowse';
 import { GroupPage } from '@/components/groups/GroupPage';
@@ -12,7 +13,13 @@ import { useTabQueryState } from '@/hooks/useTabQueryState';
 type GroupsTab = 'my-groups' | 'browse';
 
 export default function Groups() {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleGroupCreated = () => {
+    queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+    queryClient.invalidateQueries({ queryKey: ['public-groups'] });
+  };
   const selectedGroupId = searchParams.get('groupId');
   const [activeTab, setActiveTab] = useTabQueryState<GroupsTab>('my-groups', ['my-groups', 'browse']);
   const { groupEnrollments, handleUpdateEnrollment } = useGroupEnrollment();
@@ -65,7 +72,7 @@ export default function Groups() {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={(tabId) => setActiveTab(tabId)}
-        action={<CreateGroupDialog onGroupCreated={() => window.location.reload()} />}
+        action={<CreateGroupDialog onGroupCreated={handleGroupCreated} />}
       />
 
       {activeTab === 'my-groups' ? (

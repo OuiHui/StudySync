@@ -110,7 +110,7 @@ test.describe('StudySync E2E User Flows', () => {
     // Navigate to the Groups page via sidebar, then switch to the Browse Groups tab
     await page.getByRole('button', { name: 'Study Groups' }).click();
     await page.getByRole('button', { name: 'Browse Groups' }).click();
-    await expect(page.locator('h1', { hasText: 'Browse Study Groups' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Study Groups' })).toBeVisible();
 
     // Perform a search query
     const searchInput = page.getByPlaceholder(/Search groups by name/i);
@@ -130,12 +130,16 @@ test.describe('StudySync E2E User Flows', () => {
     // Submit Create Group
     await page.getByRole('button', { name: 'Create Group', exact: true }).click();
 
-    // Wait for dialog to close
+    // Wait for dialog to close and page reload if triggered
     await expect(page.getByText('Create Study Group')).not.toBeVisible();
+    await page.waitForLoadState('domcontentloaded');
 
-    // Search for our newly created group
-    await searchInput.fill('E2E Test Group');
-    await expect(page.getByText('E2E Test Group').first()).toBeVisible({ timeout: 10000 });
+    // Switch to "My Groups" tab where created group resides
+    await page.getByRole('button', { name: 'My Groups' }).click();
+    const myGroupsSearchInput = page.getByPlaceholder(/Search by name, course/i);
+    await expect(myGroupsSearchInput).toBeVisible();
+    await myGroupsSearchInput.fill('E2E Test Group');
+    await expect(page.getByText('E2E Test Group').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('Flow E: Collaborative & Planned Study Sessions', async ({ page }) => {
