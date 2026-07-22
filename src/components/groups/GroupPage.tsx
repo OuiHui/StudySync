@@ -12,6 +12,7 @@ import { useGroupData } from '@/hooks/useGroupData';
 import { GroupPageHeader } from './GroupPageHeader';
 import { GroupSessionsTab } from './GroupSessionsTab';
 import { GroupMembersTab } from './GroupMembersTab';
+import { TransferAdminModal } from './settings/TransferAdminModal';
 
 interface GroupPageProps {
   groupId: string;
@@ -34,6 +35,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
 
   const [enrolledOverride, setEnrolledOverride] = useState<boolean | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [transferAdminOpen, setTransferAdminOpen] = useState(false);
   const [invitations, setInvitations] = useState<any[]>([]);
   const [loadingInvites, setLoadingInvites] = useState(true);
 
@@ -68,15 +70,31 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
       .map(s => s.id);
   }, [sessions, user]);
 
-  const handleLeaveGroup = async () => {
+  const executeLeaveGroup = async (newAdminId?: string) => {
     try {
-      await StudyGroupsService.leaveGroup(groupId);
+      const result: any = await StudyGroupsService.leaveGroup(groupId, newAdminId);
       setEnrolledOverride(false);
       onUpdateEnrollment?.(groupId, false);
+      setTransferAdminOpen(false);
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+      if (result?.deletedGroup) {
+        onBack();
+      }
     } catch (err) {
       console.error('Error leaving group:', err);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    const userMember = members.find((m: any) => m.id === user?.id);
+    const isAdmin = group?.created_by === user?.id || userMember?.role === 'admin';
+    const otherMembers = members.filter((m: any) => m.id !== user?.id);
+
+    if (isAdmin && otherMembers.length > 0) {
+      setTransferAdminOpen(true);
+    } else {
+      await executeLeaveGroup();
     }
   };
 
@@ -248,6 +266,15 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
           queryClient.invalidateQueries({ queryKey: ['user-groups'] });
         }}
         onGroupDeleted={onBack}
+      />
+
+      <TransferAdminModal
+        show={transferAdminOpen}
+        onClose={() => setTransferAdminOpen(false)}
+        groupName={group?.name || 'Group'}
+        members={members}
+        currentUserId={user?.id}
+        onConfirmLeave={executeLeaveGroup}
       />
     </div>
   );

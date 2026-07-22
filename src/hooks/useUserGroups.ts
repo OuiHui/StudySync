@@ -109,9 +109,9 @@ export function useUserGroups() {
     }
   };
 
-  const handleLeaveGroup = async (groupId: string) => {
+  const handleLeaveGroup = async (groupId: string, newAdminUserId?: string) => {
     try {
-      await StudyGroupsService.leaveGroup(groupId);
+      await StudyGroupsService.leaveGroup(groupId, newAdminUserId);
       await queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     } catch (err) {
       console.error('Error leaving group:', err);

@@ -84,10 +84,14 @@ Permissions are structured hierarchically:
 | **Remove Members** | Yes | Yes | No | No |
 | **Promote to Admin** | Yes | No | No | No |
 
+### Single Admin Policy & Admin Succession
+- **Single Admin Rule**: Each study group has exactly one admin (`role = 'admin'`).
+- **Explicit Admin Transfer**: When an admin attempts to leave a group that has other members, the UI prompts the admin with a `TransferAdminModal` to explicitly select a replacement admin from the remaining members.
+- **Zero-Member Auto-Deletion**: No group can exist without any members. If the sole remaining member (or admin) leaves or is removed, the study group and its associated data are automatically deleted from `study_groups`.
+
 ### Member Removal Hierarchy (New Feature)
 To prevent admin abuse and maintain authority, member removal follows a strict validation hierarchy:
-- **Creators** can remove *anyone* in the group (admins and regular members) except themselves.
-- **Admins** can remove regular *members* but cannot remove the creator or other admins.
+- **Creators / Admins** can remove regular members from the group.
 - **Members** cannot remove anyone (they can only choose to leave the group themselves).
 
 ---

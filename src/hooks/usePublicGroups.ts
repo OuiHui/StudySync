@@ -108,9 +108,9 @@ export function usePublicGroups(
     }
   };
 
-  const handleLeaveGroup = async (groupId: string) => {
+  const handleLeaveGroup = async (groupId: string, newAdminUserId?: string) => {
     try {
-      await StudyGroupsService.leaveGroup(groupId);
+      await StudyGroupsService.leaveGroup(groupId, newAdminUserId);
       queryClient.setQueryData<any[]>(['public-groups'], (old) => {
         if (!old) return old;
         return old.map(group =>

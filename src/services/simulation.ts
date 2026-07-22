@@ -286,6 +286,39 @@ export class SimulatedUserBot {
 
     this.manager.log(`Bot ${this.user.name} is leaving group ID ${groupId}...`);
 
+    // Fetch current members to check admin status and remaining count
+    const { data: members } = await this.client
+      .from('group_members')
+      .select('user_id, role')
+      .eq('group_id', groupId);
+
+    const { data: group } = await this.client
+      .from('study_groups')
+      .select('created_by')
+      .eq('id', groupId)
+      .maybeSingle();
+
+    const leavingMember = members?.find(m => m.user_id === this.user.id);
+    const isAdmin = leavingMember?.role === 'admin' || group?.created_by === this.user.id;
+    const otherMembers = (members || []).filter(m => m.user_id !== this.user.id);
+
+    if (otherMembers.length === 0) {
+      this.manager.log(`Bot ${this.user.name} was the last member. Deleting group ${groupId}...`);
+      await this.client.from('group_members').delete().eq('group_id', groupId).eq('user_id', this.user.id);
+      await this.client.from('study_groups').delete().eq('id', groupId);
+      this.manager.log(`✅ Group ${groupId} deleted because it has no members left.`);
+      return;
+    }
+
+    if (isAdmin && otherMembers.length > 0) {
+      const successor = otherMembers[0];
+      const successorName = MOCK_USERS.find(u => u.id === successor.user_id)?.name || successor.user_id;
+      this.manager.log(`Admin ${this.user.name} is leaving. Transferring admin role to ${successorName}...`);
+      
+      await this.client.from('group_members').update({ role: 'admin' }).eq('group_id', groupId).eq('user_id', successor.user_id);
+      await this.client.from('study_groups').update({ created_by: successor.user_id }).eq('id', groupId);
+    }
+
     const { error } = await this.client
       .from('group_members')
       .delete()
@@ -317,6 +350,20 @@ export class SimulatedUserBot {
     if (error) {
       this.manager.log(`❌ Error kicking member: ${error.message}`);
       throw error;
+    }
+
+    const { data: remaining } = await this.client
+      .from('group_members')
+      .select('user_id, role')
+      .eq('group_id', groupId);
+
+    if (!remaining || remaining.length === 0) {
+      await this.client.from('study_groups').delete().eq('id', groupId);
+      this.manager.log(`✅ Group ${groupId} deleted because it has no members remaining.`);
+    } else if (!remaining.some(m => m.role === 'admin')) {
+      const newAdminId = remaining[0].user_id;
+      await this.client.from('group_members').update({ role: 'admin' }).eq('group_id', groupId).eq('user_id', newAdminId);
+      await this.client.from('study_groups').update({ created_by: newAdminId }).eq('id', groupId);
     }
 
     this.manager.log(`✅ Bot ${this.user.name} kicked ${targetName} from the group.`);

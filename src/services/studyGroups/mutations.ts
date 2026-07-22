@@ -82,21 +82,77 @@ export class StudyGroupsMutations {
     }
   }
 
-  static async leaveGroup(groupId: string) {
+  static async leaveGroup(groupId: string, newAdminUserId?: string) {
     try {
       const session = await checkAuth();
       if (!session) {
         throw new Error('Authentication required to leave groups');
       }
 
+      const userId = session.user.id;
+
+      // 1. Fetch current group members & group info
+      const { data: members, error: fetchError } = await supabase
+        .from('group_members')
+        .select('user_id, role')
+        .eq('group_id', groupId);
+
+      if (fetchError) {
+        handleDbError(fetchError, 'fetch group members');
+      }
+
+      const { data: group } = await supabase
+        .from('study_groups')
+        .select('created_by')
+        .eq('id', groupId)
+        .maybeSingle();
+
+      const leavingMember = members?.find(m => m.user_id === userId);
+      const isAdmin = leavingMember?.role === 'admin' || group?.created_by === userId;
+      const otherMembers = (members || []).filter(m => m.user_id !== userId);
+
+      // 2. If no other members remain, delete the entire group
+      if (otherMembers.length === 0) {
+        await supabase
+          .from('group_members')
+          .delete()
+          .eq('group_id', groupId)
+          .eq('user_id', userId);
+
+        await supabase
+          .from('study_groups')
+          .delete()
+          .eq('id', groupId);
+
+        return { deletedGroup: true };
+      }
+
+      // 3. If admin is leaving and other members remain, transfer admin role
+      if (isAdmin && otherMembers.length > 0) {
+        const successorId = newAdminUserId || otherMembers[0].user_id;
+
+        // Promote successor to admin
+        await supabase
+          .from('group_members')
+          .update({ role: 'admin' })
+          .eq('group_id', groupId)
+          .eq('user_id', successorId);
+
+        // Update group created_by reference if applicable
+        await supabase
+          .from('study_groups')
+          .update({ created_by: successorId })
+          .eq('id', groupId);
+      }
+
+      // 4. Remove leaving user from group
       const { error } = await supabase
         .from('group_members')
         .delete()
         .eq('group_id', groupId)
-        .eq('user_id', session.user.id);
+        .eq('user_id', userId);
 
       if (error) {
-        // Handle RLS recursion specifically for leave operations
         if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
           console.error('RLS recursion detected when leaving group:', error);
           throw new Error('Unable to leave group due to database configuration. Please try again later.');
@@ -105,7 +161,7 @@ export class StudyGroupsMutations {
         }
       }
 
-      return true;
+      return { deletedGroup: false };
     } catch (error) {
       console.error('Error leaving group:', error);
       throw error;
@@ -127,6 +183,33 @@ export class StudyGroupsMutations {
 
       if (error) {
         handleDbError(error, 'remove member');
+      }
+
+      // Check remaining members
+      const { data: remaining } = await supabase
+        .from('group_members')
+        .select('user_id, role')
+        .eq('group_id', groupId);
+
+      if (!remaining || remaining.length === 0) {
+        // Delete empty group
+        await supabase
+          .from('study_groups')
+          .delete()
+          .eq('id', groupId);
+      } else if (!remaining.some(m => m.role === 'admin')) {
+        // Promote first remaining member to admin if no admin left
+        const newAdminId = remaining[0].user_id;
+        await supabase
+          .from('group_members')
+          .update({ role: 'admin' })
+          .eq('group_id', groupId)
+          .eq('user_id', newAdminId);
+
+        await supabase
+          .from('study_groups')
+          .update({ created_by: newAdminId })
+          .eq('id', groupId);
       }
 
       return true;

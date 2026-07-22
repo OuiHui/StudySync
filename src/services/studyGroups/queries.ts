@@ -21,7 +21,7 @@ export class StudyGroupsQueries {
       }
 
       try {
-        // Fetch groups the user is a member of
+        // Fetch groups the user is an active member of
         const { data: memberships, error: membershipsError } = await supabase
           .from('group_members')
           .select('group_id, role, joined_at')
@@ -118,6 +118,7 @@ export class StudyGroupsQueries {
         const filteredGroups = groupsWithDetails
           .filter(Boolean)
           .filter(group => {
+            if (group.member_count <= 0) return false;
             if (!isAutomation && group?.name === 'E2E Test Group') {
               return false;
             }
@@ -204,7 +205,8 @@ export class StudyGroupsQueries {
             member_count: memberCount,
             sessions_count: sessionsCount
           };
-        });
+        })
+        .filter(group => group.member_count > 0);
 
       return groupsWithCreators;
     } catch (error) {

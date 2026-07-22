@@ -14,7 +14,8 @@ import {
   BarChart3,
   UserPlus,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Terminal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from './UserMenu';
@@ -110,10 +111,23 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
         </ul>
       </nav>
 
-      {/* Footer - User Menu */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${isOpen ? 'mx-4 p-3 w-[calc(100%-2rem)]' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
-          }`}>
+      {/* Footer - User Menu & Simulation Console */}
+      <div className={`absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2 ${isOpen ? 'px-4' : 'px-0'}`}>
+        {import.meta.env.DEV && (
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('toggle-sim-console'))}
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-all text-xs font-semibold ${
+              isOpen ? 'w-full' : 'w-10 h-10 p-0 rounded-full mx-auto'
+            }`}
+            title="Open Simulation Console"
+          >
+            <Terminal size={18} />
+            {isOpen && <span>Sim Console</span>}
+          </button>
+        )}
+        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${
+          isOpen ? 'p-3 w-full' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
+        }`}>
           <div className={`flex items-center w-full ${isOpen ? 'justify-between' : 'justify-center'}`}>
             {isOpen && (
               <span className="text-sm text-gray-600 dark:text-gray-300">Account</span>

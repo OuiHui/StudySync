@@ -78,9 +78,11 @@ export function SimulationConsole() {
     if (!selectedBotId) return;
     try {
       setStatusLoading(true);
+      const bot = await simulationManager.bot(selectedBotId);
+      const client = bot.client;
       
       // 1. Friends
-      const { data: friendships } = await mainSupabase
+      const { data: friendships } = await client
         .from('friendships' as any)
         .select('user_id, friend_id')
         .or(`user_id.eq.${selectedBotId},friend_id.eq.${selectedBotId}`)
@@ -92,7 +94,7 @@ export function SimulationConsole() {
       
       let friendsList: any[] = [];
       if (friendIds.length > 0) {
-        const { data: profiles } = await mainSupabase
+        const { data: profiles } = await client
           .from('profiles')
           .select('user_id, display_name, email')
           .in('user_id', friendIds);
@@ -101,7 +103,7 @@ export function SimulationConsole() {
       setBotFriends(friendsList.map(p => p.display_name || p.email.split('@')[0]));
 
       // 2. Groups
-      const { data: memberships } = await mainSupabase
+      const { data: memberships } = await client
         .from('group_members' as any)
         .select('group_id, study_groups(id, name)')
         .eq('user_id', selectedBotId);
@@ -109,7 +111,7 @@ export function SimulationConsole() {
       setBotGroups((memberships || []).map((m: any) => m.study_groups).filter(Boolean));
 
       // 3. Sessions
-      const { data: participations } = await mainSupabase
+      const { data: participations } = await client
         .from('session_participants' as any)
         .select('session_id, study_sessions(id, title), status')
         .eq('user_id', selectedBotId);
@@ -121,7 +123,7 @@ export function SimulationConsole() {
       })).filter(s => s.id));
 
       // 4. Friend requests received
-      const { data: requests } = await mainSupabase
+      const { data: requests } = await client
         .from('friendships' as any)
         .select('user_id')
         .eq('friend_id', selectedBotId)
@@ -130,7 +132,7 @@ export function SimulationConsole() {
       setBotPendingRequests((requests || []).map((r: any) => r.user_id));
 
       // 5. Group invitations received
-      const { data: grpInvites } = await mainSupabase
+      const { data: grpInvites } = await client
         .from('group_invitations' as any)
         .select('group_id, study_groups(name), is_request, invited_by_id')
         .eq('invited_user_id', selectedBotId)
@@ -148,7 +150,7 @@ export function SimulationConsole() {
       }).filter(gi => gi.groupId));
 
       // 6. Session invitations received
-      const { data: sesInvites } = await mainSupabase
+      const { data: sesInvites } = await client
         .from('session_participants' as any)
         .select('session_id, study_sessions(title)')
         .eq('user_id', selectedBotId)
@@ -171,6 +173,14 @@ export function SimulationConsole() {
       loadBotStatus();
     }
   }, [isOpen, selectedBotId]);
+
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-sim-console', handleToggle);
+    return () => window.removeEventListener('toggle-sim-console', handleToggle);
+  }, []);
   
   // Group creation state
   const [groupName, setGroupName] = useState('');
@@ -208,20 +218,7 @@ export function SimulationConsole() {
   }, [logs, activeTab]);
 
   if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 shadow-xl hover:scale-105 transition duration-300 flex items-center justify-center group"
-        title="Open Simulation Console"
-      >
-        <Terminal size={24} className="group-hover:rotate-12 transition duration-300" />
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-500 ease-out text-sm font-semibold whitespace-nowrap">
-          Simulation Console
-        </span>
-        {/* Subtle pulsing badge to show it is active in dev mode */}
-        <span className="absolute top-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-slate-900 animate-pulse"></span>
-      </button>
-    );
+    return null;
   }
 
   const handleLogin = async (bot: SeededUser) => {
