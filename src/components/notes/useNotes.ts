@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { NotesService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTabQueryState } from '@/hooks/useTabQueryState';
 
-export type NoteTab = 'all' | 'mine' | 'shared' | 'public' | 'group';
+export type NoteTab = 'my-notes' | 'group-notes';
 export type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
 
 export interface ColumnFilters {
@@ -31,7 +32,7 @@ export const useNotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedOwnership, setSelectedOwnership] = useState('all');
-  const [activeTab, setActiveTab] = useState<NoteTab>('all');
+  const [activeTab, setActiveTab] = useTabQueryState<NoteTab>('my-notes', ['my-notes', 'group-notes']);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>(initialColumnFilters);
 
@@ -164,6 +165,8 @@ export const useNotes = () => {
 
   const tabCounts = useMemo(() => {
     return {
+      'my-notes': displayNotes.filter(n => n.isMine).length,
+      'group-notes': displayNotes.filter(n => n.linkedGroup && n.linkedGroup !== '—').length,
       all: displayNotes.length,
       mine: displayNotes.filter(n => n.isMine).length,
       shared: displayNotes.filter(n => !n.isMine).length,
@@ -176,20 +179,18 @@ export const useNotes = () => {
     return (
       searchTerm.trim() !== '' ||
       selectedSubject !== 'all' ||
-      activeTab !== 'all' ||
       columnFilters.name.trim() !== '' ||
       columnFilters.subject !== 'all' ||
       columnFilters.creator !== 'all' ||
       columnFilters.group !== 'all' ||
       columnFilters.visibility !== 'all'
     );
-  }, [searchTerm, selectedSubject, activeTab, columnFilters]);
+  }, [searchTerm, selectedSubject, columnFilters]);
 
   const clearAllFilters = () => {
     setSearchTerm('');
     setSelectedSubject('all');
     setSelectedOwnership('all');
-    setActiveTab('all');
     setColumnFilters(initialColumnFilters);
     setCurrentPage(1);
   };
@@ -207,10 +208,8 @@ export const useNotes = () => {
       const matchesSubjectSelect = selectedSubject === 'all' || note.subject === selectedSubject;
 
       let matchesTab = true;
-      if (activeTab === 'mine') matchesTab = note.isMine;
-      else if (activeTab === 'shared') matchesTab = !note.isMine;
-      else if (activeTab === 'public') matchesTab = note.effectiveVisibility === 'public';
-      else if (activeTab === 'group') matchesTab = note.linkedGroup !== '—';
+      if (activeTab === 'my-notes' || (activeTab as string) === 'mine') matchesTab = note.isMine;
+      else if (activeTab === 'group-notes' || (activeTab as string) === 'group') matchesTab = note.linkedGroup !== '—';
 
       const matchesColName = !columnFilters.name || note.title.toLowerCase().includes(columnFilters.name.toLowerCase());
       const matchesColSubject = columnFilters.subject === 'all' || note.subject === columnFilters.subject;

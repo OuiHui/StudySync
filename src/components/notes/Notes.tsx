@@ -2,7 +2,6 @@ import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNotes } from './useNotes';
 import { NotesHeader } from './NotesHeader';
-import { NotesFilterTabs } from './NotesFilterTabs';
 import { NotesTable } from './NotesTable';
 import { NotesPagination } from './NotesPagination';
 import { NoteDialogs } from './NoteDialogs';
@@ -12,9 +11,6 @@ export const Notes = () => {
   const {
     error,
     loading,
-    activeTab,
-    setActiveTab,
-    tabCounts,
     paginatedNotes,
     subjects,
     columnFilters,
@@ -35,15 +31,8 @@ export const Notes = () => {
 
   return (
     <div className="space-y-6 animate-fade-in w-full max-w-full overflow-x-hidden">
-      {/* Header with Title, Create/Upload buttons, Search, Clear Filters, and Sorting */}
+      {/* Header with Title, Create/Upload buttons, Shared PageTabs, Search, Clear Filters, and Sorting */}
       <NotesHeader {...notesState} />
-
-      {/* Category Pill Tabs with Item Counts */}
-      <NotesFilterTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        counts={tabCounts}
-      />
 
       {/* Error Alert */}
       {error && (

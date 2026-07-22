@@ -24,14 +24,13 @@ src/components/notes/
 
 ## Column Filtering & Control Systems
 
-### 1. Category Pill Tabs
-- **`All Notes`**: Displays all notes accessible to the user (owned + shared + public).
-- **`My Notes`**: Notes created by the current user (`created_by === userId`).
-- **`Shared with Me`**: Notes shared with the user by others (`created_by !== userId`).
-- **`Public Notes`**: Notes marked with `permission_level === 'public'`.
-- **`Group Notes`**: Notes attached to or shared with study groups.
+### 1. Shared Page Tabs & Query Parameter Persistence
+The Notes page incorporates the shared `PageTabs` component directly below the page title with URL query parameter persistence (`?tab=...`) via `useTabQueryState`:
+- **`My Notes`** (`tab=my-notes`): Notes created by the current user (`created_by === userId`). Default tab.
+- **`Group Notes`** (`tab=group-notes`): Notes attached to or shared with study groups (`linkedGroup !== '—'`).
 
-Each tab displays a live pill count badge representing the total matching items for that category.
+Each tab displays a live count badge representing matching notes. Reloading the page maintains the active tab selection.
+
 
 ### 2. Per-Column Filter Popovers
 Each table column header contains a column filter button that opens a filter popover:
