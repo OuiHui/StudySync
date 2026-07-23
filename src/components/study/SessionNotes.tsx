@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Save, FileText } from 'lucide-react';
+import { BookOpen, Loader2, ChevronDown, ChevronUp, Plus, Save, FileText, Upload } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ImportNoteDialog } from './ImportNoteDialog';
+import { UploadMaterialPopup } from '@/components/notes/UploadMaterialPopup';
 import { SharedNoteModal } from '@/components/notes/SharedNoteModal';
 import { NotesService } from '@/services/database';
 
@@ -48,6 +49,7 @@ export const SessionNotes = ({
   const [isCreating, setIsCreating] = useState(false);
   const [activeNote, setActiveNote] = useState<NoteItem | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   // New Note fields
   const [newTitle, setNewTitle] = useState('');
@@ -147,6 +149,15 @@ export const SessionNotes = ({
         </CardTitle>
         {!isCreating && (
           <div className="flex items-center space-x-1.5 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setUploadOpen(true)}
+              className="h-7 text-xs flex items-center space-x-1"
+            >
+              <Upload size={13} />
+              <span>Upload</span>
+            </Button>
             <Button
               size="sm"
               variant="outline"
@@ -305,6 +316,13 @@ export const SessionNotes = ({
         onImport={handleImportSelect}
         groupId={groupId}
         excludeNoteTitles={excludeNoteTitles}
+      />
+
+      <UploadMaterialPopup
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploadSuccess={() => onNotesChange?.()}
+        groupId={groupId}
       />
 
       <SharedNoteModal

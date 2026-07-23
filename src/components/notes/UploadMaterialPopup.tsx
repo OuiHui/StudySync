@@ -13,30 +13,31 @@ interface UploadMaterialPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadSuccess?: () => void;
+  groupId?: string;
 }
 
-export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: UploadMaterialPopupProps) => {
+export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId }: UploadMaterialPopupProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState('notes');
   const [isPrivate, setIsPrivate] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [customSubjects, setCustomSubjects] = useState<any[]>([]);
   const [userGroups, setUserGroups] = useState<any[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(groupId ? [groupId] : []);
   const [showNewSubject, setShowNewSubject] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState('');
 
-  const categories = ['notes', 'flashcards', 'documents', 'study-guide'];
-
   useEffect(() => {
     if (isOpen) {
+      if (groupId) {
+        setSelectedGroups([groupId]);
+      }
       loadData();
     }
-  }, [isOpen]);
+  }, [isOpen, groupId]);
 
   const loadData = async () => {
     try {
@@ -68,11 +69,11 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
     }
   };
 
-  const toggleGroupSelection = (groupId: string) => {
+  const toggleGroupSelection = (groupIdToToggle: string) => {
     setSelectedGroups(prev => 
-      prev.includes(groupId) 
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
+      prev.includes(groupIdToToggle) 
+        ? prev.filter(id => id !== groupIdToToggle)
+        : [...prev, groupIdToToggle]
     );
   };
 
@@ -103,7 +104,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
       let fileName = null;
 
       if (file) {
-        const targetGroupId = selectedGroups.length > 0 ? selectedGroups[0] : undefined;
+        const targetGroupId = selectedGroups.length > 0 ? selectedGroups[0] : groupId;
         const uploadResult = await NotesService.uploadFile(file, targetGroupId);
         if (uploadResult) {
           fileUrl = uploadResult.url;
@@ -115,22 +116,23 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
         title: title.trim(),
         content: description || '',
         subject: subject,
-        permission_level: isPrivate ? 'private' : 'public',
+        permission_level: isPrivate ? 'private' : (groupId ? 'group' : 'public'),
+        group_id: groupId,
         file_url: fileUrl,
         file_name: fileName
       });
 
-      if (note && selectedGroups.length > 0) {
-        await NotesService.shareNoteWithGroups(note.id, selectedGroups);
+      const groupsToShare = selectedGroups.length > 0 ? selectedGroups : (groupId ? [groupId] : []);
+      if (note && groupsToShare.length > 0) {
+        await NotesService.shareNoteWithGroups(note.id, groupsToShare);
       }
 
       setTitle('');
       setDescription('');
       setSubject('');
-      setCategory('notes');
       setIsPrivate(false);
       setFile(null);
-      setSelectedGroups([]);
+      setSelectedGroups(groupId ? [groupId] : []);
       
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -280,22 +282,6 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess }: Upload
                   <option key={subj.id} value={subj.name}>{subj.name}</option>
                 ))
               )}
-            </select>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-1">
-            <Label htmlFor="category" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Category</Label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full h-10 px-3 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg text-sm font-semibold focus:outline-none focus:border-[#2a78d6]"
-            >
-              <option value="notes">Notes</option>
-              <option value="flashcards">Flashcards</option>
-              <option value="documents">Documents</option>
-              <option value="study-guide">Study Guide</option>
             </select>
           </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { NoteList } from './NoteList';
 import { CreateNoteDialog } from './CreateNoteDialog';
 import { EditNoteDialog } from './EditNoteDialog';
+import { UploadMaterialPopup } from './UploadMaterialPopup';
 
 interface CollaborativeNotesProps {
   groupId?: string;
@@ -26,11 +27,13 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
     createNote,
     updateNote,
     deleteNote,
+    loadNotes,
     broadcastCursor,
     subscribeToCursors,
   } = useCollaborativeNotes(groupId);
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<CollaborativeNote | null>(null);
   const [cursorPositions, setCursorPositions] = useState<Record<string, any>>({});
   
@@ -147,9 +150,21 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
             </Badge>
           )}
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-brand hover:bg-brand-hover text-white rounded-xl font-semibold transition-all">
-          <Plus className="w-4 h-4 mr-2" /> New Note
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsUploadOpen(true)} 
+            className="rounded-xl font-semibold transition-all flex items-center"
+          >
+            <Upload className="w-4 h-4 mr-2" /> Upload
+          </Button>
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)} 
+            className="bg-brand hover:bg-brand-hover text-white rounded-xl font-semibold transition-all flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" /> New Note
+          </Button>
+        </div>
       </div>
 
       <NoteList 
@@ -168,6 +183,13 @@ export const CollaborativeNotes = ({ groupId, groupName }: CollaborativeNotesPro
         newNote={newNote} 
         setNewNote={setNewNote} 
         onCreate={handleCreateNote} 
+      />
+
+      <UploadMaterialPopup
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onUploadSuccess={() => loadNotes()}
+        groupId={groupId}
       />
 
       <EditNoteDialog 

@@ -91,8 +91,20 @@ export class NotesQueries {
         throw new Error('Authentication required. Please log in again.');
       }
 
+      const { data: directNotes } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('group_id', groupId);
+
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-      const notesWithProfiles = await populateNoteProfiles(sharedNotes);
+      const combinedNotes = [...(directNotes || [])];
+      for (const sn of sharedNotes) {
+        if (!combinedNotes.some(n => n.id === sn.id)) {
+          combinedNotes.push(sn);
+        }
+      }
+
+      const notesWithProfiles = await populateNoteProfiles(combinedNotes);
       return await populateNoteGroupShares(notesWithProfiles);
     } catch (error) {
       console.error('Error fetching group notes:', error);

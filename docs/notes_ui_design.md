@@ -29,6 +29,11 @@ The Notes page incorporates the shared `PageTabs` component directly below the p
 - **`My Notes`** (`tab=my-notes`): Notes created by the current user (`created_by === userId`). Default tab.
 - **`Group Notes`** (`tab=group-notes`): Notes attached to or shared with study groups (`linkedGroup !== '—'`).
 
+### 1b. Study Group Notes Interface (`CollaborativeNotes`)
+When viewing notes within a Study Group page or session:
+- **Header Actions**: Features an **`Upload`** button next to **`New Note`**, enabling users to upload PDF/document files or share existing personal study notes directly with group members.
+- **Clean Empty State**: When no notes exist in a group, `NoteList` presents a single, clean empty state message without duplicate create buttons in the card body.
+
 Each tab displays a live count badge representing matching notes. Reloading the page maintains the active tab selection.
 
 
