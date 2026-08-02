@@ -150,7 +150,7 @@ src/services/notes/
 |---|---|
 | `getNotes()` | All notes visible to the current user (own + shared + public), ordered by `updated_at` desc |
 | `getNote(id)` | Single note — owner-only (filters `created_by`) |
-| `getGroupNotes(groupId)` | Union of `note_group_shares` rows for the group and legacy `group_id = groupId` rows |
+| `getGroupNotes(groupId)` | Fetches group notes via `note_group_shares` junction table |
 | `getSessionNotes(sessionId)` | Notes linked to a study session, ascending by `created_at` |
 | `getNoteSharedGroups(noteId)` | Groups a note is currently shared with |
 | `getGroupSharedNotes(groupId)` | Notes shared into a group via `note_group_shares` |

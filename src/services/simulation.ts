@@ -522,21 +522,35 @@ export class SimulatedUserBot {
 
     this.manager.log(`Bot ${this.user.name} is creating note "${title}"...`);
 
-    const { error } = await this.client
+    const { data, error } = await this.client
       .from('notes')
       .insert({
         title,
         content,
         subject,
-        group_id: groupId,
         created_by: this.user.id,
         permission_level: permission,
         is_collaborative: permission === 'group'
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       this.manager.log(`❌ Error creating note: ${error.message}`);
       throw error;
+    }
+
+    if (groupId && data) {
+      const { error: shareError } = await this.client
+        .from('note_group_shares')
+        .insert({
+          note_id: data.id,
+          group_id: groupId
+        });
+
+      if (shareError) {
+        this.manager.log(`⚠️ Note created, but failed to share with group: ${shareError.message}`);
+      }
     }
 
     this.manager.log(`✅ Note "${title}" created successfully.`);
