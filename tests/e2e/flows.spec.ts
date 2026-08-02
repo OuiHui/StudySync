@@ -136,7 +136,7 @@ test.describe('StudySync E2E User Flows', () => {
 
     // Switch to "My Groups" tab where created group resides
     await page.getByRole('button', { name: 'My Groups' }).click();
-    const myGroupsSearchInput = page.getByPlaceholder(/Search by name, course/i);
+    const myGroupsSearchInput = page.getByPlaceholder(/Search.*by name/i);
     await expect(myGroupsSearchInput).toBeVisible();
     await myGroupsSearchInput.fill('E2E Test Group');
     await expect(page.getByText('E2E Test Group').first()).toBeVisible({ timeout: 15000 });
