@@ -1,14 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Users, Search, Loader2 } from 'lucide-react';
+import { Users, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePublicGroups } from '@/hooks/usePublicGroups';
 import { useUserGroups } from '@/hooks/useUserGroups';
 import { GroupCard } from './GroupCard';
-import { PAGE_TITLE_CLASS } from '@/constants/theme';
+import { GroupFilterBar, GroupFilterState } from './GroupFilterBar';
 
 interface StudyGroupsBrowseProps {
   onSelectGroup: (groupId: string) => void;
@@ -18,10 +16,14 @@ interface StudyGroupsBrowseProps {
 
 export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpdateEnrollment }: StudyGroupsBrowseProps) => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [filters, setFilters] = useState<GroupFilterState>({
+    searchTerm: '',
+    selectedSubject: 'all',
+    selectedVisibility: 'all',
+    sortBy: 'name_asc',
+  });
 
-  const { availableGroups, loading, error, loadPublicGroups, handleCreateGroup, handleJoinGroup } = usePublicGroups(groupEnrollments, onUpdateEnrollment);
+  const { availableGroups, loading, error, loadPublicGroups, handleJoinGroup } = usePublicGroups(groupEnrollments, onUpdateEnrollment);
   const { studyGroups: myGroups } = useUserGroups();
 
   const myGroupIds = useMemo(() => new Set(myGroups.map(g => g.id)), [myGroups]);
@@ -31,27 +33,56 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       .map(g => g.subject?.trim())
       .filter((s): s is string => Boolean(s));
 
-    const sortedSubjects = Array.from(new Set(dynamicSubjects)).sort((a, b) => 
+    return Array.from(new Set(dynamicSubjects)).sort((a, b) => 
       a.localeCompare(b, undefined, { sensitivity: 'base' })
     );
-
-    return ['all', ...sortedSubjects];
   }, [availableGroups]);
 
   const filteredGroups = useMemo(() => {
-    return availableGroups.filter(group => {
-      if (myGroupIds.has(group.id)) return false;
-      const searchLower = searchTerm.toLowerCase().trim();
-      const matchesSearch = !searchLower ||
-                            group.name.toLowerCase().includes(searchLower) ||
-                            group.description.toLowerCase().includes(searchLower) ||
-                            (group.subject && group.subject.toLowerCase().includes(searchLower));
-      
-      const matchesSubject = selectedSubject === 'all' || 
-                            (group.subject && group.subject.trim().toLowerCase() === selectedSubject.trim().toLowerCase());
-      return matchesSearch && matchesSubject;
+    const searchLower = filters.searchTerm.toLowerCase().trim();
+
+    return availableGroups
+      .filter(group => {
+        if (myGroupIds.has(group.id)) return false;
+
+        const matchesSearch = !searchLower ||
+                              group.name.toLowerCase().includes(searchLower) ||
+                              group.description.toLowerCase().includes(searchLower) ||
+                              (group.subject && group.subject.toLowerCase().includes(searchLower));
+        
+        const matchesSubject = filters.selectedSubject === 'all' || 
+                              (group.subject && group.subject.trim().toLowerCase() === filters.selectedSubject.trim().toLowerCase());
+
+        const matchesVisibility = filters.selectedVisibility === 'all' ||
+                              (filters.selectedVisibility === 'public' ? group.is_public : !group.is_public);
+
+        return matchesSearch && matchesSubject && matchesVisibility;
+      })
+      .sort((a, b) => {
+        if (filters.sortBy === 'members_desc') {
+          return (b.member_count || 0) - (a.member_count || 0);
+        }
+        if (filters.sortBy === 'newest') {
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+      });
+  }, [availableGroups, myGroupIds, filters]);
+
+  const handleFilterChange = (updates: Partial<GroupFilterState>) => {
+    setFilters(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      searchTerm: '',
+      selectedSubject: 'all',
+      selectedVisibility: 'all',
+      sortBy: 'name_asc',
     });
-  }, [availableGroups, myGroupIds, searchTerm, selectedSubject]);
+  };
+
+  const isFiltered = Boolean(filters.searchTerm.trim()) || filters.selectedSubject !== 'all' || filters.selectedVisibility !== 'all';
 
   return (
     <div className="space-y-6">
@@ -65,30 +96,13 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       )}
 
       {/* Search and Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Search groups by name, course, or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-            disabled={loading}
-          />
-        </div>
-        <select
-          value={selectedSubject}
-          onChange={(e) => setSelectedSubject(e.target.value)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-600 cursor-pointer"
-          disabled={loading}
-        >
-          {subjects.map(subject => (
-            <option key={subject} value={subject}>
-              {subject === 'all' ? 'All Subjects / Courses' : subject}
-            </option>
-          ))}
-        </select>
-      </div>
+      <GroupFilterBar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        availableSubjects={subjects}
+        onReset={handleResetFilters}
+        disabled={loading}
+      />
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -114,10 +128,10 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
             <div className="text-center py-12">
               <Users size={48} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">
-                {error ? 'Unable to load groups' : searchTerm || selectedSubject !== 'all' ? 'No groups match your search or selected course' : 'No public groups available'}
+                {error ? 'Unable to load groups' : isFiltered ? 'No groups match your search or selected filters' : 'No public groups available'}
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                {error ? 'Please try again later or check your connection' : searchTerm || selectedSubject !== 'all' ? 'Try selecting a different course or adjusting your search' : 'Check back later for new study groups'}
+                {error ? 'Please try again later or check your connection' : isFiltered ? 'Try adjusting your search or filters' : 'Check back later for new study groups'}
               </p>
               {error && (
                 <Button onClick={loadPublicGroups} variant="outline" className="mt-4">

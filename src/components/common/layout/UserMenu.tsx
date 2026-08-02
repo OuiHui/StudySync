@@ -13,14 +13,24 @@ import { LogOut, User, Settings } from 'lucide-react';
 
 interface UserMenuProps {
   onProfileClick: () => void;
+  onSettingsClick?: () => void;
   isProfileDisabled?: boolean;
 }
 
-export function UserMenu({ onProfileClick, isProfileDisabled }: UserMenuProps) {
+export function UserMenu({ onProfileClick, onSettingsClick, isProfileDisabled }: UserMenuProps) {
   const { user, signOut } = useAuth();
 
   const getInitials = (email: string) => {
     return email.charAt(0).toUpperCase();
+  };
+
+  const handleSettingsClick = () => {
+    if (isProfileDisabled) return;
+    if (onSettingsClick) {
+      onSettingsClick();
+    } else {
+      onProfileClick();
+    }
   };
 
   return (
@@ -60,7 +70,13 @@ export function UserMenu({ onProfileClick, isProfileDisabled }: UserMenuProps) {
           <span>Profile</span>
         </DropdownMenuItem>
         <DropdownMenuItem 
-          className="cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          disabled={isProfileDisabled}
+          onClick={handleSettingsClick}
+          className={`cursor-pointer text-gray-700 dark:text-gray-300 ${
+            isProfileDisabled 
+              ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600' 
+              : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
         >
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>

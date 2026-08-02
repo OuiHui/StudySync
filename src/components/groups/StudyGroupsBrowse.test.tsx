@@ -87,8 +87,10 @@ describe('StudyGroupsBrowse Component', () => {
     expect(screen.getByText('CS 1331 Study Group')).toBeInTheDocument();
     expect(screen.getByText('Physics Mechanics Group')).toBeInTheDocument();
 
-    const selectElement = screen.getByRole('combobox');
+    const selectElement = screen.getByRole('combobox', { name: /course|subject/i });
     expect(selectElement).toBeInTheDocument();
+
+    fireEvent.click(selectElement);
 
     expect(screen.getByRole('option', { name: 'CS 1331' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Psychology' })).not.toBeInTheDocument();
@@ -97,8 +99,11 @@ describe('StudyGroupsBrowse Component', () => {
   it('toggles visible groups when selecting a specific course from dropdown', () => {
     render(<StudyGroupsBrowse onSelectGroup={vi.fn()} />);
 
-    const selectElement = screen.getByRole('combobox');
-    fireEvent.change(selectElement, { target: { value: 'CS 1331' } });
+    const selectElement = screen.getByRole('combobox', { name: /course|subject/i });
+    fireEvent.click(selectElement);
+
+    const optionElement = screen.getByRole('option', { name: 'CS 1331' });
+    fireEvent.click(optionElement);
 
     expect(screen.getByText('CS 1331 Study Group')).toBeInTheDocument();
     expect(screen.queryByText('Physics Mechanics Group')).not.toBeInTheDocument();

@@ -61,16 +61,21 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
           max_members: group.max_members || 50,
           avatar_url: group.icon || group.avatar_url || '',
         });
-      }
-      if (targetGroupId) {
-        fetchGroupData(targetGroupId);
+        setFetching(false);
+        if (targetGroupId) {
+          fetchGroupData(targetGroupId, true);
+        }
+      } else if (targetGroupId) {
+        fetchGroupData(targetGroupId, false);
       }
     }
   }, [open, targetGroupId, group]);
 
-  const fetchGroupData = async (idToFetch: string) => {
+  const fetchGroupData = async (idToFetch: string, isBackground = false) => {
     try {
-      setFetching(true);
+      if (!isBackground) {
+        setFetching(true);
+      }
       const data = await StudyGroupsService.getGroupById(idToFetch);
       if (data) {
         setFormData({
@@ -84,13 +89,17 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
       }
     } catch (err) {
       console.error('Failed to load group details:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to load group settings.',
-        variant: 'destructive',
-      });
+      if (!isBackground) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load group settings.',
+          variant: 'destructive',
+        });
+      }
     } finally {
-      setFetching(false);
+      if (!isBackground) {
+        setFetching(false);
+      }
     }
   };
 

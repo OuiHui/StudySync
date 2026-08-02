@@ -63,13 +63,21 @@ All Study Groups, regardless of their public or private status, are visible and 
    - Direct join is blocked. Joining strictly requires a pending invitation in `group_invitations` with `'pending'` status.
    - Access to internal details (chat, notes, active sessions, and member list) is restricted to members, creators, or users with pending invitations. Non-members will see the group metadata and an inline locked/invite-required notice.
 
-3. **Browse Search & Course Filtering**:
-   - The **Browse Study Groups** page includes dynamic search across group names, descriptions, and courses/subjects.
-   - The subject dropdown dynamically aggregates all unique courses (`study_groups.subject`) from available public groups along with standard subject options, allowing users to toggle and filter groups by specific course (e.g., `"CS 1331"`, `"MATH 1552"`, `"Physics"`).
+3. **Group Search & Advanced Filtering (`GroupFilterBar`)**:
+   - Both **My Groups** and **Browse Groups** pages feature a unified `GroupFilterBar` component.
+   - **Search Input**: Live keyword filtering matching group name, subject/course, and description.
+   - **Course / Subject Filter**: Dynamically aggregates unique courses/subjects across groups and allows filtering by specific course.
+   - **Visibility Status Filter**: Allows filtering by visibility status (All, Public, Private / Invite-Required).
+   - **Sorting Controls**: Supports sorting by Name (A-Z), Most Members (highest member count first), and Newest creation date.
+   - **Filter Reset**: Quick reset button clears all active search parameters and restores default view.
 
 4. **Tab Query Parameter Persistence**:
    - The Study Groups page synchronizes active tab selection (`My Groups` vs `Browse Groups`) with URL query parameters (`?tab=...`) via `useTabQueryState`.
    - Refreshing the page while on `Browse Groups` (`/groups?tab=browse`) preserves the active tab, and exiting group details restores the previous tab.
+
+5. **Group Settings Modal Performance Optimization**:
+   - `GroupSettingsDialog` leverages pre-populated `group` data passed as props to render the edit form instantly on modal open.
+   - Background data synchronization occurs silently without blocking modal UI or displaying full-screen loading spinners.
 
 ---
 

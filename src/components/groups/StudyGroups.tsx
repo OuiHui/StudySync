@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Users, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useState, useMemo } from 'react';
+import { Users } from 'lucide-react';
 import { ChatPopup } from '@/components/chat/ChatPopup';
 import { GroupDetails } from '@/components/groups/GroupDetails';
 import { CreateGroupDialog } from '@/components/groups/CreateGroupDialog';
 import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
+import { GroupFilterBar, GroupFilterState } from '@/components/groups/GroupFilterBar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserGroups } from '@/hooks/useUserGroups';
 import { GroupsGrid } from '@/components/groups/GroupsGrid';
@@ -32,15 +32,69 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedGroupName, setSelectedGroupName] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedGroupForSettings, setSelectedGroupForSettings] = useState<any | null>(null);
 
-  const filteredGroups = studyGroups.filter(group =>
-    (group.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (group.subject || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (group.description || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [filters, setFilters] = useState<GroupFilterState>({
+    searchTerm: '',
+    selectedSubject: 'all',
+    selectedVisibility: 'all',
+    sortBy: 'name_asc',
+  });
+
+  const availableSubjects = useMemo(() => {
+    const subjects = studyGroups
+      .map((g) => g.subject?.trim())
+      .filter((s): s is string => Boolean(s));
+    return Array.from(new Set(subjects)).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' })
+    );
+  }, [studyGroups]);
+
+  const filteredGroups = useMemo(() => {
+    const searchLower = filters.searchTerm.toLowerCase().trim();
+
+    return studyGroups
+      .filter((group) => {
+        const matchesSearch =
+          !searchLower ||
+          (group.name || '').toLowerCase().includes(searchLower) ||
+          (group.subject || '').toLowerCase().includes(searchLower) ||
+          (group.description || '').toLowerCase().includes(searchLower);
+
+        const matchesSubject =
+          filters.selectedSubject === 'all' ||
+          (group.subject || '').trim().toLowerCase() === filters.selectedSubject.trim().toLowerCase();
+
+        const matchesVisibility =
+          filters.selectedVisibility === 'all' ||
+          (filters.selectedVisibility === 'public' ? group.is_public : !group.is_public);
+
+        return matchesSearch && matchesSubject && matchesVisibility;
+      })
+      .sort((a, b) => {
+        if (filters.sortBy === 'members_desc') {
+          return (b.member_count || 0) - (a.member_count || 0);
+        }
+        if (filters.sortBy === 'newest') {
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        }
+        return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+      });
+  }, [studyGroups, filters]);
+
+  const handleFilterChange = (updates: Partial<GroupFilterState>) => {
+    setFilters((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      searchTerm: '',
+      selectedSubject: 'all',
+      selectedVisibility: 'all',
+      sortBy: 'name_asc',
+    });
+  };
 
   const openGroupDetails = (group: any) => {
     setSelectedGroupDetails(group);
@@ -69,25 +123,21 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Search */}
-      <div className="relative">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 dark:text-gray-600 pointer-events-none" />
-        <Input
-          placeholder="Search by name, course, or description…"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-blue-400/20 transition-colors h-10"
-        />
-      </div>
-
-
+      {/* Filter and Search Bar */}
+      <GroupFilterBar
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        availableSubjects={availableSubjects}
+        onReset={handleResetFilters}
+        disabled={loading}
+      />
 
       {/* Groups grid */}
       <GroupsGrid
         filteredGroups={filteredGroups}
         loading={loading}
         error={error}
-        searchTerm={searchTerm}
+        searchTerm={filters.searchTerm}
         isAnonymousUser={isAnonymousUser()}
         currentUserId={user?.id}
         openGroupPage={openGroupPage}

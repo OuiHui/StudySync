@@ -29,7 +29,6 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        setLoading(true);
         const profile = await ProfileService.getCurrentUser();
         if (profile && profile.notification_settings) {
           setSettings(prev => ({
@@ -39,8 +38,6 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
         }
       } catch (error) {
         console.error('Error loading notification settings:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
