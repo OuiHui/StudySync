@@ -84,3 +84,20 @@ Conversations in the Messaging Tab are strictly separated into two distinct cate
 When `public.is_group_member(uuid, uuid)` was replaced with `DROP FUNCTION ... CASCADE` in prior migrations, PostgreSQL CASCADE-dropped dependent RLS policies on `conversations` and `messages`. This caused `403 Forbidden` / `42501` RLS errors during group chat initialization and `406 Not Acceptable` on PostgREST `.single()` lookup.
 
 Migration `20260719010000_fix_conversations_and_messages_rls.sql` restores these RLS policies and `ChatService.getOrCreateGroupConversation` utilizes `.maybeSingle()` to handle missing conversations safely.
+
+---
+
+## Query & Database Performance Optimizations
+
+1. **Single-RPC Conversation Overview (`get_user_conversations_overview`)**
+   - Consolidates conversation participations, latest message text/timestamps, sender metadata, and target DM user profiles into a single database RPC call (`public.get_user_conversations_overview`).
+   - Eliminates N+1 network request cascades when initializing `/messages`.
+
+2. **Composite PostgreSQL Indexes**
+   - `idx_messages_conv_created` (`messages(conversation_id, created_at DESC)`): Accelerates latest message retrieval and chronological thread rendering.
+   - `idx_conv_participants_user_active` (`conversation_participants(user_id, is_active, conversation_id)`): Enables fast participant list indexing without full table scans.
+   - `idx_conv_participants_conv_user` (`conversation_participants(conversation_id, user_id)`): Optimizes 1-on-1 recipient profile resolution.
+
+3. **Message Pagination & Windowing (`ChatService.getMessages`)**
+   - Fetches recent messages using limit-based pagination (default 50 messages per query), reversing fetched rows to render in chronological order while capping payload overhead.
+

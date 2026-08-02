@@ -113,18 +113,22 @@ export function useMessagingData() {
     for (const conv of (rawConversations || [])) {
       const cData = conv.conversations || conv;
       if (!cData.is_group_chat) {
-        // Find the other participant for 1-on-1 chats
-        const { data: participants } = await supabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', cData.id);
+        let otherUserId = cData.target_user_id;
+        let targetProfile = cData.target_profile;
 
-        const otherUserId =
-          participants?.find((p: any) => p.user_id !== user.id)?.user_id ||
-          (cData.created_by !== user.id ? cData.created_by : null);
+        // Fallback fetch if not provided by RPC
+        if (!otherUserId) {
+          const { data: participants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', cData.id);
 
-        let targetProfile: any = null;
-        if (otherUserId) {
+          otherUserId =
+            participants?.find((p: any) => p.user_id !== user.id)?.user_id ||
+            (cData.created_by !== user.id ? cData.created_by : null);
+        }
+
+        if (otherUserId && !targetProfile) {
           const { data: profile } = await supabase
             .from('profiles')
             .select('id, display_name, avatar_url, user_id, email')

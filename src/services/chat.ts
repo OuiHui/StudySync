@@ -9,7 +9,43 @@ export class ChatService {
         return [];
       }
 
-      // Get user's conversation participations
+      // Attempt single high-performance RPC query
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_conversations_overview', {
+        _user_id: session.user.id
+      });
+
+      if (!rpcError && rpcData) {
+        return rpcData.map((row: any) => ({
+          user_id: session.user.id,
+          conversations: {
+            id: row.conversation_id,
+            is_group_chat: row.is_group_chat,
+            group_id: row.group_id,
+            name: row.conversation_name,
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            target_user_id: row.target_user_id,
+            target_profile: row.target_user_id ? {
+              user_id: row.target_user_id,
+              display_name: row.target_display_name,
+              avatar_url: row.target_avatar_url
+            } : null,
+            latest_message: row.latest_message_id ? {
+              id: row.latest_message_id,
+              content: row.latest_message_content,
+              created_at: row.latest_message_created_at,
+              sender_id: row.latest_sender_id,
+              sender: {
+                display_name: row.latest_sender_name,
+                avatar_url: row.latest_sender_avatar_url
+              }
+            } : null
+          }
+        }));
+      }
+
+      // Fallback if RPC function is not installed yet
       const { data: participations, error } = await supabase
         .from('conversation_participants')
         .select(`
@@ -19,20 +55,15 @@ export class ChatService {
         .eq('user_id', session.user.id)
         .neq('is_active', false);
 
-      if (error) {
-        console.error('Error fetching conversations:', error);
+      if (error || !participations) {
         return [];
       }
 
-      if (!participations) return [];
-
-      // Get latest message for each conversation
       const conversationsWithMessages = await Promise.all(
         participations.map(async (participation) => {
           const conversation = participation.conversations;
           if (!conversation) return null;
 
-          // Get latest message
           const { data: latestMessage } = await supabase
             .from('messages')
             .select('id, content, created_at, sender_id')
@@ -41,7 +72,6 @@ export class ChatService {
             .limit(1)
             .maybeSingle();
 
-          // Get sender profile if message exists
           let senderProfile = null;
           if (latestMessage) {
             const { data: sender } = await supabase
@@ -72,19 +102,19 @@ export class ChatService {
     }
   }
 
-  static async getMessages(conversationId: string) {
+  static async getMessages(conversationId: string, limit: number = 50) {
     try {
       if (!conversationId || !conversationId.match(/^[0-9a-fA-F-]{36}$/)) {
         return [];
       }
 
-      // Get messages with sender profile information
-      // We need to do a separate query for profiles since sender_id references auth.users, not profiles
+      // Fetch recent messages with indexed ordering and limit
       const { data: messages, error: messagesError } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
       if (messagesError) {
         console.error('Error fetching messages:', messagesError);
@@ -95,31 +125,27 @@ export class ChatService {
         return [];
       }
 
-      // Get unique sender IDs
-      const senderIds = [...new Set(messages.map(m => m.sender_id))];
+      // Reverse to display chronologically (oldest to newest)
+      const sortedMessages = [...messages].reverse();
 
-      // Fetch profiles for all senders
+      // Batch fetch profiles for all unique senders in a single query
+      const senderIds = [...new Set(sortedMessages.map(m => m.sender_id))];
+
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name, avatar_url, user_id')
         .in('user_id', senderIds);
 
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        // Return messages without profile data
-        return messages;
+        return sortedMessages;
       }
 
-      // Create a map of profiles by user_id for quick lookup
       const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
-      // Merge profile data with messages
-      const messagesWithProfiles = messages.map(message => ({
+      return sortedMessages.map(message => ({
         ...message,
         profiles: profilesMap.get(message.sender_id) || null
       }));
-
-      return messagesWithProfiles;
     } catch (error) {
       console.error('Error fetching messages:', error);
       return [];
