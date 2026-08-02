@@ -1,218 +1,35 @@
 
-import { useState, useEffect } from 'react';
-import { Users, Calendar, Clock, Play, Eye, Loader2, Edit, Star, Globe, Lock } from 'lucide-react';
+import { Play, Calendar, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreateSessionDialog } from '@/components/study/CreateSessionDialog';
-import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 import { SessionDetailsPopup } from '@/components/study/SessionDetailsPopup';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAvailableSessions } from '@/hooks/useAvailableSessions';
-import { StudySessionsService } from '@/services/database';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { StudyCalendar } from '@/components/calendar/StudyCalendar';
-import { useToast } from '@/hooks/use-toast';
 import { PAGE_TITLE_CLASS } from '@/constants/theme';
-
-interface StudySession {
-  id: string;
-  groupName: string;
-  course: string;
-  participants: number;
-  participantList: any[];
-  startTime: string;
-  timeRange: string;
-  duration: string;
-  type: 'active' | 'planned';
-  description: string;
-  created_by?: string;
-  max_participants?: number;
-  group_id?: string;
-  status?: string;
-  title?: string;
-  hostName: string;
-  hostInitials: string;
-  hostAvatarUrl?: string | null;
-  isHost: boolean;
-  is_public?: boolean | null;
-  study_groups?: {
-    name: string;
-    subject?: string;
-  };
-}
+import { SessionCard } from './SessionCard';
+import { useAvailableSessionsState } from './useAvailableSessionsState';
 
 interface AvailableSessionsListProps {
   onJoinSession: (sessionId: string) => void;
 }
 
-const getInitials = (name?: string | null) => {
-  if (!name) return 'U';
-  return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-};
-
-const getAvatarColorClass = (name: string) => {
-  const colors = [
-    'bg-indigo-500 text-white',
-    'bg-emerald-500 text-white',
-    'bg-amber-500 text-white',
-    'bg-rose-500 text-white',
-    'bg-sky-500 text-white',
-    'bg-violet-500 text-white',
-    'bg-orange-500 text-white'
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
-};
-
-const formatCardTime = (dateStr: string) => {
-  const date = new Date(dateStr);
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const day = date.getDate();
-  const timeStr = date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).toLowerCase().replace(' ', ''); // e.g. 7:31pm
-  return `${month} ${day}, ${timeStr}`;
-};
-
-const getDurationDisplay = (startStr: string, endStr: string, isLive: boolean) => {
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  const now = new Date();
-  const diffMs = isLive ? (end.getTime() - now.getTime()) : (end.getTime() - start.getTime());
-  
-  if (diffMs <= 0) return isLive ? '0m left' : '0 minutes';
-  
-  const diffMinutes = Math.round(diffMs / 60000);
-  const diffHours = Math.round(diffMs / (60000 * 60));
-  const diffDays = Math.round(diffMs / (60000 * 60 * 24));
-  
-  const suffix = isLive ? ' left' : '';
-  
-  if (diffDays >= 1) {
-    return isLive ? `${diffDays}d${suffix}` : `${diffDays} days`;
-  } else if (diffHours >= 1) {
-    return isLive ? `${diffHours}h${suffix}` : `${diffHours} hours`;
-  } else {
-    return isLive ? `${diffMinutes}m${suffix}` : `${diffMinutes} minutes`;
-  }
-};
-
 export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListProps) => {
-  const { user } = useAuth();
   const { openProfile } = useUserProfileModal();
-  const { toast } = useToast();
-  const [selectedSession, setSelectedSession] = useState<StudySession | null>(null);
-  const [confirmingSessionId, setConfirmingSessionId] = useState<string | null>(null);
-  const { sessions, loading, error, loadSessions } = useAvailableSessions();
-
-  // Reset confirmation state after 3 seconds
-  useEffect(() => {
-    if (confirmingSessionId) {
-      const timer = setTimeout(() => {
-        setConfirmingSessionId(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [confirmingSessionId]);
-
-  const handleCancelSession = async (sessionId: string) => {
-    try {
-      await StudySessionsService.deleteSession(sessionId);
-      setConfirmingSessionId(null);
-      await loadSessions();
-      toast({
-        title: "Success",
-        description: "Study session cancelled successfully!",
-      });
-    } catch (err: any) {
-      console.error('Failed to cancel session:', err);
-      toast({
-        title: "Error",
-        description: err.message || "Failed to cancel study session",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Use fetched sessions
-  const displaySessions = sessions.map(session => {
-    const start = new Date(session.scheduled_start);
-    const end = new Date(session.scheduled_end);
-    const isLive = (
-      ['active', 'running', 'paused'].includes(session.status) ||
-      (session.status === 'scheduled' &&
-       start <= new Date() &&
-       end >= new Date())
-    );
-
-    const timeRangeStr = `${formatCardTime(session.scheduled_start)} → ${formatCardTime(session.scheduled_end)}`;
-    
-    // Find host display name
-    const hostProfile = session.profiles;
-    const hostName = hostProfile?.display_name || session.session_participants?.find((p: any) => p.user_id === session.created_by)?.profiles?.display_name || 'Anonymous Host';
-    const hostInitials = getInitials(hostName);
-    const hostAvatarUrl = hostProfile?.avatar_url || null;
-
-    return {
-      ...session, // Preserve all original session data
-      id: session.id,
-      groupName: session.study_groups?.name || session.title || 'Unknown Group',
-      course: session.subject || session.study_groups?.subject || 'General Study',
-      participants: session.participant_count || 0,
-      participantList: session.session_participants || [],
-      startTime: formatCardTime(session.scheduled_start),
-      timeRange: timeRangeStr,
-      duration: getDurationDisplay(session.scheduled_start, session.scheduled_end, isLive),
-      type: isLive ? 'active' as const : 'planned' as const,
-      description: session.description || '',
-      title: session.title, // Ensure we have the actual session title
-      hostName,
-      hostInitials,
-      hostAvatarUrl,
-      isHost: session.created_by === user?.id
-    };
-  });
-
-  const activeSessions = displaySessions.filter(s => s.type === 'active');
-  const plannedSessions = displaySessions.filter(s => s.type === 'planned');
-
-  useEffect(() => {
-    if (selectedSession) {
-      const updated = displaySessions.find(s => s.id === selectedSession.id);
-      if (updated) {
-        setSelectedSession(updated);
-      }
-    }
-  }, [sessions]);
-
-  const handleTogglePlanToAttend = async (sessionId: string) => {
-    if (!user) return;
-    const session = displaySessions.find(s => s.id === sessionId);
-    if (!session) return;
-    const myParticipant = session.participantList.find((p: any) => p.user_id === user.id);
-    try {
-      if (myParticipant && myParticipant.status !== 'invited') {
-        await StudySessionsService.leaveSession(sessionId);
-      } else {
-        await StudySessionsService.planToAttendSession(sessionId);
-      }
-      await loadSessions();
-    } catch (err) {
-      console.error('Error toggling plan to attend:', err);
-    }
-  };
-
-  const handleJoinSession = (sessionId: string) => {
-    console.log('Joining session:', sessionId);
-    onJoinSession(sessionId);
-  };
+  const {
+    user,
+    loading,
+    error,
+    activeSessions,
+    plannedSessions,
+    selectedSession,
+    setSelectedSession,
+    confirmingSessionId,
+    setConfirmingSessionId,
+    handleCancelSession,
+    handleTogglePlanToAttend,
+    loadSessions
+  } = useAvailableSessionsState();
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -256,165 +73,26 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {activeSessions.map((session) => {
-              const subtitleText = session.study_groups?.name && session.title 
-                ? `${session.study_groups.name} · ${session.course}`
-                : session.course;
-
-              return (
-                <Card key={session.id} className="flex flex-col h-full border border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
-                  <CardContent className="p-4 flex flex-col flex-1 justify-between h-full">
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="font-bold text-lg text-gray-800 dark:text-white leading-snug">
-                            {session.title || session.groupName}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
-                            {subtitleText}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
-                          <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            Live
-                          </span>
-                          {session.is_public ? (
-                            <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
-                              <Globe size={10} />
-                              Public
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
-                              <Lock size={10} />
-                              Private
-                            </span>
-                          )}
-                        </div>
-                      </div>                      {/* Host display */}
-                      <button
-                        onClick={() => session.created_by && openProfile(session.created_by)}
-                        className="flex items-center space-x-2 mt-3 text-left focus:outline-none cursor-pointer group"
-                      >
-                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10 group-hover:scale-105 active:scale-95 transition-transform">
-                          {session.hostAvatarUrl ? (
-                            <img src={session.hostAvatarUrl} alt={session.hostName} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            session.hostInitials
-                          )}
-                          <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
-                            <Star size={8} fill="currentColor" />
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
-                          Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
-                        </span>
-                      </button>
-                      
-                      {session.description && (
-                        <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">
-                          {session.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">
-                        <div className="flex items-center space-x-1.5">
-                          <Calendar size={13} className="text-gray-400 shrink-0" />
-                          <span>{session.timeRange}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock size={13} className="text-gray-400 shrink-0" />
-                          <span>{session.duration}</span>
-                        </div>
-                      </div>                      {/* Overlapping participants group */}
-                      <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
-                        {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length > 0 ? (
-                          <>
-                            <div className="flex -space-x-1.5 overflow-hidden">
-                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').slice(0, 3).map((p: any) => {
-                                const pName = p.profiles?.display_name || 'Anonymous';
-                                const pInitials = getInitials(pName);
-                                return (
-                                  <div 
-                                    key={p.user_id} 
-                                    className={`inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-[9px] font-bold z-10 ${getAvatarColorClass(pName)}`}
-                                    title={pName}
-                                  >
-                                    {pInitials}
-                                  </div>
-                                );
-                              })}
-                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length > 3 && (
-                                <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
-                                  +{session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length - 3}
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              {session.participantList.filter((p: any) => p.status !== 'invited' && p.status !== 'accepted').length} active
-                            </span>
-                          </>
-                        ) : (
-                          <div className="flex items-center text-gray-500 dark:text-gray-400">
-                            <Users size={14} className="mr-1.5 shrink-0" />
-                            <span className="text-xs font-medium">
-                              No Active Participants
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                          onClick={() => setSelectedSession(session)}
-                        >
-                          <Eye size={14} className="mr-1.5" />
-                          Details
-                        </Button>
-                        <Button 
-                          onClick={() => handleJoinSession(session.id)}
-                          className="flex-[2] bg-green-500 hover:bg-green-600 text-white font-medium"
-                          size="sm"
-                        >
-                          Join session
-                        </Button>
-                        {session.isHost && (
-                          <EditSessionDialog 
-                            session={{
-                              id: session.id,
-                              title: session.title || session.groupName,
-                              description: session.description,
-                              scheduled_start: session.scheduled_start,
-                              scheduled_end: session.scheduled_end,
-                              max_participants: session.max_participants,
-                              group_id: session.group_id,
-                              status: session.status,
-                              is_public: session.is_public
-                            }}
-                            onSessionUpdated={loadSessions}
-                            trigger={
-                              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                <Edit size={14} />
-                              </Button>
-                            }
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  {activeSessions.map((session) => (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      userId={user?.id}
+                      confirmingSessionId={confirmingSessionId}
+                      onOpenProfile={openProfile}
+                      onOpenDetails={setSelectedSession}
+                      onJoinSession={onJoinSession}
+                      onTogglePlanToAttend={handleTogglePlanToAttend}
+                      onCancelSession={handleCancelSession}
+                      onSetConfirmingSessionId={setConfirmingSessionId}
+                      onSessionUpdated={loadSessions}
+                    />
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
- 
+
           <Card className="border-0 shadow-lg dark:bg-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
@@ -431,187 +109,21 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {plannedSessions.map((session) => {
-              const subtitleText = session.study_groups?.name && session.title 
-                ? `${session.study_groups.name} · ${session.course}`
-                : session.course;
-
-              return (
-                <Card key={session.id} className="flex flex-col h-full border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
-                  <CardContent className="p-4 flex flex-col flex-1 justify-between h-full">
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="font-bold text-lg text-gray-800 dark:text-white leading-snug">
-                            {session.title || session.groupName}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">
-                            {subtitleText}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
-                          <span className="inline-flex items-center bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
-                            Scheduled
-                          </span>
-                          {session.is_public ? (
-                            <span className="inline-flex items-center gap-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
-                              <Globe size={10} />
-                              Public
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[10px] px-2 py-0.5 rounded-full font-semibold">
-                              <Lock size={10} />
-                              Private
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Host display */}
-                      <button
-                        onClick={() => session.created_by && openProfile(session.created_by)}
-                        className="flex items-center space-x-2 mt-3 text-left focus:outline-none cursor-pointer group"
-                      >
-                        <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10 group-hover:scale-105 active:scale-95 transition-transform">
-                          {session.hostAvatarUrl ? (
-                            <img src={session.hostAvatarUrl} alt={session.hostName} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            session.hostInitials
-                          )}
-                          <span className="absolute -bottom-1 -right-1 bg-amber-400 text-amber-950 rounded-full p-0.5 border border-white dark:border-gray-800 shadow-sm flex items-center justify-center">
-                            <Star size={8} fill="currentColor" />
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
-                          Hosted by {session.hostName}{session.isHost ? ' (you)' : ''}
-                        </span>
-                      </button>
-                      
-                      {session.description && (
-                        <p className="text-xs text-gray-800 dark:text-gray-100 mt-3 leading-relaxed">
-                          {session.description}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="mt-auto pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">
-                        <div className="flex items-center space-x-1.5">
-                          <Calendar size={13} className="text-gray-400 shrink-0" />
-                          <span>{session.timeRange}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock size={13} className="text-gray-400 shrink-0" />
-                          <span>{session.duration}</span>
-                        </div>
-                      </div>
-                                          {/* Overlapping participants group */}
-                      <div className="flex items-center space-x-2 mb-3.5 mt-1 select-none h-6">
-                        {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length > 0 ? (
-                          <>
-                            <div className="flex -space-x-1.5 overflow-hidden">
-                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').slice(0, 3).map((p: any) => {
-                                const pName = p.profiles?.display_name || 'Anonymous';
-                                const pInitials = getInitials(pName);
-                                return (
-                                  <div 
-                                    key={p.user_id} 
-                                    className={`inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-[9px] font-bold z-10 ${getAvatarColorClass(pName)}`}
-                                    title={pName}
-                                  >
-                                    {pInitials}
-                                  </div>
-                                );
-                              })}
-                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length > 3 && (
-                                <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-500 text-white flex items-center justify-center text-[9px] font-bold z-20">
-                                  +{session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length - 3}
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                              {session.participantList.filter((p: any) => p.status === 'accepted' || p.role === 'host').length} planning to attend
-                            </span>
-                          </>
-                        ) : (
-                          <div className="flex items-center text-gray-500 dark:text-gray-400">
-                            <Users size={14} className="mr-1.5 shrink-0" />
-                            <span className="text-xs font-medium">
-                              No one planning to attend yet
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                          onClick={() => setSelectedSession(session)}
-                        >
-                          <Eye size={14} className="mr-1.5" />
-                          Details
-                        </Button>
-                        {session.isHost ? (
-                          <Button 
-                            onClick={() => {
-                              if (confirmingSessionId === session.id) {
-                                handleCancelSession(session.id);
-                              } else {
-                                setConfirmingSessionId(session.id);
-                              }
-                            }}
-                            variant="destructive"
-                            className="flex-[2] font-medium text-white"
-                            size="sm"
-                          >
-                            {confirmingSessionId === session.id ? "Confirm Cancel" : "Cancel Session"}
-                          </Button>
-                        ) : session.participantList.some((p: any) => p.user_id === user?.id && p.status !== 'invited') ? (
-                          <Button 
-                            onClick={() => handleTogglePlanToAttend(session.id)}
-                             className="flex-[2] bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-medium"
-                            size="sm"
-                          >
-                            Cancel plan
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => handleTogglePlanToAttend(session.id)}
-                            className="flex-[2] bg-blue-500 hover:bg-blue-600 text-white font-medium"
-                            size="sm"
-                          >
-                            Plan to attend
-                          </Button>
-                        )}
-                        {session.isHost && (
-                          <EditSessionDialog 
-                            session={{
-                              id: session.id,
-                              title: session.title || session.groupName,
-                              description: session.description,
-                              scheduled_start: session.scheduled_start,
-                              scheduled_end: session.scheduled_end,
-                              max_participants: session.max_participants,
-                              group_id: session.group_id,
-                              status: session.status,
-                              is_public: session.is_public
-                            }}
-                            onSessionUpdated={loadSessions}
-                            trigger={
-                              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                                <Edit size={14} />
-                              </Button>
-                            }
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  {plannedSessions.map((session) => (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      userId={user?.id}
+                      confirmingSessionId={confirmingSessionId}
+                      onOpenProfile={openProfile}
+                      onOpenDetails={setSelectedSession}
+                      onJoinSession={onJoinSession}
+                      onTogglePlanToAttend={handleTogglePlanToAttend}
+                      onCancelSession={handleCancelSession}
+                      onSetConfirmingSessionId={setConfirmingSessionId}
+                      onSessionUpdated={loadSessions}
+                    />
+                  ))}
                 </div>
               )}
             </CardContent>
@@ -619,7 +131,6 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
         </>
       )}
 
-      {/* Session Details Popup */}
       {selectedSession && (
         <SessionDetailsPopup
           isOpen={!!selectedSession}

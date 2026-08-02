@@ -25,8 +25,9 @@ StudySync follows a client-server architecture combining React on the frontend a
    - [ProfileService](src/services/profile/index.ts): Handles user details.
    - [StudyGroupsService](src/services/studyGroups/index.ts): Handles study groups.
    - [StudySessionsService](src/services/studySessions/index.ts): Manages solo/group timers and details.
-   - [FriendsService](src/services/friends.ts): Manages friends and invitations.
-   - [ChatService](src/services/chat.ts): Orchestrates chat storage.
+   - [FriendsService](src/services/friends/index.ts): Manages friends, requests, and invitations.
+   - [ChatService](src/services/chat/index.ts): Orchestrates chat storage and messaging.
+   - [NotesService](src/services/notes/index.ts): Manages notes and attachments.
 
 ---
 
