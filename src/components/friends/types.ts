@@ -1,5 +1,10 @@
 export type FriendStatus = 'none' | 'pending' | 'friends';
 
+export interface GroupItem {
+  id: string;
+  name: string;
+}
+
 export interface Person {
   id: string;
   name: string;
@@ -18,7 +23,7 @@ export interface Person {
   friendshipId?: string;
   friendsCount: number;
   groupsCount: number;
-  publicGroups: string[];
+  publicGroups: (string | GroupItem)[];
 }
 
 export interface FriendEntry {

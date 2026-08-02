@@ -17,6 +17,7 @@ interface PersonProfileDialogProps {
   loading?: boolean;
   onOpenProfile?: (userId: string) => void;
   onMessage?: (userId: string) => void;
+  onSelectGroup?: (groupId: string) => void;
 }
 
 export const PersonProfileDialog = ({
@@ -30,6 +31,7 @@ export const PersonProfileDialog = ({
   loading = false,
   onOpenProfile,
   onMessage,
+  onSelectGroup,
 }: PersonProfileDialogProps) => {
   const [view, setView] = useState<'profile' | 'friends'>('profile');
 
@@ -78,6 +80,7 @@ export const PersonProfileDialog = ({
               onCancelRequest={onCancelRequest}
               onOpenProfile={onOpenProfile}
               onMessage={() => onMessage?.(person.id)}
+              onSelectGroup={onSelectGroup}
             />
           ) : (
             <FriendsListView

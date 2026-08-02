@@ -23,7 +23,8 @@ interface PersonCardProps {
 export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile, onMessage }: PersonCardProps) => {
   const avatarBg = getAvatarColor(person.name);
 
-  const firstGroup = person.publicGroups[0];
+  const firstGroupItem = person.publicGroups[0];
+  const firstGroupName = typeof firstGroupItem === 'string' ? firstGroupItem : firstGroupItem?.name;
   const extraGroups = person.publicGroups.length - 1;
 
   return (
@@ -88,10 +89,10 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
           <span>{person.groupsCount} groups</span>
         </div>
 
-        {firstGroup && (
+        {firstGroupName && (
           <div className="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300 font-medium">
             <Users size={11} className="shrink-0 text-gray-400 dark:text-gray-500" />
-            <span className="truncate">{firstGroup}</span>
+            <span className="truncate">{firstGroupName}</span>
             {extraGroups > 0 && (
               <span className="shrink-0 text-violet-600 dark:text-violet-400 font-semibold ml-0.5">+{extraGroups} more</span>
             )}

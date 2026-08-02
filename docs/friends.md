@@ -71,6 +71,7 @@ To manage queries and calculate relationships, friendships are queried via Datab
   - Displays user profile summary, mutual friends, study hours, and contextual action buttons (Add Friend, Cancel Request, Message, View Profile).
 - **`PersonProfileDialog`**:
   - Displays the profile overview (name, bio, major, year, study stats, public groups, public sessions).
+  - Study groups are rendered as interactive buttons that, when clicked, close the modal and navigate directly to `/groups?groupId=<groupId>` to open the corresponding group page.
   - Shows the target user's friends preview count and list of friends under a general **Friends** tab.
 - **Note on Profile Page**:
   - Profile page (`src/components/profile/Profile.tsx`) has been streamlined; friends list and find friends search are housed exclusively within the **Friends** page.

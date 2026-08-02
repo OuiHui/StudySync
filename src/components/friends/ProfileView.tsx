@@ -9,7 +9,9 @@ import {
   ChevronUp,
   Calendar,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Person, FriendEntry } from './types';
 import { getInitials, getAvatarColor } from './avatarUtils';
 import { ActionButton } from './ActionButton';
@@ -25,6 +27,7 @@ interface ProfileViewProps {
   onCancelRequest: (id: string) => void;
   onOpenProfile?: (userId: string) => void;
   onMessage?: () => void;
+  onSelectGroup?: (groupId: string) => void;
 }
 
 const GROUPS_PAGE_SIZE = 6;
@@ -54,6 +57,7 @@ export const ProfileView = ({
   onCancelRequest,
   onOpenProfile,
   onMessage,
+  onSelectGroup,
 }: ProfileViewProps) => {
   const [groupsExpanded, setGroupsExpanded] = useState(false);
   const avatarBg = getAvatarColor(person.name);
@@ -181,15 +185,37 @@ export const ProfileView = ({
         <SectionLabel>Study Groups ({person.groupsCount})</SectionLabel>
         {person.publicGroups.length > 0 ? (
           <div className="flex flex-wrap gap-2 mt-2">
-            {visibleGroups.map((group) => (
-              <span
-                key={group}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-xs text-gray-800 dark:text-gray-200 font-semibold"
-              >
-                <Users size={12} className="text-violet-500 shrink-0" />
-                {group}
-              </span>
-            ))}
+            {visibleGroups.map((group) => {
+              const groupName = typeof group === 'string' ? group : group.name;
+              const groupId = typeof group === 'string' ? null : group.id;
+
+              return (
+                <button
+                  key={groupId || groupName}
+                  type="button"
+                  onClick={async () => {
+                    if (groupId) {
+                      onSelectGroup?.(groupId);
+                    } else if (groupName) {
+                      const { data } = await supabase
+                        .from('study_groups')
+                        .select('id')
+                        .eq('name', groupName)
+                        .maybeSingle();
+                      if (data?.id) {
+                        onSelectGroup?.(data.id);
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-xs text-gray-800 dark:text-gray-200 font-semibold hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-200 dark:hover:border-violet-700/50 hover:text-violet-600 dark:hover:text-violet-300 transition-all cursor-pointer group/groupbtn"
+                  title={`View ${groupName}`}
+                >
+                  <Users size={12} className="text-violet-500 shrink-0 group-hover/groupbtn:scale-110 transition-transform" />
+                  <span>{groupName}</span>
+                  <ExternalLink size={10} className="opacity-40 group-hover/groupbtn:opacity-100 text-violet-500 transition-opacity ml-0.5" />
+                </button>
+              );
+            })}
             {person.publicGroups.length > GROUPS_PAGE_SIZE && (
               <button
                 onClick={() => setGroupsExpanded(!groupsExpanded)}

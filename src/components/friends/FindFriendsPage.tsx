@@ -60,6 +60,11 @@ export const FindFriendsPage = () => {
     navigate(`/messages?userId=${userId}`);
   };
 
+  const handleSelectGroup = (groupId: string) => {
+    setSelectedPerson(null);
+    navigate(`/groups?groupId=${groupId}`);
+  };
+
   const handleOpenProfile = async (userId: string) => {
     if (!user) return;
     if (userId === user.id) return;
@@ -276,6 +281,7 @@ export const FindFriendsPage = () => {
         loading={loadingProfile}
         onOpenProfile={handleOpenProfile}
         onMessage={handleMessageUser}
+        onSelectGroup={handleSelectGroup}
       />
     </div>
   );

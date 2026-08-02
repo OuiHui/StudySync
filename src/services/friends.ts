@@ -388,14 +388,17 @@ export class FriendsService {
       // 4. Get study groups for target user (all visible groups)
       const { data: groupMembers, error: groupsError } = await supabase
         .from('group_members' as any)
-        .select('group_id, study_groups(name, is_public)')
+        .select('group_id, study_groups(id, name, is_public)')
         .eq('user_id', targetUserId);
 
-      const publicGroups: string[] = [];
+      const publicGroups: { id: string; name: string }[] = [];
       if (!groupsError && groupMembers) {
         groupMembers.forEach((gm: any) => {
           if (gm.study_groups) {
-            publicGroups.push(gm.study_groups.name);
+            publicGroups.push({
+              id: gm.group_id || gm.study_groups.id,
+              name: gm.study_groups.name,
+            });
           }
         });
       }

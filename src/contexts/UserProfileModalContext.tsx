@@ -118,6 +118,11 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
     navigate(`/messages?userId=${userId}`);
   };
 
+  const handleSelectGroup = (groupId: string) => {
+    closeProfile();
+    navigate(`/groups?groupId=${groupId}`);
+  };
+
   return (
     <UserProfileModalContext.Provider value={{ openProfile, closeProfile }}>
       {children}
@@ -128,10 +133,10 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
         onClose={closeProfile}
         onAddFriend={handleAddFriend}
         onCancelRequest={handleCancelRequest}
-        // We'll update the Dialog to handle a loading state
         loading={loading}
         onOpenProfile={openProfile}
         onMessage={handleMessagePerson}
+        onSelectGroup={handleSelectGroup}
       />
     </UserProfileModalContext.Provider>
   );
