@@ -35,7 +35,7 @@ export const ProfileOverview = ({ profile }: ProfileOverviewProps) => {
   const academicDetails = [profile.major, profile.year].filter(Boolean).join(' • ');
 
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-6">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground p-6 shadow-sm">
       <div className="flex items-start gap-5">
         {/* Avatar */}
         <div className="flex-shrink-0">

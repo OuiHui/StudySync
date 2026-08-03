@@ -13,7 +13,7 @@ export const ProfileAchievements = ({ stats }: { stats: UserStats }) => {
   ];
 
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
+    <Card className="border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center text-gray-800 dark:text-white">
           <Trophy size={20} className="mr-2 text-yellow-500" />

@@ -27,8 +27,8 @@ export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) =
   const { openProfile } = useUserProfileModal();
 
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
           Friends
         </h3>
@@ -45,7 +45,7 @@ export const FriendsList = ({ friends, handleRemoveFriend }: FriendsListProps) =
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-50 dark:divide-gray-800">
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
           {friends.map((friend) => {
             const name = getDisplayName(friend.display_name, friend.email);
             const initials = getInitials(friend.display_name, friend.email);

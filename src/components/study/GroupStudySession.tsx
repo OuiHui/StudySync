@@ -120,7 +120,7 @@ export const GroupStudySession = ({
   }
 
   return (
-    <div className="h-[100vh] flex flex-col p-4 overflow-hidden">
+    <div className="min-h-[calc(100vh-1rem)] flex flex-col p-4 md:p-6 overflow-y-auto space-y-3">
       {/* Row 1: Header */}
       <div className="flex justify-between items-center pb-3 border-b dark:border-gray-800 shrink-0">
         <div className="flex items-center space-x-3">
@@ -317,7 +317,7 @@ export const GroupStudySession = ({
 
         {/* Group Chat Column (Column 3, taking 1/3 width, full height) */}
         {isChatOpen && (
-          <div className="lg:col-span-1 flex flex-col h-full min-h-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border dark:border-gray-700">
+          <div className="lg:col-span-1 flex flex-col h-full min-h-[450px] bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border dark:border-gray-700">
             <ChatPopup
               isOpen={isChatOpen}
               onClose={() => setIsChatOpen(false)}

@@ -25,11 +25,11 @@ export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onDe
   ];
 
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Account Settings</h3>
       </div>
-      <div className="divide-y divide-gray-50 dark:divide-gray-800">
+      <div className="divide-y divide-gray-100 dark:divide-gray-800">
         {settingsItems.map((item) => {
           const Icon = item.icon;
           return (

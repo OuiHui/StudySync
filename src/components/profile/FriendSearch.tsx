@@ -34,8 +34,8 @@ export const FriendSearch = ({
   currentUserId
 }: FriendSearchProps) => {
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Find Friends</h3>
       </div>
       <div className="p-5 space-y-4">
@@ -46,7 +46,7 @@ export const FriendSearch = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="dark:bg-gray-800/60 dark:border-gray-700 dark:text-white"
           />
           <Button 
             onClick={handleSearch} 
@@ -62,7 +62,7 @@ export const FriendSearch = ({
             {searchResults.map((result) => (
               <div 
                 key={result.id} 
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-100 dark:border-gray-700/40"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">

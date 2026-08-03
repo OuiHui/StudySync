@@ -75,10 +75,10 @@ export function Auth() {
       <div className="w-full max-w-md space-y-6">
         <AuthHeader />
 
-        <Card className="border-0 shadow-lg dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-center text-gray-800 dark:text-white">
-              Welcome to Study App
+        <Card className="border border-gray-100 dark:border-gray-700/60 shadow-xl bg-white/95 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-center text-xl font-bold text-gray-900 dark:text-white">
+              Welcome to StudySync
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -107,7 +107,7 @@ export function Auth() {
                     <Label htmlFor="password">Password</Label>
                     <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#2a78d6] hover:bg-[#2064b7] text-white font-medium shadow-sm transition-colors" disabled={loading}>
                     {loading ? 'Signing In...' : 'Sign In'}
                   </Button>
                 </form>
@@ -127,7 +127,7 @@ export function Auth() {
                     <Label htmlFor="signupPassword">Password</Label>
                     <Input id="signupPassword" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
-                  <Button type="submit" className="w-full bg-green-500 hover:bg-green-600" disabled={loading}>
+                  <Button type="submit" className="w-full bg-[#2a78d6] hover:bg-[#2064b7] text-white font-medium shadow-sm transition-colors" disabled={loading}>
                     {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </form>
@@ -135,7 +135,7 @@ export function Auth() {
             </Tabs>
 
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button onClick={handleAnonymousSignIn} variant="outline" className="w-full border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 flex items-center justify-center gap-2" disabled={loading}>
+              <Button onClick={handleAnonymousSignIn} variant="outline" className="w-full border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 flex items-center justify-center gap-2 font-medium text-gray-700 dark:text-gray-300" disabled={loading}>
                 <UserPlus size={16} />
                 {loading ? 'Signing In...' : 'Continue as Guest'}
               </Button>

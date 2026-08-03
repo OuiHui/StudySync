@@ -239,7 +239,7 @@ export const FindFriendsPage = () => {
           <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-brand rounded-full animate-spin" />
         </div>
       ) : displayedPeople.length === 0 ? (
-        <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-12 text-center">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground p-12 text-center shadow-sm">
           <Users size={32} className="text-gray-300 dark:text-gray-600 mx-auto mb-3" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {activeTab === 'my-friends'

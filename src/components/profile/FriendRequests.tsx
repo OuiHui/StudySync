@@ -26,14 +26,14 @@ export const FriendRequests = ({
   return (
     <>
       {friendRequests.length > 0 && (
-        <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Friend Requests</h3>
             <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
               {friendRequests.length}
             </span>
           </div>
-          <div className="divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {friendRequests.map((request) => {
               const name = getDisplayName(request.requester?.display_name || null, request.requester?.email || '');
               const initials = getInitials(request.requester?.display_name || null, request.requester?.email || '');
@@ -81,11 +81,11 @@ export const FriendRequests = ({
       )}
 
       {sentRequests.length > 0 && (
-        <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Sent Requests</h3>
           </div>
-          <div className="divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {sentRequests.map((request) => (
               <div key={request.id} className="flex items-center gap-3 px-5 py-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">

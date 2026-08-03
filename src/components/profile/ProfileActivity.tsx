@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const ProfileActivity = ({ activity }: { activity: any[] }) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
+    <Card className="border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm">
       <CardHeader>
         <CardTitle className="text-gray-800 dark:text-white">Recent Activity</CardTitle>
       </CardHeader>

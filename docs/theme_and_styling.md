@@ -30,6 +30,8 @@ All theme definitions, color options, and default page background styles are cen
 - **Solo Study (`StudySession.tsx`)**: Uses theme constants to ensure solo study session background styling matches the overall application theme.
 - **Group Study (`GroupStudySession.tsx`)**: Uses theme constants to ensure consistency across session views.
 
+## Panel & Card Container Styling
+- **Unified Card Fill & Border**: All major content cards and panel boxes (including Profile Overview, Session History, Account Settings, Friends lists, Dashboard cards, and Group cards) strictly use the panel card fill (`bg-card text-card-foreground`) paired with `border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl` to maintain visual consistency across all pages.
+
 ## Page & Tab Transitions
 - **Tab/Page Entrance Animations**: Page container components utilize `.animate-fade-in` (`src/App.css`). Entrance animations are set to `animation: none` to ensure instant tab switching without transition delay or motion effect.
-

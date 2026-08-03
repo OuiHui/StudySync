@@ -70,7 +70,7 @@ export const SessionHistoryList = () => {
   const { sessions, loading, isFetchingMore, hasMore, fetchMore } = useSessionHistory();
 
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-5">
+    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Clock size={16} className="text-gray-500 dark:text-gray-400" />
         <h3 className="text-sm font-semibold text-gray-800 dark:text-white">Study History</h3>
