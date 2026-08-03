@@ -41,7 +41,7 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className={PAGE_TITLE_CLASS}>Dashboard</h1>

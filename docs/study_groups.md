@@ -185,4 +185,21 @@ The Edit Study Group modal (`GroupSettingsDialog.tsx`) provides group creators/a
 - **Who Can Join**: Segmented pill toggle control switching between `"Anyone can join"` (`is_public = true`) and `"Requires approval"` (`is_public = false`).
 - **Footer**: Contains `"Cancel"` and `"Save changes"` buttons to persist updates or close the modal.
 
+---
+
+## 8. Group Page Header & Navigation Layout Specification
+
+The Study Group Details page (`GroupPage.tsx` and `GroupPageHeader.tsx`) adopts modern UI patterns inspired by popular collaboration tools (Linear, Discord, Notion, GitHub):
+
+- **Back Navigation**: Subtle pill button (`Back to Groups`) with hover styling to return to previous views.
+- **Group Icon & Title Area**: Custom group avatar icon with shadow styling alongside group title, creator crown icon, and subject pill badge (`bg-blue-500/10 text-blue-400 border border-blue-500/20`).
+- **Group Admin Metadata**: Prominent Admin display showing a Crown icon and admin name, linking directly to the admin's user profile dialog.
+- **Description Fallback**: Displays group description text or an italicized fallback string (`"No description provided for this study group."`) when empty.
+- **Header Action & Avatar Stack**:
+  - `Public` / `Private` status indicator badges.
+  - Member count badge and action triggers (`Chat Panel`, `Settings`, `Join/Leave Group`).
+  - Overlapping member avatars (`-space-x-2`) with hover scaling transitions (`hover:scale-110`) and "+N" overflow badge.
+- **Standardized Sub-Navigation**: Integrates the application's shared `PageTabs` component for `Sessions ({count})`, `Notes`, and `Members ({count})`.
+
+
 

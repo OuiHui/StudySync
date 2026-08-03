@@ -28,3 +28,7 @@ All theme definitions, color options, and default page background styles are cen
 - **Main Layout (`MainLayout.tsx`)**: Wraps application sub-views with the active theme background gradient.
 - **Solo Study (`StudySession.tsx`)**: Uses theme constants to ensure solo study session background styling matches the overall application theme.
 - **Group Study (`GroupStudySession.tsx`)**: Uses theme constants to ensure consistency across session views.
+
+## Page & Tab Transitions
+- **Tab/Page Entrance Animations**: Page container components utilize `.animate-fade-in` (`src/App.css`). Entrance animations are set to `animation: none` to ensure instant tab switching without transition delay or motion effect.
+

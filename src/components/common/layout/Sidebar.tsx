@@ -58,7 +58,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-card text-card-foreground shadow-lg transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'
+    <div className={`fixed left-0 top-0 h-full bg-card text-card-foreground shadow-lg transition-[width] duration-300 ${isOpen ? 'w-64' : 'w-16'
       } z-40`}>
       {/* Header */}
       <div className="p-4 border-b border-border">
@@ -116,7 +116,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
         {import.meta.env.DEV && (
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('toggle-sim-console'))}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-all text-xs font-semibold ${
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-colors text-xs font-semibold ${
               isOpen ? 'w-full' : 'w-10 h-10 p-0 rounded-full mx-auto'
             }`}
             title="Open Simulation Console"
@@ -125,7 +125,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
             {isOpen && <span>Sim Console</span>}
           </button>
         )}
-        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-300 ${
+        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-[width,padding] duration-300 ${
           isOpen ? 'p-3 w-full' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
         }`}>
           <div className={`flex items-center w-full ${isOpen ? 'justify-between' : 'justify-center'}`}>

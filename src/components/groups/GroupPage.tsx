@@ -9,6 +9,7 @@ import { GroupSettingsDialog } from '@/components/groups/GroupSettingsDialog';
 import { StudySessionsService, StudyGroupsService } from '@/services/database';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroupData } from '@/hooks/useGroupData';
+import { PageTabs } from '@/components/common/navigation/PageTabs';
 import { GroupPageHeader } from './GroupPageHeader';
 import { GroupSessionsTab } from './GroupSessionsTab';
 import { GroupMembersTab } from './GroupMembersTab';
@@ -180,7 +181,7 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <GroupPageHeader 
         group={group} 
         enrolled={enrolled} 
@@ -222,24 +223,15 @@ export const GroupPage = ({ groupId, onBack, onUpdateEnrollment }: GroupPageProp
             </div>
           ) : (
             <>
-              <div className="flex space-x-6 border-b dark:border-gray-800 pb-3 mb-6">
-                {['sessions', 'notes', 'members'].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`relative pb-3 text-sm font-semibold transition-colors ${
-                      activeTab === tab
-                        ? 'text-blue-500 dark:text-blue-400'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    {activeTab === tab && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full" />
-                    )}
-                  </button>
-                ))}
-              </div>
+              <PageTabs
+                tabs={[
+                  { id: 'sessions', label: 'Sessions', count: sessions.length },
+                  { id: 'notes', label: 'Notes' },
+                  { id: 'members', label: 'Members', count: members.length },
+                ]}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
 
               {activeTab === 'sessions' && (
                 <GroupSessionsTab sessions={sessions} attendingSessions={attendingSessions} onAttendSession={handleAttendSession} onCancelSession={handleCancelSession} />

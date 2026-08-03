@@ -137,7 +137,7 @@ export const MainLayout = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${getBackgroundGradient()} flex transition-all duration-1000 ease-in-out`} style={{
+    <div className={`min-h-screen bg-gradient-to-br ${getBackgroundGradient()} flex transition-colors duration-1000 ease-in-out`} style={{
       '--box-bg': currentTheme.primary + '10',
       '--box-border': currentTheme.primary + '30',
       '--accent': currentTheme.primary
@@ -149,7 +149,7 @@ export const MainLayout = () => {
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
+      <main className={`flex-1 transition-[margin-left] duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
         {!isSessionPage ? (
           <div className="p-6">
             <div className="max-w-7xl mx-auto">

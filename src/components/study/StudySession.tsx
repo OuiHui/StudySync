@@ -166,7 +166,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
 
   return (
     <div className="p-6 overflow-y-auto min-h-[calc(100vh-2rem)] flex flex-col justify-center items-center">
-      <div className="max-w-3xl w-full space-y-6 animate-fade-in flex flex-col items-center">
+      <div className="max-w-3xl w-full space-y-6 flex flex-col items-center">
         {showCompletionEffect && (
           <div className="fixed inset-0 bg-green-500/20 dark:bg-green-400/20 flex items-center justify-center z-50 animate-fade-in">
             <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center">

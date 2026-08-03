@@ -78,7 +78,7 @@ export const Profile = () => {
   }
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5">
       <div className="flex justify-between items-center">
         <h1 className={PAGE_TITLE_CLASS}>Profile</h1>
         <Button

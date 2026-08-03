@@ -161,7 +161,7 @@ export const FindFriendsPage = () => {
   const displayedPeople = activeTab === 'my-friends' ? myFriendsList : browsePeople;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className={PAGE_TITLE_CLASS}>Friends</h1>

@@ -58,7 +58,7 @@ export default function Groups() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Title */}
       <div>
         <h1 className={PAGE_TITLE_CLASS}>Study Groups</h1>

@@ -30,7 +30,7 @@ export const Notes = () => {
   } = notesState;
 
   return (
-    <div className="space-y-6 animate-fade-in w-full max-w-full overflow-x-hidden">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Header with Title, Create/Upload buttons, Shared PageTabs, Search, Clear Filters, and Sorting */}
       <NotesHeader {...notesState} />
 
