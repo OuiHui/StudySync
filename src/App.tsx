@@ -26,6 +26,9 @@ import Profile from "@/pages/Profile";
 import Friends from "@/pages/Friends";
 import Messages from "@/pages/Messages";
 import { SimulationConsole } from "@/components/common/developer/SimulationConsole";
+import { handleOAuthErrorRedirect } from "@/utils/oauthHandler";
+
+handleOAuthErrorRedirect();
 
 const queryClient = new QueryClient();
 

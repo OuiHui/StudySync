@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus } from 'lucide-react';
 import { AuthHeader } from './AuthHeader';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { getAndClearStoredOAuthError } from '@/utils/oauthHandler';
 
 export function Auth() {
   const [email, setEmail] = useState('');
@@ -19,6 +20,13 @@ export function Auth() {
   const [message, setMessage] = useState('');
   
   const { signIn, signUp, signInWithGoogle, signInAnonymously } = useAuth();
+
+  useEffect(() => {
+    const oauthErrorMsg = getAndClearStoredOAuthError();
+    if (oauthErrorMsg) {
+      setError(oauthErrorMsg);
+    }
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();

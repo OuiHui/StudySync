@@ -1,10 +1,17 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { handleOAuthErrorRedirect } from "@/utils/oauthHandler";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
+    const errorMsg = handleOAuthErrorRedirect();
+    if (errorMsg) {
+      window.location.hash = '#/auth';
+      return;
+    }
+
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname
