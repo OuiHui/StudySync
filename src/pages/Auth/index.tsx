@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus } from 'lucide-react';
 import { AuthHeader } from './AuthHeader';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 export function Auth() {
   const [email, setEmail] = useState('');
@@ -17,7 +18,7 @@ export function Auth() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
-  const { signIn, signUp, signInAnonymously } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInAnonymously } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +44,15 @@ export function Auth() {
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    const { error } = await signInWithGoogle();
+    if (error) setError(error.message);
+    setLoading(false);
+  };
+
   const handleAnonymousSignIn = async () => {
     setLoading(true);
     setError('');
@@ -63,8 +73,17 @@ export function Auth() {
               Welcome to Study App
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+          <CardContent className="space-y-4">
+            <GoogleAuthButton onClick={handleGoogleSignIn} loading={loading} />
+
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-gray-200 dark:border-gray-700 w-full" />
+              <span className="bg-white dark:bg-gray-800 px-3 text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider absolute">
+                Or continue with
+              </span>
+            </div>
+
+            <Tabs defaultValue="signin" className="w-full pt-1">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
