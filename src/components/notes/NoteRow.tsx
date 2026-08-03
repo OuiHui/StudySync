@@ -143,20 +143,21 @@ export const NoteRow = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => onViewNote(note)}>
+              <DropdownMenuItem onSelect={() => onViewNote(note)} onPointerDown={() => onViewNote(note)}>
                 <Eye size={14} className="mr-2" /> View Note
               </DropdownMenuItem>
               {note.isMine && (
                 <>
-                  <DropdownMenuItem onClick={() => onShareNote(note)}>
+                  <DropdownMenuItem onSelect={() => onShareNote(note)} onPointerDown={() => onShareNote(note)}>
                     <Share2 size={14} className="mr-2" /> Share
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEditNote(note)}>
+                  <DropdownMenuItem onSelect={() => onEditNote(note)} onPointerDown={() => onEditNote(note)}>
                     <Edit2 size={14} className="mr-2" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onDeleteNote(note)}
+                    onSelect={() => onDeleteNote(note)}
+                    onPointerDown={() => onDeleteNote(note)}
                     className="text-red-600 dark:text-red-400"
                   >
                     <Trash2 size={14} className="mr-2" /> Delete

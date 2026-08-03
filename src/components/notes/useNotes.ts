@@ -386,12 +386,21 @@ export const useNotes = () => {
     }
   };
 
+  const [deletingNoteIds, setDeletingNoteIds] = useState<Set<string>>(new Set());
+
   const handleDeleteNote = async (note: any) => {
+    if (!note?.id || deletingNoteIds.has(note.id)) return;
+    setDeletingNoteIds(prev => new Set(prev).add(note.id));
+
     try {
+      queryClient.setQueryData(['notes', 'user', user?.id], (old: any[] | undefined) =>
+        old ? old.filter(n => n.id !== note.id) : []
+      );
       await NotesService.deleteNote(note.id);
       toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
       refreshData();
     } catch (err) {
+      refreshData();
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
         toast({ title: 'Session Expired', description: 'Your session has expired. Redirecting...', variant: 'destructive' });
@@ -399,6 +408,12 @@ export const useNotes = () => {
       } else {
         toast({ title: 'Delete Failed', description: errorMessage, variant: 'destructive' });
       }
+    } finally {
+      setDeletingNoteIds(prev => {
+        const next = new Set(prev);
+        next.delete(note.id);
+        return next;
+      });
     }
   };
 

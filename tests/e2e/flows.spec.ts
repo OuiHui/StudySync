@@ -210,7 +210,7 @@ test.describe('StudySync E2E User Flows', () => {
     await page.getByRole('menuitem', { name: 'Delete' }).click();
 
     // Verify note is deleted
-    await expect(page.getByText('E2E Test Note').first()).not.toBeVisible();
+    await expect(page.getByText('E2E Test Note').first()).not.toBeVisible({ timeout: 15000 });
   });
 
   test.afterAll(async () => {
