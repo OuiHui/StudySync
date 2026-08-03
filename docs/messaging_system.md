@@ -13,7 +13,18 @@ Conversations in the Messaging Tab are strictly separated into two distinct cate
 - **Direct Messages**: 1-on-1 private conversations between friends / individual people (`is_group_chat = false`).
 - **Deep Linking / Direct Navigation**: Navigating to `/messages?userId=<target_user_id>` (such as when clicking "Message" on a friend card or profile dialog on the Friends page) automatically switches to the Direct Messages tab, retrieves or creates the 1-on-1 conversation with `<target_user_id>`, and selects it in the chat workspace. Upon selecting the conversation, the `userId` query parameter is cleared from the URL via `setSearchParams({}, { replace: true })`, ensuring user clicks on other chats in the sidebar switch active conversations seamlessly.
 
-### 2. Active Group Study Session Indicators & Banner
+### 2. iOS-Standard Conversation Sidebar Timestamps
+Left panel sidebar conversation timestamps are formatted using `formatSidebarTimestamp` to adhere to iOS messaging standards:
+- **Today**: Formatted as 12-hour time without leading zeroes or seconds (e.g., `9:41 AM`).
+- **Yesterday**: Displayed as `"Yesterday"`.
+- **Within 2 to 6 days ago**: Displayed as the full day of the week (e.g., `"Monday"`).
+- **Older than 6 days**: Displayed as a short date string (e.g., `8/2/26`).
+
+### 3. Study Group Page Navigation
+- **Clickable Header Title & Avatar**: In the chat panel top header for group conversations, the study group avatar and name are clickable and navigate directly to `/groups?groupId=<group_id>`.
+- **"View Group" Action Button**: A dedicated button featuring `BookOpen` and `ExternalLink` icons appears on the right side of the active group chat header bar, enabling users to jump straight to the full Study Group page.
+
+### 4. Active Group Study Session Indicators & Banner
 - **Active Indicator on Group Icon**: When a study group has a live group study session in progress (`study_sessions.status IN ('active', 'running', 'scheduled')`), a pulsing green status dot is rendered on the group avatar in the left-hand conversation sidebar.
 - **Top Join Popup / Banner**: Inside the active chat area for a study group with an ongoing live session, `ActiveSessionBanner` appears at the top. It displays the session title, host details, participant count, and a direct "Join Session" CTA button navigating to `/group-study-session?id=<session_id>`.
 

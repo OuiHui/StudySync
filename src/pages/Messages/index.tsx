@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Users, 
@@ -13,7 +13,8 @@ import {
   BookOpen, 
   Video,
   X,
-  ChevronLeft
+  ChevronLeft,
+  ExternalLink
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { isValidImageUrl } from '@/lib/utils';
+import { isValidImageUrl, formatSidebarTimestamp } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -71,6 +72,7 @@ export const Messages: React.FC = () => {
   const [newChatTab, setNewChatTab] = useState<'direct' | 'groups'>('direct');
   const [mobileShowChat, setMobileShowChat] = useState(false);
 
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const targetUserIdParam = searchParams.get('userId');
 
@@ -485,7 +487,7 @@ export const Messages: React.FC = () => {
                         </h4>
                         {conv.latestMessage && (
                           <span className="text-[10px] text-gray-400 shrink-0 ml-1">
-                            {new Date(conv.latestMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatSidebarTimestamp(conv.latestMessage.createdAt)}
                           </span>
                         )}
                       </div>
@@ -538,41 +540,72 @@ export const Messages: React.FC = () => {
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
 
-                  <div className="relative">
-                    <Avatar className="w-9 h-9 border border-gray-200 dark:border-gray-700">
-                      {selectedConversation.avatarUrl && (
-                        <AvatarImage src={selectedConversation.avatarUrl} alt={selectedConversation.name} />
-                      )}
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
-                        {selectedConversation.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                  <div
+                    onClick={() => {
+                      if (selectedConversation.isGroupChat && selectedConversation.groupId) {
+                        navigate(`/groups?groupId=${selectedConversation.groupId}`);
+                      }
+                    }}
+                    className={`flex items-center gap-3 ${
+                      selectedConversation.isGroupChat && selectedConversation.groupId
+                        ? 'cursor-pointer group hover:opacity-90 transition-opacity'
+                        : ''
+                    }`}
+                    title={
+                      selectedConversation.isGroupChat && selectedConversation.groupId
+                        ? `Click to view ${selectedConversation.name} group page`
+                        : undefined
+                    }
+                  >
+                    <div className="relative">
+                      <Avatar className="w-9 h-9 border border-gray-200 dark:border-gray-700">
+                        {selectedConversation.avatarUrl && (
+                          <AvatarImage src={selectedConversation.avatarUrl} alt={selectedConversation.name} />
+                        )}
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
+                          {selectedConversation.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
 
-                    {selectedConversation.isGroupChat && selectedConversation.activeSession && (
-                      <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 animate-pulse"></span>
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                      {selectedConversation.name}
-                      {selectedConversation.isGroupChat ? (
-                        <Badge variant="secondary" className="text-[10px] font-normal py-0">
-                          Group Chat
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] font-normal py-0 text-blue-500 border-blue-500/30">
-                          Direct
-                        </Badge>
+                      {selectedConversation.isGroupChat && selectedConversation.activeSession && (
+                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 animate-pulse"></span>
                       )}
-                    </h3>
-                    {selectedConversation.groupSubject && (
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                        Subject: {selectedConversation.groupSubject}
-                      </p>
-                    )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <span>{selectedConversation.name}</span>
+                        {selectedConversation.isGroupChat ? (
+                          <Badge variant="secondary" className="text-[10px] font-normal py-0">
+                            Group Chat
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] font-normal py-0 text-blue-500 border-blue-500/30">
+                            Direct
+                          </Badge>
+                        )}
+                      </h3>
+                      {selectedConversation.groupSubject && (
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                          Subject: {selectedConversation.groupSubject}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
+                {selectedConversation.isGroupChat && selectedConversation.groupId && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/groups?groupId=${selectedConversation.groupId}`)}
+                    className="gap-1.5 text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">View Group</span>
+                    <ExternalLink className="w-3 h-3 text-gray-400" />
+                  </Button>
+                )}
               </div>
 
               {/* Active Group Study Session Banner / Popup */}
