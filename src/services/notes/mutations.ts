@@ -77,8 +77,7 @@ export class NotesMutations {
       const { error } = await supabase
         .from('notes')
         .delete()
-        .eq('id', id)
-        .eq('created_by', session.user.id);
+        .eq('id', id);
 
       if (error) {
         handleDbError(error, 'delete note');

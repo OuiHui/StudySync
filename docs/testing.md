@@ -48,8 +48,8 @@ StudySync implements a multi-tiered testing strategy:
     *   **Flow C Test**: Simulates solo study, updates the work timer to 30 minutes, starts it, pauses, and resets it.
     *   **Flow D Test**: Creates a test group named `'E2E Test Group'`, searches for it, and confirms it displays.
     *   **Flow E Test**: Creates an upcoming group study session named `'E2E Session'` scheduled for tomorrow.
-    *   **Flow F Test**: Creates a note named `'E2E Test Note'`, asserts its presence in the notes grid, clicks delete, and verifies its removal.
-    *   *Includes database teardown in `afterAll()` to remove E2E test data.*
+    *   **Flow F Test**: Creates a note with a unique timestamped title (`E2E Test Note <timestamp>`), asserts its presence in the notes table, deletes it via the row actions dropdown, and verifies its removal.
+    *   *Includes database teardown in `afterAll()` and `scripts/cleanup-e2e.js` to remove orphaned E2E study groups, sessions, and notes.*
 
 ### B. Unit & Integration Tests (Vitest)
 *   **[profile.test.ts](src/services/profile.test.ts)**:

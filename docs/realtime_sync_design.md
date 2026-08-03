@@ -63,7 +63,7 @@ The timer synchronization is **Host-Led** by default, backed by the server time 
 
 1. **Host-Led Control**: The user who created the session acts as the controller. Only the Host can trigger play, pause, resume, and skip operations.
 2. **Database-Backed Truth**: Whenever the Host alters the timer state, the change is written to `study_sessions` table in PostgreSQL. Because PostgreSQL assigns timestamps using server-side clocks (`now()`), this acts as a shared clock reference.
-3. **Realtime Broadcast Pipeline**: To ensure instantaneous UI responses, the Host broadcasts tick events to the channel every 3 seconds during an active countdown. See the core data attributes in [study_sessions_concept.md](docs/study_sessions_concept.md#L27-L46).
+3. **Realtime Broadcast Pipeline**: To ensure instantaneous UI responses while minimizing WebSocket server load, state changes (play/pause/mode switch) and roster updates trigger immediate broadcasts, while periodic heartbeat ticks during active countdowns occur every 10 seconds. See the core data attributes in [study_sessions_concept.md](docs/study_sessions_concept.md#L27-L46).
 
 ### B. State Updates and Payloads
 

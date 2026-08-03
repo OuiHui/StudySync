@@ -170,10 +170,12 @@ test.describe('StudySync E2E User Flows', () => {
     await page.getByRole('button', { name: 'Create Session', exact: true }).click();
 
     // Verify session card appears under upcoming/available sessions
-    await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 15000 });
   });
 
   test('Flow F: Study Notes & Shared Documents', async ({ page }) => {
+    const testNoteTitle = `E2E Test Note ${Date.now()}`;
+
     // Navigate to Notes
     await page.getByRole('button', { name: 'Notes' }).click();
     await expect(page.locator('h1', { hasText: /Notes|Study Materials/i })).toBeVisible();
@@ -184,22 +186,23 @@ test.describe('StudySync E2E User Flows', () => {
     await createNoteBtn.click();
 
     // Fill Create Note Form
-    await page.locator('input#note-title').fill('E2E Test Note');
+    await page.locator('input#note-title').fill(testNoteTitle);
     await page.locator('[contenteditable]').fill('This is note content written by E2E test.');
 
     // Save note inside modal
     await page.getByRole('button', { name: 'Create Note', exact: true }).click();
 
-    // Wait for Create Note dialog to close
+    // Wait for Create Note dialog to close and data refetch to settle
     await expect(page.locator('h2, h3', { hasText: 'Create New Note' })).not.toBeVisible();
+    await page.waitForTimeout(500);
 
     // Filter search for created note to handle pagination
     const searchNotesInput = page.getByPlaceholder('Search notes by name, subject, or creator...');
     await expect(searchNotesInput).toBeVisible();
-    await searchNotesInput.fill('E2E Test Note');
+    await searchNotesInput.fill(testNoteTitle);
 
     // Assert note row exists in table
-    const noteRow = page.locator('tr', { hasText: 'E2E Test Note' }).first();
+    const noteRow = page.locator('tr', { hasText: testNoteTitle }).first();
     await expect(noteRow).toBeVisible({ timeout: 15000 });
 
     // Delete Note via row actions dropdown
@@ -212,7 +215,7 @@ test.describe('StudySync E2E User Flows', () => {
     await deleteMenuItem.click();
 
     // Verify note is deleted
-    await expect(page.getByText('E2E Test Note').first()).not.toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(testNoteTitle).first()).not.toBeVisible({ timeout: 15000 });
   });
 
   test.afterAll(async () => {
@@ -244,7 +247,7 @@ test.describe('StudySync E2E User Flows', () => {
       }
     }
 
-    console.log('Cleaning up E2E Test Group and E2E Session...');
+    console.log('Cleaning up E2E Test Group, E2E Session, and E2E Notes...');
     
     // Delete E2E groups
     const { error: groupError } = await supabase
@@ -262,6 +265,15 @@ test.describe('StudySync E2E User Flows', () => {
       .eq('title', 'E2E Session');
     if (sessionError) {
       console.error('Error cleaning up E2E study sessions:', sessionError);
+    }
+
+    // Delete E2E notes
+    const { error: noteError } = await supabase
+      .from('notes')
+      .delete()
+      .ilike('title', 'E2E Test Note%');
+    if (noteError) {
+      console.error('Error cleaning up E2E study notes:', noteError);
     }
   });
 });

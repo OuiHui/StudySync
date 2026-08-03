@@ -78,11 +78,23 @@ async function main() {
       console.log(`Deleted ${sessions?.length || 0} E2E study session(s).`);
     }
     
+    // Delete E2E notes
+    const { data: notes, error: noteError } = await supabase
+      .from('notes')
+      .delete()
+      .ilike('title', 'E2E Test Note%')
+      .select();
+    if (noteError) {
+      console.error('Error cleaning up E2E study notes:', noteError.message);
+    } else {
+      console.log(`Deleted ${notes?.length || 0} E2E study note(s).`);
+    }
+    
     console.log('\nTIP: To make cleanups bypass Row Level Security (RLS) and delete older orphaned sessions,');
     console.log('run the SQL migration in: supabase/migrations/20260706000000_cleanup_e2e_rpc.sql');
     console.log('in your Supabase Dashboard SQL Editor.');
   } else {
-    console.log('RPC database cleanup completed successfully (all E2E Test Groups and E2E Sessions deleted).');
+    console.log('RPC database cleanup completed successfully (all E2E Test Groups, Sessions, and Notes deleted).');
   }
 }
 

@@ -15,13 +15,12 @@ async function populateNoteProfiles(notes: any[]) {
     return notes.map(note => ({ ...note, profiles: null }));
   }
 
-  return notes.map(note => {
-    const profile = profiles?.find(p => p.user_id === note.created_by);
-    return {
-      ...note,
-      profiles: profile || null
-    };
-  });
+  const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+  return notes.map(note => ({
+    ...note,
+    profiles: profilesMap.get(note.created_by) || null
+  }));
 }
 
 async function populateNoteGroupShares(notes: any[]) {
@@ -38,8 +37,15 @@ async function populateNoteGroupShares(notes: any[]) {
     return notes;
   }
 
+  const sharesMap = new Map<string, any[]>();
+  (shares as any[])?.forEach(share => {
+    const list = sharesMap.get(share.note_id) || [];
+    list.push(share);
+    sharesMap.set(share.note_id, list);
+  });
+
   return notes.map(note => {
-    const noteShares = (shares as any[])?.filter(s => s.note_id === note.id) || [];
+    const noteShares = sharesMap.get(note.id) || [];
     const firstShare = noteShares[0];
     const group_id = firstShare?.group_id || note.group_id || null;
     const study_group = firstShare?.study_groups || null;

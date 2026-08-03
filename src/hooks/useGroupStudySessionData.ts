@@ -442,7 +442,7 @@ export const useGroupStudySessionData = () => {
     const shouldBroadcast = 
       stateChanged ||
       onlineCountChanged ||
-      now - lastBroadcastRef.current >= 3000 ||
+      now - lastBroadcastRef.current >= 10000 ||
       timeLeft === 0;
 
     if (shouldBroadcast) {

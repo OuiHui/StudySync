@@ -377,6 +377,12 @@ export const useNotes = () => {
       if (newNoteData.group_id && createdNote?.id) {
         await NotesService.shareNoteWithGroups?.(createdNote.id, [newNoteData.group_id]);
       }
+      if (createdNote) {
+        queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+          if (!Array.isArray(old)) return [createdNote];
+          return [createdNote, ...old];
+        });
+      }
       toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
       setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
       setIsCreateDialogOpen(false);
