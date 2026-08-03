@@ -1,5 +1,6 @@
 import { Mail, Calendar, GraduationCap } from 'lucide-react';
 import { UserProfile } from '@/hooks/useProfileData';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface ProfileOverviewProps {
   profile: UserProfile;
@@ -39,7 +40,7 @@ export const ProfileOverview = ({ profile }: ProfileOverviewProps) => {
         {/* Avatar */}
         <div className="flex-shrink-0">
           <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}>
-            {profile.avatar_url ? (
+            {profile.avatar_url && isValidImageUrl(profile.avatar_url) ? (
               <img
                 src={profile.avatar_url}
                 alt="Profile"

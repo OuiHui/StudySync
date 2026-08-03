@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Person, FriendEntry } from './types';
+import { isValidImageUrl } from '@/lib/utils';
 import { getInitials, getAvatarColor } from './avatarUtils';
 import { ActionButton } from './ActionButton';
 import { SessionEntry } from './usePersonProfileData';
@@ -74,7 +75,7 @@ export const ProfileView = ({
         <div
           className={`w-16 h-16 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 shadow-md`}
         >
-          {person.avatar ? (
+          {person.avatar && isValidImageUrl(person.avatar) ? (
             <img src={person.avatar} alt={person.name} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-white text-2xl font-bold">{person.initials}</span>
@@ -157,7 +158,7 @@ export const ProfileView = ({
                     className={`w-9 h-9 rounded-full ${bgClass} text-white flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform focus:outline-none`}
                     title={f.display_name}
                   >
-                    {f.avatar_url ? (
+                    {f.avatar_url && isValidImageUrl(f.avatar_url) ? (
                       <img src={f.avatar_url} alt={f.display_name} className="w-full h-full rounded-full object-cover" />
                     ) : (
                       <span className="text-white text-xs font-bold">{ini}</span>

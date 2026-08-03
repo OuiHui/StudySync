@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface NoteRowProps {
   note: any;
@@ -62,7 +63,7 @@ export const NoteRow = ({
       {/* Created By */}
       <td className="py-3 px-3">
         <div className="flex items-center space-x-1.5">
-          {note.avatarUrl ? (
+          {note.avatarUrl && isValidImageUrl(note.avatarUrl) ? (
             <img
               src={note.avatarUrl}
               alt={note.author}

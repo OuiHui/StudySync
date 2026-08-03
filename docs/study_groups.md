@@ -19,7 +19,7 @@ A Study Group is a shared space for multiple users to coordinate sessions, chat,
 | `subject` | `String` (Optional) | Category or course/subject (e.g., `"Computer Science"`, `"Mathematics"`). |
 | `is_public` | `Boolean` | Visibility status: `true` for public, `false` for private/invite-only. |
 | `max_members` | `Integer` (Optional)| Maximum size limit of the group. |
-| `icon` | `String` | Icon key or data URL used for the group's visual avatar. |
+| `icon` | `String` | Icon key (e.g. `'Users'`, `'Atom'`) or data URL/HTTP URL used for the group's visual avatar. UI components use `isValidImageUrl` to distinguish image URLs from Lucide icon keys to prevent 404 network GET requests. |
 | `color` | `String` | Tailwind-compatible CSS gradient or color class for the group's card styling. |
 | `created_by` | `UUID` | Reference to `profiles.user_id` of the group creator. |
 | `created_at` | `Timestamp` | Timestamp when the group was created. |

@@ -8,6 +8,7 @@ import { FriendsService, StudyGroupsService } from '@/services/database';
 import { InviteFriendsDialog } from '../friends/InviteFriendsDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { isValidImageUrl } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -126,7 +127,7 @@ export const GroupMembersTab = ({
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  {member.avatar ? (
+                  {member.avatar && isValidImageUrl(member.avatar) ? (
                     <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover shrink-0" />
                   ) : (
                     <div className={`w-12 h-12 ${isAdmin ? 'bg-yellow-500' : 'bg-blue-500'} rounded-full flex items-center justify-center shrink-0`}>

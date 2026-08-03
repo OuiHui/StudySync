@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
 import { EditSessionDialog } from '@/components/study/EditSessionDialog';
 import { StudySessionsService } from '@/services/database';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface SessionDetailsPopupProps {
   isOpen: boolean;
@@ -126,7 +127,7 @@ export const SessionDetailsPopup = ({
       >
         <div className="flex items-center space-x-2 min-w-0">
           <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 transition-transform ${getAvatarColorClass(pName)} ${isSelf ? '' : 'group-hover:scale-105 active:scale-95'}`}>
-            {p.profiles?.avatar_url ? (
+            {p.profiles?.avatar_url && isValidImageUrl(p.profiles.avatar_url) ? (
               <img src={p.profiles.avatar_url} alt={pName} className="w-full h-full rounded-full object-cover" />
             ) : (
               pInitials

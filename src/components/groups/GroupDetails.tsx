@@ -2,6 +2,7 @@
 import { Users, BookOpen, MessageSquare, Calendar, Calculator, Atom, Code, Globe, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface GroupDetailsProps {
   group: any;
@@ -31,7 +32,7 @@ export const GroupDetails = ({ group, onClose, onOpenChat }: GroupDetailsProps) 
   // Helper function to render icon (library icon or custom image)
   const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
     // Check if it's a custom image (data URI or URL)
-    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+    if (isValidImageUrl(iconValue)) {
       return (
         <img 
           src={iconValue} 

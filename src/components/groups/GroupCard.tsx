@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, Crown, Settings, BookOpen, MessageSquare, Calendar, Globe, Lock, ArrowRight, Calculator, Atom, Code, Music, Camera, Heart, Star, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface GroupCardProps {
   group: any;
@@ -103,7 +104,7 @@ export const GroupCard = ({
 
   // Helper function to render group icon
   const renderGroupIcon = (iconValue: string, size: number = 20, className: string = "text-white") => {
-    if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+    if (isValidImageUrl(iconValue)) {
       return (
         <img 
           src={iconValue} 

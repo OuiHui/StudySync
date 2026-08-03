@@ -2,6 +2,7 @@ import { ArrowLeft, Settings, Crown, UserMinus, UserCheck, Users, Calculator, At
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProfileModal } from '@/contexts/UserProfileModalContext';
+import { isValidImageUrl } from '@/lib/utils';
 
 const getIconComponent = (iconName: string) => {
   const iconMap: { [key: string]: any } = {
@@ -11,7 +12,7 @@ const getIconComponent = (iconName: string) => {
 };
 
 const renderGroupIcon = (iconValue: string, size: number = 24, className: string = "text-white") => {
-  if (iconValue && (iconValue.startsWith('data:') || iconValue.startsWith('http'))) {
+  if (isValidImageUrl(iconValue)) {
     return (
       <img 
         src={iconValue} 
@@ -162,7 +163,7 @@ export const GroupPageHeader = ({
                   .toUpperCase()
                   .substring(0, 2);
                 const bgColors = ['bg-purple-600', 'bg-blue-600', 'bg-red-600'];
-                return member.avatar ? (
+                return member.avatar && isValidImageUrl(member.avatar) ? (
                   <button
                     key={member.id}
                     onClick={() => openProfile(member.id)}

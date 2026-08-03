@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Person } from './types';
 import { getAvatarColor } from './avatarUtils';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface PersonCardProps {
   person: Person;
@@ -37,7 +38,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
         <div
           className={`w-11 h-11 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 shadow-sm`}
         >
-          {person.avatar ? (
+          {person.avatar && isValidImageUrl(person.avatar) ? (
             <img src={person.avatar} alt={person.name} className="w-full h-full rounded-full object-cover" />
           ) : (
             <span className="text-white text-sm font-bold">{person.initials}</span>

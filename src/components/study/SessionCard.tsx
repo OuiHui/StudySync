@@ -2,6 +2,7 @@ import { Calendar, Clock, Eye, Globe, Lock, Play, Star, Users, Edit } from 'luci
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EditSessionDialog } from '@/components/study/EditSessionDialog';
+import { isValidImageUrl } from '@/lib/utils';
 
 export interface StudySessionCardData {
   id: string;
@@ -137,7 +138,7 @@ export const SessionCard = ({
             className="flex items-center space-x-2 mt-3 text-left focus:outline-none cursor-pointer group"
           >
             <div className="relative w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white border border-indigo-700/10 group-hover:scale-105 active:scale-95 transition-transform">
-              {session.hostAvatarUrl ? (
+              {session.hostAvatarUrl && isValidImageUrl(session.hostAvatarUrl) ? (
                 <img src={session.hostAvatarUrl} alt={session.hostName} className="w-full h-full rounded-full object-cover" />
               ) : (
                 session.hostInitials

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { FriendEntry } from './types';
 import { getInitials, getAvatarColor } from './avatarUtils';
 import { FriendsService } from '@/services/database';
+import { isValidImageUrl } from '@/lib/utils';
 
 interface FriendsListViewProps {
   targetUserId: string;
@@ -155,7 +156,7 @@ export const FriendsListView = ({
                   <div
                     className={`w-11 h-11 rounded-full ${avatarBg} text-white flex items-center justify-center shrink-0 group-hover:scale-105 active:scale-95 transition-transform`}
                   >
-                    {friend.avatar_url ? (
+                    {friend.avatar_url && isValidImageUrl(friend.avatar_url) ? (
                       <img
                         src={friend.avatar_url}
                         alt={friend.display_name}

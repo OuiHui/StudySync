@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ChatService, StudySessionsService, StudyGroupsService, FriendsService } from '@/services/database';
 import { MOCK_USERS } from '@/services/simulation';
+import { isValidImageUrl } from '@/lib/utils';
 
 export interface FormattedConversation {
   id: string;
@@ -91,7 +92,11 @@ export function useMessagingData() {
           isGroupChat: true,
           groupId: cData.group_id,
           name: cData.name || matchingGroup?.name || 'Study Group',
-          avatarUrl: matchingGroup?.icon || (matchingGroup as any)?.avatar_url || null,
+          avatarUrl: isValidImageUrl((matchingGroup as any)?.avatar_url) 
+            ? (matchingGroup as any)?.avatar_url 
+            : isValidImageUrl(matchingGroup?.icon) 
+              ? matchingGroup?.icon 
+              : null,
           groupSubject: matchingGroup?.subject || null,
           latestMessage: {
             id: cData.latest_message.id,

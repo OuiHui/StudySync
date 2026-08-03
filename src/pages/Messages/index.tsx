@@ -22,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { isValidImageUrl } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -275,7 +276,13 @@ export const Messages: React.FC = () => {
           isGroupChat: true,
           groupId: group.id,
           name: group.name,
-          avatarUrl: group.image_url || group.avatar_url || null,
+          avatarUrl: isValidImageUrl(group.image_url) 
+            ? group.image_url 
+            : isValidImageUrl(group.avatar_url) 
+              ? group.avatar_url 
+              : isValidImageUrl(group.icon) 
+                ? group.icon 
+                : null,
           groupSubject: group.subject || null,
           latestMessage: null,
           activeSession: activeSessionsMap[group.id] || null,
@@ -790,8 +797,8 @@ export const Messages: React.FC = () => {
                     className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors text-left"
                   >
                     <Avatar className="w-8 h-8 border">
-                      {(group.image_url || group.avatar_url) && (
-                        <AvatarImage src={group.image_url || group.avatar_url} alt={group.name} />
+                      {isValidImageUrl(group.image_url || group.avatar_url || group.icon) && (
+                        <AvatarImage src={(group.image_url || group.avatar_url || group.icon)!} alt={group.name} />
                       )}
                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
                         {group.name.slice(0, 2).toUpperCase()}
