@@ -27,6 +27,10 @@ export const EditNoteDialog = ({
     title: editForm.title || editingNote.title,
     content: editForm.content ?? editingNote.content,
     subject: editForm.subject ?? editingNote.subject,
+    profiles: editingNote.profiles ? {
+      display_name: editingNote.profiles.display_name,
+      avatar_url: editingNote.profiles.avatar_url || ''
+    } : undefined
   };
 
   const handleSave = async (noteId: string, updates: { title: string; content: string; subject: string }) => {

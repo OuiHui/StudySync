@@ -34,30 +34,28 @@ export const usePersonProfileData = (
     let active = true;
 
     // Fetch friends preview
-    supabase
-      .rpc('get_user_friends', {
-        target_user_id: personId,
-        current_user_id: currentUserId,
-      })
-      .then(({ data, error }) => {
+    Promise.resolve((supabase.rpc as any)('get_user_friends', {
+      target_user_id: personId,
+      current_user_id: currentUserId,
+    }))
+      .then(({ data, error }: any) => {
         if (active && !error && data) {
-          setFriendsPreviews(((data as FriendEntry[]) || []).slice(0, 5));
+          setFriendsPreviews(((data as unknown as FriendEntry[]) || []).slice(0, 5));
         }
       })
       .catch(() => {});
 
     // Fetch sessions
     setLoadingSessions(true);
-    supabase
-      .rpc('get_user_public_sessions', {
-        target_user_id: personId,
-      })
-      .then(({ data, error }) => {
+    Promise.resolve((supabase.rpc as any)('get_user_public_sessions', {
+      target_user_id: personId,
+    }))
+      .then(({ data, error }: any) => {
         if (active && !error && data) {
-          setSessions(data as SessionEntry[]);
+          setSessions(data as unknown as SessionEntry[]);
         }
       })
-      .catch((err) => console.error('Error fetching public sessions:', err))
+      .catch((err: any) => console.error('Error fetching public sessions:', err))
       .finally(() => {
         if (active) setLoadingSessions(false);
       });

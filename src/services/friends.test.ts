@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Mock checkAuth to return a mock session
 vi.mock('./utils', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual: any = await importOriginal();
   return {
     ...actual,
     checkAuth: vi.fn().mockResolvedValue({

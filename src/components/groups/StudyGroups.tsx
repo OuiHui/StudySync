@@ -74,7 +74,7 @@ export const StudyGroups = ({ onSelectGroup }: StudyGroupsProps) => {
       })
       .sort((a, b) => {
         if (filters.sortBy === 'members_desc') {
-          return (b.member_count || 0) - (a.member_count || 0);
+          return ((b as any).member_count || 0) - ((a as any).member_count || 0);
         }
         if (filters.sortBy === 'newest') {
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();

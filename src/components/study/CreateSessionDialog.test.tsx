@@ -61,7 +61,7 @@ describe('CreateSessionDialog Component', () => {
 
   it('renders trigger button and opens dialog on click, fetching groups', async () => {
     const mockGroups = [{ id: 'group-1', name: 'Linear Algebra', subject: 'Math' }];
-    vi.mocked(StudyGroupsService.getUserGroups).mockResolvedValue(mockGroups);
+    vi.mocked(StudyGroupsService.getUserGroups).mockResolvedValue(mockGroups as any);
 
     render(<CreateSessionDialog />);
 
@@ -76,7 +76,7 @@ describe('CreateSessionDialog Component', () => {
 
   it('validates empty inputs and submits session details to Supabase', async () => {
     const mockGroups = [{ id: 'group-1', name: 'Linear Algebra', subject: 'Math' }];
-    vi.mocked(StudyGroupsService.getUserGroups).mockResolvedValue(mockGroups);
+    vi.mocked(StudyGroupsService.getUserGroups).mockResolvedValue(mockGroups as any);
     mockSingle.mockResolvedValue({ data: { id: 'new-session-id' }, error: null });
 
     const onSessionCreatedMock = vi.fn();

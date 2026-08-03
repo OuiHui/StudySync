@@ -7,11 +7,11 @@ export class ChatQueries {
       const session = await checkAuth();
       if (!session) return [];
 
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_conversations_overview', {
+      const { data: rpcData, error: rpcError } = await (supabase.rpc as any)('get_user_conversations_overview', {
         _user_id: session.user.id
       });
 
-      if (!rpcError && rpcData) {
+      if (!rpcError && Array.isArray(rpcData)) {
         return rpcData.map((row: any) => ({
           user_id: session.user.id,
           conversations: {

@@ -251,8 +251,8 @@ export class StudySessionsMutations {
         handleDbError(fetchError, 'fetch session for resume');
       }
 
-      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] : [];
-      if (logs.length > 0 && logs[logs.length - 1].resumed_at === null) {
+      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] as any[] : [];
+      if (logs.length > 0 && logs[logs.length - 1]?.resumed_at === null) {
         logs[logs.length - 1].resumed_at = new Date().toISOString();
       }
 

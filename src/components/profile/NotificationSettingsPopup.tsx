@@ -30,10 +30,11 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
     const loadSettings = async () => {
       try {
         const profile = await ProfileService.getCurrentUser();
-        if (profile && profile.notification_settings) {
+        const prof = profile as any;
+        if (prof && prof.notification_settings) {
           setSettings(prev => ({
             ...prev,
-            ...profile.notification_settings
+            ...prof.notification_settings
           }));
         }
       } catch (error) {

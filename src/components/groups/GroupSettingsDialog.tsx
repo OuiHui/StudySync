@@ -78,13 +78,14 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
       }
       const data = await StudyGroupsService.getGroupById(idToFetch);
       if (data) {
+        const groupData = data as any;
         setFormData({
-          name: data.name || '',
-          subject: data.subject || '',
-          description: data.description || '',
-          is_public: data.is_public ?? true,
-          max_members: data.max_members || 50,
-          avatar_url: data.icon || data.avatar_url || '',
+          name: groupData.name || '',
+          subject: groupData.subject || '',
+          description: groupData.description || '',
+          is_public: groupData.is_public ?? true,
+          max_members: groupData.max_members || 50,
+          avatar_url: groupData.icon || groupData.avatar_url || '',
         });
       }
     } catch (err) {

@@ -64,7 +64,7 @@ export const GroupMembersTab = ({
       const statusMap: Record<string, 'friends' | 'pending' | 'none'> = {};
       friends.forEach(f => { statusMap[f.user_id] = 'friends'; });
       received.forEach(r => { statusMap[r.user_id] = 'pending'; });
-      sent.forEach(s => { statusMap[s.friend_id] = 'pending'; });
+      sent.forEach((s: any) => { statusMap[s.friend_id || s.user_id] = 'pending'; });
       setFriendships(statusMap);
     }).catch(err => {
       console.error("Error loading friendships for group members tab:", err);

@@ -41,7 +41,7 @@ For relational databases like Supabase, participants are tracked via a relation 
 - `joined_at` (`Timestamp`): Time the user joined.
 - `left_at` (`Timestamp` | Null): Time the user left.
 - `role` (`Enum`): Host vs. Participant.
-- `status` (`Enum`): `active`, `away`, or `left`.
+- `status` (`Enum`): `active` or `left` (live online presence managed via Supabase Realtime; no automated idle detection).
 
 ---
 
@@ -85,9 +85,9 @@ To prevent users from joining or entering sessions that have already completed, 
 
 ---
 
-## 3. What Else to Account For? (Recommendations)
+## 3. What Else to Account For? (Implementation Details & Specifications)
 
-To make StudySync feel premium and robust, we recommend accounting for the following design considerations:
+To make StudySync feel premium and robust, the following implementation specifications and design considerations apply:
 
 ### 1. Pause Logs (Interval Tracking)
 Instead of just maintaining a cumulative `total_paused_duration` counter, save a log of pause-resume timestamps.
@@ -122,9 +122,10 @@ In a group session, who is in control of the state?
     - **Collaborative Timer**: Any user can pause, but it requires a confirmation, or users pause their own personal stream within the shared lobby.
 *   Clearly define the participant `role` (`host` or `member`) to enforce these permissions.
 
-### 5. Idle Presence Detection (Group Sessions)
-If a user walks away from their keyboard or closes the tab during a group session, they shouldn't skew the group's presence status.
-*   **Recommendation**: Use a heartbeat or browser inactivity listener (e.g., mouse movement/keyboard inputs) that prompts the user if they're still studying. If no response, update their participant status to `away` and pause their individual contribution.
+### 5. Presence & Inactivity Handling (No Idle Presence Detection)
+In our implementation, **there is no idle presence detection** (such as browser inactivity listeners, mouse/keyboard movement monitors, or automated idle prompt popups).
+*   **Real-time Presence**: Participant presence in group study sessions is tracked strictly via Supabase Realtime Presence channels (`room:${sessionId}`). Users are marked online when connected to the room channel.
+*   **Disconnects & Departures**: Closing the tab, navigating away, or disconnecting from the socket fires a `leave` presence event that updates the roster. User inactivity while remaining on the page does not change presence status or trigger an away state.
 
 ### 6. Associated Resources
 Students create notes or select documents while studying.

@@ -75,7 +75,7 @@ export function useMessagingData() {
     const processedGroupIds = new Set<string>();
 
     for (const conv of (rawConversations || [])) {
-      const cData = conv.conversations || conv;
+      const cData = (conv as any).conversations || (conv as any);
       if (cData.is_group_chat && cData.group_id) {
         processedGroupIds.add(cData.group_id);
         
@@ -91,7 +91,7 @@ export function useMessagingData() {
           isGroupChat: true,
           groupId: cData.group_id,
           name: cData.name || matchingGroup?.name || 'Study Group',
-          avatarUrl: matchingGroup?.image_url || matchingGroup?.avatar_url || null,
+          avatarUrl: matchingGroup?.icon || (matchingGroup as any)?.avatar_url || null,
           groupSubject: matchingGroup?.subject || null,
           latestMessage: {
             id: cData.latest_message.id,
@@ -111,7 +111,7 @@ export function useMessagingData() {
     const directConvs: FormattedConversation[] = [];
     
     for (const conv of (rawConversations || [])) {
-      const cData = conv.conversations || conv;
+      const cData = (conv as any).conversations || (conv as any);
       if (!cData.is_group_chat) {
         let otherUserId = cData.target_user_id;
         let targetProfile = cData.target_profile;

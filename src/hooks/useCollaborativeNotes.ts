@@ -147,7 +147,7 @@ export const useCollaborativeNotes = (groupId?: string) => {
         group_id: groupId,
         is_collaborative: groupId ? true : (noteData.is_collaborative || false),
         permission_level: noteData.permission_level || (groupId ? 'group' : 'private'),
-      });
+      } as any);
 
       queryClient.invalidateQueries({ queryKey });
       if (groupId) {

@@ -111,7 +111,7 @@ export function useFriends() {
         },
         (payload) => {
           // If the payload concerns the current user, refresh the friends data
-          const row = payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old;
+          const row = (payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old) as any;
           if (row && (row.user_id === user.id || row.friend_id === user.id)) {
             console.log('Realtime friendship update received, reloading...', payload);
             loadFriendsData();

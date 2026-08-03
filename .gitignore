@@ -28,3 +28,6 @@ docs/testing_guide.md
 test-results/
 playwright-report/
 playwright/.auth/
+
+# TypeScript build info
+*.tsbuildinfo

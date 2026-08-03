@@ -89,7 +89,7 @@ export const FindFriendsPage = () => {
       setLoading(true);
       try {
         const data = await FriendsService.searchUsers(searchQuery);
-        if (active) setPeople(data.map(mapToPerson));
+        if (active && Array.isArray(data)) setPeople(data.map(mapToPerson));
       } catch (err) {
         console.error('Error loading people:', err);
       } finally {
@@ -103,11 +103,12 @@ export const FindFriendsPage = () => {
   const handleAddFriend = async (personId: string) => {
     try {
       const result = await FriendsService.sendFriendRequest(personId);
+      const resId = (result as any)?.id;
       setPeople((prev) =>
-        prev.map((p) => p.id === personId ? { ...p, status: 'pending', friendshipId: result?.id } : p)
+        prev.map((p) => p.id === personId ? { ...p, status: 'pending', friendshipId: resId } : p)
       );
       setSelectedPerson((prev) =>
-        prev?.id === personId ? { ...prev, status: 'pending', friendshipId: result?.id } : prev
+        prev?.id === personId ? { ...prev, status: 'pending', friendshipId: resId } : prev
       );
     } catch (err) {
       console.error('Error adding friend:', err);

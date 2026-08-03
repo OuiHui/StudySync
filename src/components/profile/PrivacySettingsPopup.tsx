@@ -32,10 +32,11 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
       try {
         setLoading(true);
         const profile = await ProfileService.getCurrentUser();
-        if (profile && profile.privacy_settings) {
+        const prof = profile as any;
+        if (prof && prof.privacy_settings) {
           setSettings(prev => ({
             ...prev,
-            ...profile.privacy_settings
+            ...prof.privacy_settings
           }));
         }
       } catch (error) {

@@ -120,7 +120,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
         group_id: groupId,
         file_url: fileUrl,
         file_name: fileName
-      });
+      } as any);
 
       const groupsToShare = selectedGroups.length > 0 ? selectedGroups : (groupId ? [groupId] : []);
       if (note && groupsToShare.length > 0) {

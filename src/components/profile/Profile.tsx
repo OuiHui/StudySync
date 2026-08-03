@@ -33,14 +33,16 @@ export const Profile = () => {
         avatar_url: updatedProfile.profilePicture
       });
       
-      setUserProfile(prev => ({
-        ...prev,
-        display_name: updatedProfile.name,
-        major: updatedProfile.major,
-        year: updatedProfile.year,
-        bio: updatedProfile.bio,
-        avatar_url: updatedProfile.profilePicture || prev.avatar_url
-      }));
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          display_name: updatedProfile.name,
+          major: updatedProfile.major,
+          year: updatedProfile.year,
+          bio: updatedProfile.bio,
+          avatar_url: updatedProfile.profilePicture || userProfile.avatar_url
+        });
+      }
 
       toast({
         title: "Profile Updated",

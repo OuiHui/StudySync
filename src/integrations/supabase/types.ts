@@ -262,6 +262,45 @@ export type Database = {
           },
         ]
       }
+      note_group_shares: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          note_id: string
+          shared_by: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          note_id: string
+          shared_by?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          note_id?: string
+          shared_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_group_shares_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_group_shares_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
@@ -318,27 +357,54 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          email: string | null
+          gradient_from: string | null
+          gradient_to: string | null
           id: string
+          major: string | null
+          notification_settings: Json | null
+          privacy_settings: Json | null
+          study_hours: number | null
+          top_subjects: string[] | null
           updated_at: string
           user_id: string
+          year: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
+          gradient_from?: string | null
+          gradient_to?: string | null
           id?: string
+          major?: string | null
+          notification_settings?: Json | null
+          privacy_settings?: Json | null
+          study_hours?: number | null
+          top_subjects?: string[] | null
           updated_at?: string
           user_id: string
+          year?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
+          gradient_from?: string | null
+          gradient_to?: string | null
           id?: string
+          major?: string | null
+          notification_settings?: Json | null
+          privacy_settings?: Json | null
+          study_hours?: number | null
+          top_subjects?: string[] | null
           updated_at?: string
           user_id?: string
+          year?: string | null
         }
         Relationships: []
       }
@@ -348,6 +414,7 @@ export type Database = {
           is_attending: boolean | null
           joined_at: string
           left_at: string | null
+          minutes_studied: number | null
           role: string
           session_id: string
           status: string
@@ -358,6 +425,7 @@ export type Database = {
           is_attending?: boolean | null
           joined_at?: string
           left_at?: string | null
+          minutes_studied?: number | null
           role?: string
           session_id: string
           status?: string
@@ -368,6 +436,7 @@ export type Database = {
           is_attending?: boolean | null
           joined_at?: string
           left_at?: string | null
+          minutes_studied?: number | null
           role?: string
           session_id?: string
           status?: string
@@ -560,6 +629,26 @@ export type Database = {
       user_owns_note: {
         Args: { _user_id: string; _note_id: string }
         Returns: boolean
+      }
+      search_users: {
+        Args: { _search_term: string }
+        Returns: Database["public"]["Tables"]["profiles"]["Row"][]
+      }
+      get_user_friends: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Tables"]["profiles"]["Row"][]
+      }
+      get_mutual_friends: {
+        Args: { _user_id1: string; _user_id2: string }
+        Returns: Database["public"]["Tables"]["profiles"]["Row"][]
+      }
+      get_user_conversations_overview: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
+      get_user_public_sessions: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Tables"]["study_sessions"]["Row"][]
       }
     }
     Enums: {

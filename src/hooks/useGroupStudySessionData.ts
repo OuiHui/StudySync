@@ -191,7 +191,7 @@ export const useGroupStudySessionData = () => {
       const currentUser = userRef.current;
       const myParticipant = data?.find((p: any) => p.user_id === currentUser?.id);
       if (currentUser && data && (!myParticipant || myParticipant.status !== 'active')) {
-        await StudySessionsService.joinSession(id, currentUser.id, 'participant');
+        await (StudySessionsService.joinSession as any)(id, currentUser.id, 'participant');
         const refreshed = await StudySessionsService.getParticipants(id);
         setParticipants(refreshed || []);
       }
@@ -367,7 +367,7 @@ export const useGroupStudySessionData = () => {
       const minutesStudied = Math.round(sessions * (workDuration / 60));
       // Note: We don't update session_participants.minutes_studied here because
       // the participant row is deleted immediately after in leaveSession().
-      await StudySessionsService.leaveSession(sessionId, user.id);
+      await (StudySessionsService.leaveSession as any)(sessionId, user.id);
       localStorage.removeItem('active_group_session_id');
       setIsInGroupSession(false);
       toast({

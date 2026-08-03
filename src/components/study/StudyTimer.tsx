@@ -190,6 +190,8 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
         onSettingsChange={handleSettingsChange}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
+        sessionGoal={sessionGoal}
+        onSessionGoalChange={setSessionGoal}
       />
 
       <ReflectionDialog

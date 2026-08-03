@@ -20,6 +20,7 @@ interface GroupStudySessionProps {
   onThemeChange?: (theme: Theme) => void;
   currentTheme?: Theme;
   onChatWithParticipant?: (participant: { id: string; name: string; status: string; avatar: string }) => void;
+  sessionId?: string;
 }
 
 export const GroupStudySession = ({
@@ -170,7 +171,7 @@ export const GroupStudySession = ({
       {/* Row 2: Participants list bar */}
       <div className="shrink-0 mt-2">
         <ParticipantsList
-          participants={participants}
+          participants={participants as any}
           currentUserId={user?.id}
           isHost={isHost}
           onToggleStatus={handleToggleStatus}
@@ -294,7 +295,7 @@ export const GroupStudySession = ({
           {/* Lower Cards Row: Goals and Shared Materials 50/50 side-by-side */}
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 items-start mt-2">
             <StudyGoals
-              goals={goals}
+              goals={goals as any}
               loading={goalsLoading}
               isHost={isHost}
               onAddGoal={handleAddGoal}

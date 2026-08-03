@@ -28,9 +28,6 @@ export default function GroupSessions() {
   return (
     <GroupStudySession 
       onLeaveSession={handleLeaveSession}
-      onTimerUpdate={(isActive, timeLeft, initialTime, mode) => 
-        handleTimerUpdate(isActive, timeLeft, initialTime, mode, true)
-      }
       onThemeChange={handleThemeChange}
       currentTheme={currentTheme}
       sessionId={sessionId}

@@ -12,7 +12,6 @@ export default function BrowseGroups() {
       <GroupPage 
         groupId={selectedGroupId} 
         onBack={() => setSelectedGroupId(null)}
-        isEnlisted={groupEnrollments[selectedGroupId] || false}
         onUpdateEnrollment={handleUpdateEnrollment}
       />
     );

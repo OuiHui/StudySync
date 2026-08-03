@@ -7,7 +7,7 @@ export class FriendsQueries {
       const session = await checkAuth();
       if (!session) return [];
 
-      const { data, error } = await supabase.rpc('search_users', {
+      const { data, error } = await (supabase.rpc as any)('search_users', {
         search_term: searchTerm,
         current_user_id: session.user.id
       });
@@ -83,7 +83,7 @@ export class FriendsQueries {
       const session = await checkAuth();
       if (!session) return [];
 
-      const { data, error } = await supabase.rpc('get_mutual_friends', {
+      const { data, error } = await (supabase.rpc as any)('get_mutual_friends', {
         target_user_id: targetUserId,
         current_user_id: session.user.id
       });
@@ -187,17 +187,17 @@ export class FriendsQueries {
         .maybeSingle();
 
       let status: 'none' | 'pending' | 'friends' = 'none';
-      if (friendship) {
-        if (friendship.status === 'accepted') status = 'friends';
-        else if (friendship.status === 'pending') status = 'pending';
+      const friendshipData = friendship as any;
+      if (friendshipData) {
+        if (friendshipData.status === 'accepted') status = 'friends';
+        else if (friendshipData.status === 'pending') status = 'pending';
       }
 
-      const { data: friendsList, error: countError } = await supabase
-        .rpc('get_user_friends', {
-          target_user_id: targetUserId,
-          current_user_id: currentUserId,
-        });
-      const friendsCount = !countError && friendsList ? friendsList.length : 0;
+      const { data: friendsList, error: countError } = await (supabase.rpc as any)('get_user_friends', {
+        target_user_id: targetUserId,
+        current_user_id: currentUserId,
+      });
+      const friendsCount = !countError && Array.isArray(friendsList) ? friendsList.length : 0;
 
       const { data: groupMembers, error: groupsError } = await supabase
         .from('group_members' as any)
@@ -216,12 +216,11 @@ export class FriendsQueries {
         });
       }
 
-      const { data: mutualFriendsList, error: mutualError } = await supabase
-        .rpc('get_mutual_friends', {
-          target_user_id: targetUserId,
-          current_user_id: currentUserId,
-        });
-      const mutualFriendsCount = !mutualError && mutualFriendsList ? mutualFriendsList.length : 0;
+      const { data: mutualFriendsList, error: mutualError } = await (supabase.rpc as any)('get_mutual_friends', {
+        target_user_id: targetUserId,
+        current_user_id: currentUserId,
+      });
+      const mutualFriendsCount = !mutualError && Array.isArray(mutualFriendsList) ? mutualFriendsList.length : 0;
 
       const name = profile.display_name || profile.email?.split('@')[0] || 'Unknown';
       const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || '👤';
@@ -241,7 +240,7 @@ export class FriendsQueries {
         status,
         bio: profile.bio || '',
         topSubjects: profile.top_subjects || [],
-        friendshipId: friendship?.id,
+        friendshipId: friendshipData?.id,
         friendsCount: friendsCount || 0,
         groupsCount: publicGroups.length,
         publicGroups,

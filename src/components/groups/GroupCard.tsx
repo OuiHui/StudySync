@@ -193,7 +193,7 @@ export const GroupCard = ({
               {group.name}
             </h3>
             {isCreator && (
-              <Crown size={14} className="text-amber-500 fill-amber-500 flex-shrink-0" title="Creator" />
+              <Crown size={14} className="text-amber-500 fill-amber-500 flex-shrink-0" />
             )}
           </div>
           {isMyGroupPage && isAdmin && openGroupSettings && (

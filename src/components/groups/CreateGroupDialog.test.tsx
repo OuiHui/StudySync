@@ -57,7 +57,7 @@ describe('CreateGroupDialog Component', () => {
 
   it('submits form data successfully using StudyGroupsService', async () => {
     const mockCreatedGroup = { id: 'new-group-id', name: 'Study Buddies' };
-    vi.mocked(StudyGroupsService.createGroup).mockResolvedValue(mockCreatedGroup);
+    vi.mocked(StudyGroupsService.createGroup).mockResolvedValue(mockCreatedGroup as any);
 
     const onGroupCreatedMock = vi.fn();
     render(<CreateGroupDialog onGroupCreated={onGroupCreatedMock} />);

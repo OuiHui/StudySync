@@ -70,8 +70,9 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
   const handleAddFriend = async (personId: string) => {
     try {
       const result = await FriendsService.sendFriendRequest(personId);
+      const resId = (result as any)?.id;
       setSelectedPerson((prev) =>
-        prev?.id === personId ? { ...prev, status: 'pending', friendshipId: result?.id } : prev
+        prev?.id === personId ? { ...prev, status: 'pending', friendshipId: resId } : prev
       );
       toast({
         title: "Request Sent",
@@ -79,7 +80,7 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
       });
       
       // Emit event for other components to listen to changes if needed
-      window.dispatchEvent(new CustomEvent('friendship-changed', { detail: { userId: personId, status: 'pending', friendshipId: result?.id } }));
+      window.dispatchEvent(new CustomEvent('friendship-changed', { detail: { userId: personId, status: 'pending', friendshipId: resId } }));
     } catch (err) {
       console.error('Error adding friend:', err);
       toast({

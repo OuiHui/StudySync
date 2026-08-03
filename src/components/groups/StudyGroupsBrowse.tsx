@@ -60,7 +60,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
       })
       .sort((a, b) => {
         if (filters.sortBy === 'members_desc') {
-          return (b.member_count || 0) - (a.member_count || 0);
+          return ((b as any).member_count || 0) - ((a as any).member_count || 0);
         }
         if (filters.sortBy === 'newest') {
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
@@ -134,7 +134,7 @@ export const StudyGroupsBrowse = ({ onSelectGroup, groupEnrollments = {}, onUpda
                 {error ? 'Please try again later or check your connection' : isFiltered ? 'Try adjusting your search or filters' : 'Check back later for new study groups'}
               </p>
               {error && (
-                <Button onClick={loadPublicGroups} variant="outline" className="mt-4">
+                <Button onClick={() => loadPublicGroups()} variant="outline" className="mt-4">
                   Try Again
                 </Button>
               )}

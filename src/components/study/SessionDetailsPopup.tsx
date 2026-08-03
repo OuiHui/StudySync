@@ -165,9 +165,9 @@ export const SessionDetailsPopup = ({
               </Badge>
               <Badge 
                 variant="outline" 
-                className={session.is_public ? 'border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold' : 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-semibold'}
+                className={(session as any).is_public ? 'border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-500/10 font-semibold' : 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-semibold'}
               >
-                {session.is_public ? 'PUBLIC' : 'PRIVATE'}
+                {(session as any).is_public ? 'PUBLIC' : 'PRIVATE'}
               </Badge>
             </div>
           </div>
@@ -263,7 +263,7 @@ export const SessionDetailsPopup = ({
                     max_participants: session.max_participants,
                     group_id: session.group_id,
                     status: session.status,
-                    is_public: session.is_public
+                    is_public: (session as any).is_public
                   }}
                   onSessionUpdated={() => {
                     onClose();

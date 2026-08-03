@@ -32,7 +32,7 @@ export const FriendsListView = ({
       setLoading(true);
       try {
         const [friendsResponse, myFriendshipsResponse] = await Promise.all([
-          supabase.rpc('get_user_friends', {
+          (supabase.rpc as any)('get_user_friends', {
             target_user_id: targetUserId,
             current_user_id: currentUserId,
           }),
@@ -47,7 +47,7 @@ export const FriendsListView = ({
           return;
         }
 
-        const friendsList = (friendsResponse.data as FriendEntry[]) || [];
+        const friendsList = (friendsResponse.data as unknown as FriendEntry[]) || [];
 
         if (myFriendshipsResponse.error) {
           console.error('Error fetching current user friendships:', myFriendshipsResponse.error);

@@ -149,10 +149,11 @@ export class SimulatedUserBot {
       return;
     }
 
+    const friendshipObj = friendship as any;
     const { error } = await this.client
       .from('friendships' as any)
       .update({ status: 'accepted' })
-      .eq('id', friendship.id);
+      .eq('id', friendshipObj.id);
 
     if (error) {
       this.manager.log(`❌ Error accepting request: ${error.message}`);
@@ -186,10 +187,11 @@ export class SimulatedUserBot {
       return;
     }
 
+    const friendshipObj = friendship as any;
     const { error } = await this.client
       .from('friendships' as any)
       .delete()
-      .eq('id', friendship.id);
+      .eq('id', friendshipObj.id);
 
     if (error) {
       this.manager.log(`❌ Error rejecting request: ${error.message}`);

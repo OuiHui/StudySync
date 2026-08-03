@@ -37,11 +37,11 @@ describe('InviteFriendsDialog Component', () => {
   });
 
   it('renders invitation dialog and lists friends', async () => {
-    vi.mocked(FriendsService.getUserFriends).mockResolvedValue(mockFriendsList);
-    vi.mocked(StudyGroupsService.getGroupById).mockResolvedValue({ id: 'group-123', max_members: 10 });
+    vi.mocked(FriendsService.getUserFriends).mockResolvedValue(mockFriendsList as any);
+    vi.mocked(StudyGroupsService.getGroupById).mockResolvedValue({ id: 'group-123', max_members: 10 } as any);
     vi.mocked(StudyGroupsService.getGroupMembers).mockResolvedValue([
       { id: 'creator-id', name: 'Creator', role: 'admin' }
-    ]);
+    ] as any);
     vi.mocked(StudyGroupsService.getGroupInvitations).mockResolvedValue([]);
 
     render(
@@ -64,12 +64,12 @@ describe('InviteFriendsDialog Component', () => {
   });
 
   it('disables Invite buttons and shows warning banner if group is full', async () => {
-    vi.mocked(FriendsService.getUserFriends).mockResolvedValue(mockFriendsList);
-    vi.mocked(StudyGroupsService.getGroupById).mockResolvedValue({ id: 'group-123', max_members: 2 });
+    vi.mocked(FriendsService.getUserFriends).mockResolvedValue(mockFriendsList as any);
+    vi.mocked(StudyGroupsService.getGroupById).mockResolvedValue({ id: 'group-123', max_members: 2 } as any);
     vi.mocked(StudyGroupsService.getGroupMembers).mockResolvedValue([
       { id: 'member-1', name: 'Member One', role: 'admin' },
       { id: 'member-2', name: 'Member Two', role: 'member' }
-    ]);
+    ] as any);
     vi.mocked(StudyGroupsService.getGroupInvitations).mockResolvedValue([]);
 
     render(

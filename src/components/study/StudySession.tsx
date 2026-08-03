@@ -45,7 +45,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
     toggleTimer,
     resetTimer,
     setSessionGoal
-  } = useTimer({ onTimerUpdate, globalTimerState });
+  } = useTimer({ onTimerUpdate, globalTimerState: globalTimerState as any });
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -299,7 +299,7 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
           <div className="h-full min-h-0">
             <StudyGoals
-              goals={goals}
+              goals={goals as any}
               loading={false}
               isHost={true}
               onAddGoal={handleAddGoal}

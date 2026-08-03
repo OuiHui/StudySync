@@ -14,7 +14,7 @@ interface ColorCustomizerProps {
 export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizerProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleThemeChange = (theme: typeof colorThemes[0]) => {
+  const handleThemeChange = (theme: Theme) => {
     onThemeChange(theme);
     setIsOpen(false);
     

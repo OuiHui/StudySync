@@ -83,7 +83,7 @@ export const ParticipantsList = ({
                       {displayName}
                     </span>
                     {p.role === 'host' && (
-                      <Shield size={12} className="text-indigo-500 shrink-0" title="Session Host" />
+                      <Shield size={12} className="text-indigo-500 shrink-0" />
                     )}
                     {isHost && !isSelf && (
                       <button

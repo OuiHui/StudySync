@@ -49,7 +49,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-red-500 dark:text-red-400">{error}</p>
-              <Button onClick={loadEvents} variant="outline" size="sm" className="mt-2">
+              <Button onClick={() => loadEvents()} variant="outline" size="sm" className="mt-2">
                 Try Again
               </Button>
             </div>

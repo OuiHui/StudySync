@@ -34,7 +34,7 @@ export const getStudyEventsQueryOptions = (user: any) => ({
     return data.map((session: any) => ({
       id: session.id,
       title: session.title,
-      type: session.group_id ? 'group-session' : 'study-session',
+      type: (session.group_id ? 'group-session' : 'study-session') as 'study-session' | 'test' | 'group-session',
       date: new Date(session.scheduled_start),
       time: `${format(new Date(session.scheduled_start), 'h:mm a')} - ${format(new Date(session.scheduled_end), 'h:mm a')}`,
       subject: session.study_groups?.subject || 'General',
@@ -60,7 +60,8 @@ export const getStudyEventsQueryOptions = (user: any) => ({
 export const useStudyEvents = () => {
   const { user } = useAuth();
   
-  const { data: events = [], isLoading: loading, error, refetch: loadEvents } = useQuery<StudyEvent[], Error>(getStudyEventsQueryOptions(user));
+  const { data: rawEvents = [], isLoading: loading, error, refetch: loadEvents } = useQuery(getStudyEventsQueryOptions(user));
+  const events = (rawEvents || []) as StudyEvent[];
 
   const getEventsForDate = (date: Date) => {
     return events.filter(event => 
