@@ -207,7 +207,9 @@ test.describe('StudySync E2E User Flows', () => {
     await actionsBtn.click();
 
     // Click Delete in dropdown menu
-    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    const deleteMenuItem = page.getByRole('menuitem', { name: 'Delete' }).first();
+    await expect(deleteMenuItem).toBeVisible({ timeout: 10000 });
+    await deleteMenuItem.click();
 
     // Verify note is deleted
     await expect(page.getByText('E2E Test Note').first()).not.toBeVisible({ timeout: 15000 });

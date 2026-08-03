@@ -393,9 +393,10 @@ export const useNotes = () => {
     setDeletingNoteIds(prev => new Set(prev).add(note.id));
 
     try {
-      queryClient.setQueryData(['notes', 'user', user?.id], (old: any[] | undefined) =>
-        old ? old.filter(n => n.id !== note.id) : []
-      );
+      queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+        if (!Array.isArray(old)) return old;
+        return old.filter((n: any) => n.id !== note.id);
+      });
       await NotesService.deleteNote(note.id);
       toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
       refreshData();
