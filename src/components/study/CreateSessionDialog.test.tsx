@@ -100,7 +100,7 @@ describe('CreateSessionDialog Component', () => {
       expect(mockInsertSession).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Homework Help',
         max_participants: 20,
-        is_public: false,
+        is_public: true,
         created_by: 'creator-user-id',
         status: 'scheduled',
       }));
