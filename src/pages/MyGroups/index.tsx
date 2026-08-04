@@ -67,7 +67,7 @@ export default function Groups() {
         </p>
       </div>
 
-      {/* Shared Tabs below title with Create Group button on the same line */}
+      {/* Shared Tabs below title with Create Group button on tab bar line */}
       <PageTabs
         tabs={tabs}
         activeTab={activeTab}

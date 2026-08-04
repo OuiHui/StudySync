@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { checkAuth, handleDbError, StudyGroup, StudySession, Note, User, GroupMember, SessionParticipant, Friendship, Message, Conversation } from './utils';
+import { checkAuth, handleDbError, StudySession } from './utils';
 
 export class StudyEventsService {
   static async getEvents() {
@@ -39,7 +39,20 @@ export class StudyEventsService {
         profiles = profilesData || [];
       }
 
-      const sessionsWithParticipants = sessions.map((session) => {
+      const isAutomation = typeof window !== 'undefined' && Boolean(
+        window.navigator.webdriver || 
+        (window as any).__playwright ||
+        (window as any).__PW_playwright
+      );
+
+      const filteredSessions = sessions.filter(session => {
+        if (!isAutomation && (session.title?.startsWith('E2E Session') || session.title?.startsWith('E2E Test') || session.title === 'E2E Session')) {
+          return false;
+        }
+        return true;
+      });
+
+      const sessionsWithParticipants = filteredSessions.map((session) => {
         const sessionParts = participants?.filter(p => p.session_id === session.id) || [];
         const participantProfiles = sessionParts.map(sp => {
           const profile = profiles.find(p => p.user_id === sp.user_id);
@@ -146,5 +159,3 @@ export class StudyEventsService {
     }
   }
 }
-
-

@@ -52,7 +52,7 @@ export function PageTabs<T extends string = string>({
           );
         })}
       </div>
-      {action && <div className="pb-1.5">{action}</div>}
+      {action && <div className="pb-3.5">{action}</div>}
     </div>
   );
 }

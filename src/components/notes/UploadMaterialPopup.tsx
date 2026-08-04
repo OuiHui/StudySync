@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NotesService, StudyGroupsService } from '@/services/database';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 
 interface UploadMaterialPopupProps {
   isOpen: boolean;
@@ -287,15 +287,19 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
 
           {/* Privacy Toggle Switch */}
           <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
-            <Label htmlFor="privacy" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
-              Make this material private (only visible to you)
-            </Label>
-            <input
+            <div>
+              <Label htmlFor="privacy" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+                Private Note
+              </Label>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                Only visible to you
+              </p>
+            </div>
+            <Switch
               id="privacy"
-              type="checkbox"
               checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-[#2a78d6] focus:ring-[#2a78d6]"
+              onCheckedChange={setIsPrivate}
+              disabled={loading}
             />
           </div>
 

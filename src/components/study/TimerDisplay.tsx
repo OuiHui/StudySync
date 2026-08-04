@@ -74,7 +74,7 @@ export const TimerDisplay = ({
           className={`h-9 px-4 text-xs font-semibold ${mode === 'work' ? 'bg-brand hover:bg-brand-hover text-white' : 'bg-green-600 hover:bg-green-700 text-white'} rounded-lg flex items-center space-x-1.5`}
         >
           {isActive ? <Pause size={14} /> : <Play size={14} />}
-          <span className="lowercase">{isActive ? 'pause' : 'start'}</span>
+          <span>{isActive ? 'Pause' : 'Start'}</span>
         </Button>
         <Button 
           onClick={onReset} 
@@ -94,11 +94,12 @@ export const TimerDisplay = ({
             <Settings size={14} />
           </Button>
         )}
-        {showFinishButton && onFinish && (
+        {onFinish && (
           <Button 
             onClick={onFinish} 
             variant="secondary" 
-            className="h-9 px-3 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg"
+            disabled={!showFinishButton}
+            className="h-9 px-3 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 rounded-lg transition-colors"
           >
             Finish Session
           </Button>

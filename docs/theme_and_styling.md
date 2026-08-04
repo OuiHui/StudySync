@@ -21,9 +21,8 @@ All theme definitions, color options, and default page background styles are cen
 
 ## Application to Buttons & Navigation
 - **Navigation Bar (`Sidebar.tsx`)**: Uses `#2a78d6` (`bg-[#2a78d6] text-white shadow-sm`) for active navigation tab highlights.
-- **Create Action Buttons**: All 'Create' and 'New' action buttons (`Create Group`, `Create Session`, `Create New Note`, `New Chat`, etc.) consistently use the `#2a78d6` (`bg-[#2a78d6] hover:bg-[#2268bc]`) brand styling.
-- **Sub-Navigation Tabs (`PageTabs.tsx`)**: Standardized shared component (`src/components/common/navigation/PageTabs.tsx`) for top-level view sub-tabs across pages (e.g. `Friends`, `My Groups`), supporting right-aligned action elements like the `Create Group` button on the tab line.
-- **Segmented Control Toggles (`tabs.tsx`)**: Unified toggle styling (`bg-gray-200/60 dark:bg-gray-800/80` track with active tab `bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold shadow-sm`) applied across sign-in/sign-up screen toggles and modal category switchers for a consistent visual identity.
+- **Page Header & Action Placement**: Primary page action buttons (e.g. `Create Group`, `Upload Note`, `Create New Note`) are consistently placed in the top header bar on the right side opposite the page title (`PAGE_TITLE_CLASS`). Top-level sub-navigation tabs use `PageTabs.tsx` (`src/components/common/navigation/PageTabs.tsx`) positioned below the header row.
+- **Segmented Control Toggles (`tabs.tsx`)**: Unified toggle styling (`bg-gray-100 dark:bg-gray-900/60` track with `border border-gray-200 dark:border-gray-700/60` container border, active tab `bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold shadow-sm`) applied across sign-in/sign-up screen toggles and modal category switchers for a consistent visual identity.
 
 ## Application to Pages & Sessions
 - **Main Layout (`MainLayout.tsx`)**: Wraps application sub-views with the active theme background gradient.

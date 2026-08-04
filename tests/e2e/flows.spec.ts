@@ -268,33 +268,19 @@ test.describe('StudySync E2E User Flows', () => {
       }
     }
 
-    console.log('Cleaning up E2E Test Group, E2E Session, and E2E Notes...');
-    
-    // Delete E2E groups
-    const { error: groupError } = await supabase
-      .from('study_groups')
-      .delete()
-      .eq('name', 'E2E Test Group');
-    if (groupError) {
-      console.error('Error cleaning up E2E study groups:', groupError);
-    }
-
-    // Delete E2E sessions
-    const { error: sessionError } = await supabase
-      .from('study_sessions')
-      .delete()
-      .ilike('title', 'E2E Session%');
-    if (sessionError) {
-      console.error('Error cleaning up E2E study sessions:', sessionError);
-    }
-
-    // Delete E2E notes
-    const { error: noteError } = await supabase
-      .from('notes')
-      .delete()
-      .ilike('title', 'E2E Test Note%');
-    if (noteError) {
-      console.error('Error cleaning up E2E study notes:', noteError);
+    console.log('Cleaning up E2E Test Group, E2E Session, and E2E Notes via RPC...');
+    const { error: rpcError } = await supabase.rpc('cleanup_e2e_data');
+    if (rpcError) {
+      console.warn('RPC cleanup failed or not found, using fallback deletes:', rpcError.message);
+      
+      // Delete E2E groups
+      await supabase.from('study_groups').delete().eq('name', 'E2E Test Group');
+      // Delete E2E sessions
+      await supabase.from('study_sessions').delete().ilike('title', 'E2E Session%');
+      // Delete E2E notes
+      await supabase.from('notes').delete().ilike('title', 'E2E Test Note%');
+    } else {
+      console.log('RPC cleanup completed successfully in test teardown.');
     }
   });
 });

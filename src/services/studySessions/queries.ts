@@ -53,15 +53,15 @@ export class StudySessionsQueries {
       profiles = profilesData || [];
     }
 
-    const isAutomation = typeof window !== 'undefined' && (
+    const isAutomation = typeof window !== 'undefined' && Boolean(
       window.navigator.webdriver || 
-      window.location.hostname === 'localhost' || 
-      window.location.hostname === '127.0.0.1'
+      (window as any).__playwright ||
+      (window as any).__PW_playwright
     );
 
     return sessions
       .filter(studySession => {
-        if (!isAutomation && studySession.title === 'E2E Session') {
+        if (!isAutomation && (studySession.title?.startsWith('E2E Session') || studySession.title?.startsWith('E2E Test'))) {
           return false;
         }
         if (additionalFilter && !additionalFilter(studySession)) {

@@ -43,39 +43,38 @@ export const NotesHeader = ({
 
   return (
     <div className="space-y-5">
-      {/* Top Bar: Title & Primary Action Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className={PAGE_TITLE_CLASS}>Notes</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
-            Create, organize, and share your study notes.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="outline"
-            className="h-10 border-gray-300 dark:border-gray-700 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
-            onClick={() => setIsUploadPopupOpen(true)}
-          >
-            <Upload size={16} className="mr-2 text-gray-600 dark:text-gray-400" />
-            Upload Note
-          </Button>
-          <Button
-            className="h-10 bg-brand hover:bg-brand-hover text-white font-semibold shadow-sm transition-all rounded-xl border-0"
-            onClick={() => setIsCreateDialogOpen(true)}
-          >
-            <Plus size={18} className="mr-1.5" />
-            Create New Note
-          </Button>
-        </div>
+      {/* Title */}
+      <div>
+        <h1 className={PAGE_TITLE_CLASS}>Notes</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+          Create, organize, and share your study notes.
+        </p>
       </div>
 
-      {/* Shared PageTabs below title */}
+      {/* Shared PageTabs with action buttons on tab bar line */}
       <PageTabs
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={(tabId) => setActiveTab(tabId)}
+        action={
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              className="h-10 border-gray-300 dark:border-gray-700 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => setIsUploadPopupOpen(true)}
+            >
+              <Upload size={16} className="mr-2 text-gray-600 dark:text-gray-400" />
+              Upload Note
+            </Button>
+            <Button
+              className="h-10 bg-brand hover:bg-brand-hover text-white font-semibold shadow-sm transition-all rounded-xl border-0"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              <Plus size={18} className="mr-1.5" />
+              Create New Note
+            </Button>
+          </div>
+        }
       />
 
       {/* Search, Clear Filters, & Sort Bar */}
