@@ -70,7 +70,7 @@ async function main() {
     const { data: sessions, error: sessionError } = await supabase
       .from('study_sessions')
       .delete()
-      .eq('title', 'E2E Session')
+      .ilike('title', 'E2E Session%')
       .select();
     if (sessionError) {
       console.error('Error cleaning up E2E study sessions:', sessionError.message);

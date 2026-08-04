@@ -29,7 +29,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
     scheduledStart: '',
     scheduledEnd: '',
     maxParticipants: 20,
-    isPublic: false,
+    isPublic: true,
     subject: ''
   });
   
@@ -148,7 +148,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
         scheduledStart: '',
         scheduledEnd: '',
         maxParticipants: 20,
-        isPublic: false,
+        isPublic: true,
         subject: ''
       });
       

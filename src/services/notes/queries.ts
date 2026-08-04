@@ -59,6 +59,23 @@ async function populateNoteGroupShares(notes: any[]) {
   });
 }
 
+async function populateNoteMetadata(notes: any[]) {
+  if (!notes || notes.length === 0) return [];
+
+  const [notesWithProfiles, notesWithShares] = await Promise.all([
+    populateNoteProfiles(notes),
+    populateNoteGroupShares(notes)
+  ]);
+
+  return notes.map((note, index) => ({
+    ...note,
+    profiles: notesWithProfiles[index]?.profiles || null,
+    group_id: notesWithShares[index]?.group_id || note.group_id || null,
+    shared_groups: notesWithShares[index]?.shared_groups || [],
+    study_group: notesWithShares[index]?.study_group || null
+  }));
+}
+
 export class NotesQueries {
   static async getNotes() {
     try {
@@ -76,12 +93,10 @@ export class NotesQueries {
         handleDbError(error, 'fetch notes');
       }
 
-      const notesWithProfiles = await populateNoteProfiles(data || []);
-      return await populateNoteGroupShares(notesWithProfiles);
+      return await populateNoteMetadata(data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
 
-      // Re-throw the error so the UI can handle it appropriately
       if (error instanceof Error) {
         throw error;
       }
@@ -98,8 +113,7 @@ export class NotesQueries {
       }
 
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-      const notesWithProfiles = await populateNoteProfiles(sharedNotes);
-      return await populateNoteGroupShares(notesWithProfiles);
+      return await populateNoteMetadata(sharedNotes);
     } catch (error) {
       console.error('Error fetching group notes:', error);
 
@@ -129,8 +143,8 @@ export class NotesQueries {
         throw error;
       }
 
-      const [noteWithShares] = await populateNoteGroupShares([data]);
-      return noteWithShares;
+      const [noteWithMetadata] = await populateNoteMetadata([data]);
+      return noteWithMetadata;
     } catch (error) {
       console.error('Error getting note:', error);
       throw error;
@@ -230,8 +244,7 @@ export class NotesQueries {
         handleDbError(error, 'fetch session notes');
       }
 
-      const notesWithProfiles = await populateNoteProfiles(notes || []);
-      return await populateNoteGroupShares(notesWithProfiles);
+      return await populateNoteMetadata(notes || []);
     } catch (error) {
       console.error('Error fetching session notes:', error);
       return [];

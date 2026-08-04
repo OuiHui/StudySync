@@ -152,25 +152,46 @@ test.describe('StudySync E2E User Flows', () => {
     await expect(createSessionBtn).toBeVisible();
     await createSessionBtn.click();
 
+    const testSessionTitle = `E2E Session ${Date.now()}`;
+
     // Fill out form
-    await page.locator('input#title').fill('E2E Session');
+    await page.locator('input#title').fill(testSessionTitle);
     await page.locator('textarea#description').fill('Let\'s study together!');
     
-    // Select dates (tomorrow)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const startStr = tomorrow.toISOString().slice(0, 16);
-    tomorrow.setHours(tomorrow.getHours() + 2);
-    const endStr = tomorrow.toISOString().slice(0, 16);
+    // Select dates (tomorrow in local time)
+    const now = new Date();
+    const start = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const startStr = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}T${pad(start.getHours())}:${pad(start.getMinutes())}`;
+    const endStr = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
 
     await page.locator('input#scheduledStart').fill(startStr);
     await page.locator('input#scheduledEnd').fill(endStr);
 
+    // Make public so session is visible in available sessions list
+    const publicSwitch = page.locator('button#isPublic');
+    await expect(publicSwitch).toBeVisible();
+    if (await publicSwitch.getAttribute('data-state') === 'unchecked') {
+      await publicSwitch.click();
+      await expect(publicSwitch).toHaveAttribute('data-state', 'checked');
+    }
+
     // Submit Create Session
-    await page.getByRole('button', { name: 'Create Session', exact: true }).click();
+    const submitBtn = page.locator('div[role="dialog"]').getByRole('button', { name: 'Create Session', exact: true });
+    await expect(submitBtn).toBeVisible();
+    await submitBtn.click();
+
+    // Verify success toast notification and wait for dialog to close
+    await expect(page.getByText('Study session created successfully!', { exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h2, h3', { hasText: 'Create Study Session' })).not.toBeVisible();
+    await page.waitForTimeout(500);
 
     // Verify session card appears under upcoming/available sessions
-    await expect(page.getByText('E2E Session').first()).toBeVisible({ timeout: 15000 });
+    const sessionCardText = page.getByText(testSessionTitle).first();
+    await sessionCardText.scrollIntoViewIfNeeded();
+    await expect(sessionCardText).toBeVisible({ timeout: 15000 });
   });
 
   test('Flow F: Study Notes & Shared Documents', async ({ page }) => {
@@ -262,7 +283,7 @@ test.describe('StudySync E2E User Flows', () => {
     const { error: sessionError } = await supabase
       .from('study_sessions')
       .delete()
-      .eq('title', 'E2E Session');
+      .ilike('title', 'E2E Session%');
     if (sessionError) {
       console.error('Error cleaning up E2E study sessions:', sessionError);
     }

@@ -14,8 +14,8 @@ test.describe('StudySync E2E Dashboard & Auth Flow', () => {
     const appTitle = page.locator('h1:has-text("StudySync")');
     await expect(appTitle).toBeVisible();
 
-    // Verify card welcome title "Welcome to Study App"
-    const welcomeTitle = page.locator('h3:has-text("Welcome to Study App")');
+    // Verify card welcome title "Welcome to StudySync"
+    const welcomeTitle = page.locator('h3:has-text("Welcome to StudySync")');
     await expect(welcomeTitle).toBeVisible();
 
     // Verify presence of guest sign-in button

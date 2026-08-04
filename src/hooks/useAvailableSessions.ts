@@ -19,14 +19,13 @@ export function useAvailableSessions() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: sessions = [], isLoading: loading, error } = useQuery<any[], Error>(
+  const { data: sessions = [], isLoading: loading, error, refetch } = useQuery<any[], Error>(
     getAvailableSessionsQueryOptions(user)
   );
 
   const loadSessions = async () => {
-    if (user?.id) {
-      await queryClient.invalidateQueries({ queryKey: ['available-sessions', user.id] });
-    }
+    await queryClient.invalidateQueries({ queryKey: ['available-sessions'] });
+    await refetch();
   };
 
   useEffect(() => {
