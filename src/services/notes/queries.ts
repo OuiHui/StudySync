@@ -1,79 +1,31 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth, handleDbError } from '../utils';
 
-async function populateNoteProfiles(notes: any[]) {
-  if (!notes || notes.length === 0) return [];
+const NOTE_JOIN_SELECT = `
+  *,
+  profiles!notes_created_by_fkey(id, display_name, avatar_url, user_id),
+  note_group_shares(group_id, study_groups(id, name, is_public))
+`;
 
-  const userIds = [...new Set(notes.map(n => n.created_by))];
-  const { data: profiles, error } = await supabase
-    .from('profiles')
-    .select('id, display_name, avatar_url, user_id')
-    .in('user_id', userIds);
+function transformJoinedNote(rawNote: any) {
+  if (!rawNote) return null;
+  const noteShares = rawNote.note_group_shares || [];
+  const firstShare = noteShares[0];
+  const group_id = firstShare?.group_id || rawNote.group_id || null;
+  const study_group = firstShare?.study_groups || null;
 
-  if (error) {
-    console.error('Error populating note profiles:', error);
-    return notes.map(note => ({ ...note, profiles: null }));
-  }
-
-  const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-
-  return notes.map(note => ({
-    ...note,
-    profiles: profilesMap.get(note.created_by) || null
-  }));
+  return {
+    ...rawNote,
+    profiles: rawNote.profiles || null,
+    group_id,
+    shared_groups: noteShares,
+    study_group
+  };
 }
 
-async function populateNoteGroupShares(notes: any[]) {
-  if (!notes || notes.length === 0) return [];
-
-  const noteIds = notes.map(n => n.id);
-  const { data: shares, error } = await supabase
-    .from('note_group_shares' as any)
-    .select('note_id, group_id, study_groups(id, name, is_public)')
-    .in('note_id', noteIds);
-
-  if (error) {
-    console.error('Error populating note group shares:', error);
-    return notes;
-  }
-
-  const sharesMap = new Map<string, any[]>();
-  (shares as any[])?.forEach(share => {
-    const list = sharesMap.get(share.note_id) || [];
-    list.push(share);
-    sharesMap.set(share.note_id, list);
-  });
-
-  return notes.map(note => {
-    const noteShares = sharesMap.get(note.id) || [];
-    const firstShare = noteShares[0];
-    const group_id = firstShare?.group_id || note.group_id || null;
-    const study_group = firstShare?.study_groups || null;
-
-    return {
-      ...note,
-      group_id,
-      shared_groups: noteShares,
-      study_group
-    };
-  });
-}
-
-async function populateNoteMetadata(notes: any[]) {
-  if (!notes || notes.length === 0) return [];
-
-  const [notesWithProfiles, notesWithShares] = await Promise.all([
-    populateNoteProfiles(notes),
-    populateNoteGroupShares(notes)
-  ]);
-
-  return notes.map((note, index) => ({
-    ...note,
-    profiles: notesWithProfiles[index]?.profiles || null,
-    group_id: notesWithShares[index]?.group_id || note.group_id || null,
-    shared_groups: notesWithShares[index]?.shared_groups || [],
-    study_group: notesWithShares[index]?.study_group || null
-  }));
+function transformJoinedNotes(rawNotes: any[]) {
+  if (!rawNotes || !Array.isArray(rawNotes)) return [];
+  return rawNotes.map(transformJoinedNote);
 }
 
 export class NotesQueries {
@@ -86,14 +38,14 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('notes')
-        .select('*')
+        .select(NOTE_JOIN_SELECT)
         .order('updated_at', { ascending: false });
 
       if (error) {
         handleDbError(error, 'fetch notes');
       }
 
-      return await populateNoteMetadata(data || []);
+      return transformJoinedNotes(data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
 
@@ -113,7 +65,7 @@ export class NotesQueries {
       }
 
       const sharedNotes = await this.getGroupSharedNotes(groupId);
-      return await populateNoteMetadata(sharedNotes);
+      return sharedNotes;
     } catch (error) {
       console.error('Error fetching group notes:', error);
 
@@ -134,17 +86,15 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('notes')
-        .select('*')
+        .select(NOTE_JOIN_SELECT)
         .eq('id', id)
-        .eq('created_by', session.user.id)
         .single();
 
       if (error) {
         throw error;
       }
 
-      const [noteWithMetadata] = await populateNoteMetadata([data]);
-      return noteWithMetadata;
+      return transformJoinedNote(data);
     } catch (error) {
       console.error('Error getting note:', error);
       throw error;
@@ -167,7 +117,6 @@ export class NotesQueries {
 
       if (error) {
         console.error('Error fetching custom subjects:', error);
-        // Return empty array if table doesn't exist yet
         return [];
       }
 
@@ -212,7 +161,7 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('note_group_shares' as any)
-        .select('note_id, notes(*)')
+        .select(`note_id, notes(${NOTE_JOIN_SELECT})`)
         .eq('group_id', groupId);
 
       if (error) {
@@ -220,7 +169,8 @@ export class NotesQueries {
         return [];
       }
 
-      return (data as any)?.map((item: any) => item.notes).filter(Boolean) || [];
+      const rawNotes = (data as any[])?.map((item: any) => item.notes).filter(Boolean) || [];
+      return transformJoinedNotes(rawNotes);
     } catch (error) {
       console.error('Error fetching group shared notes:', error);
       return [];
@@ -236,7 +186,7 @@ export class NotesQueries {
 
       const { data: notes, error } = await supabase
         .from('notes')
-        .select('*')
+        .select(NOTE_JOIN_SELECT)
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
 
@@ -244,10 +194,11 @@ export class NotesQueries {
         handleDbError(error, 'fetch session notes');
       }
 
-      return await populateNoteMetadata(notes || []);
+      return transformJoinedNotes(notes || []);
     } catch (error) {
       console.error('Error fetching session notes:', error);
       return [];
     }
   }
 }
+
