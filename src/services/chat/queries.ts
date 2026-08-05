@@ -135,4 +135,38 @@ export class ChatQueries {
       return [];
     }
   }
+
+  static async markConversationRead(conversationId: string) {
+    try {
+      const session = await checkAuth();
+      if (!session) return;
+
+      await supabase
+        .from('conversation_participants' as any)
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', session.user.id);
+    } catch (error) {
+      console.error('Error marking conversation as read:', error);
+    }
+  }
+
+  static async getUnreadCounts(userId: string): Promise<Record<string, number>> {
+    try {
+      const { data, error } = await (supabase.rpc as any)('get_unread_counts', {
+        _user_id: userId
+      });
+
+      if (error || !data) return {};
+
+      return Object.fromEntries(
+        (data as { conversation_id: string; unread_count: number }[]).map(
+          ({ conversation_id, unread_count }) => [conversation_id, unread_count]
+        )
+      );
+    } catch (error) {
+      console.error('Error fetching unread counts:', error);
+      return {};
+    }
+  }
 }

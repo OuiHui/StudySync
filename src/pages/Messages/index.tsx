@@ -225,6 +225,7 @@ export const Messages: React.FC = () => {
     setSelectedConversation(conv);
     setMobileShowChat(true);
     loadConversationMessages(conv.id, conv);
+    ChatService.markConversationRead(conv.id);
   };
 
   const handleSendMessage = async () => {
@@ -485,11 +486,18 @@ export const Messages: React.FC = () => {
                         <h4 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
                           {conv.name}
                         </h4>
-                        {conv.latestMessage && (
-                          <span className="text-[10px] text-gray-400 shrink-0 ml-1">
-                            {formatSidebarTimestamp(conv.latestMessage.createdAt)}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0 ml-1">
+                          {conv.latestMessage && (
+                            <span className="text-[10px] text-gray-400">
+                              {formatSidebarTimestamp(conv.latestMessage.createdAt)}
+                            </span>
+                          )}
+                          {!isSelected && (conv.unreadCount ?? 0) > 0 && (
+                            <span className="flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-blue-600 text-white text-[9px] font-bold leading-none">
+                              {(conv.unreadCount ?? 0) > 99 ? '99+' : conv.unreadCount}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between mt-0.5">

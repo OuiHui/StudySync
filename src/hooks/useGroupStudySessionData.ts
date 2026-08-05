@@ -258,6 +258,20 @@ export const useGroupStudySessionData = () => {
         const state = channel.presenceState();
         const userIds = Object.values(state).flatMap((pList: any) => pList.map((p: any) => p.user_id));
         setOnlineUsers(userIds);
+
+        const leavingUserId = (leftPresences as any[])[0]?.user_id;
+        const currentSessionData = sessionData;
+        if (leavingUserId && currentSessionData?.created_by === leavingUserId) {
+          const remaining = Object.values(state)
+            .flatMap((pList: any) => pList)
+            .sort((a: any, b: any) =>
+              new Date(a.online_at).getTime() - new Date(b.online_at).getTime()
+            );
+          const electedUserId = remaining[0]?.user_id;
+          if (electedUserId && userRef.current?.id === electedUserId) {
+            setIsHost(true);
+          }
+        }
       })
       .on('broadcast', { event: 'timer_sync' }, ({ payload }) => {
         if (isHost) return;

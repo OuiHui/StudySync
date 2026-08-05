@@ -77,7 +77,8 @@ export class NotesMutations {
       const { error } = await supabase
         .from('notes')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('created_by', session.user.id);
 
       if (error) {
         handleDbError(error, 'delete note');
@@ -119,13 +120,17 @@ export class NotesMutations {
         throw new Error(`Failed to upload file: ${error.message}`);
       }
 
-      // Get public URL for the uploaded file
-      const { data: urlData } = supabase.storage
+      // Both buckets are private — always return a signed URL
+      const { data: signedData, error: signedError } = await supabase.storage
         .from(bucketName)
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
+
+      if (signedError || !signedData) {
+        throw new Error(`Failed to generate signed URL: ${signedError?.message}`);
+      }
 
       return {
-        url: urlData.publicUrl,
+        url: signedData.signedUrl,
         fileName: file.name
       };
     } catch (error) {
@@ -136,18 +141,32 @@ export class NotesMutations {
 
   static async getSignedUrl(filePath: string): Promise<string> {
     try {
-      const bucketName = 'study_materials';
+      let bucketName: string;
       let path = '';
-      
-      if (filePath.includes('/storage/v1/object/public/study_materials/')) {
-        path = filePath.split('/storage/v1/object/public/study_materials/')[1];
-      } else if (filePath.includes('/storage/v1/object/sign/study_materials/')) {
-        path = filePath.split('/storage/v1/object/sign/study_materials/')[1];
+
+      if (
+        filePath.includes('/storage/v1/object/public/study_materials/') ||
+        filePath.includes('/storage/v1/object/sign/study_materials/')
+      ) {
+        bucketName = 'study_materials';
+        const marker = filePath.includes('/object/public/')
+          ? '/storage/v1/object/public/study_materials/'
+          : '/storage/v1/object/sign/study_materials/';
+        path = filePath.split(marker)[1];
+      } else if (
+        filePath.includes('/storage/v1/object/public/note-files/') ||
+        filePath.includes('/storage/v1/object/sign/note-files/')
+      ) {
+        bucketName = 'note-files';
+        const marker = filePath.includes('/object/public/')
+          ? '/storage/v1/object/public/note-files/'
+          : '/storage/v1/object/sign/note-files/';
+        path = filePath.split(marker)[1];
       } else {
+        bucketName = filePath.includes('note-files') ? 'note-files' : 'study_materials';
         path = filePath;
       }
 
-      // Clean up path of any query parameters if they exist
       if (path.includes('?')) {
         path = path.split('?')[0];
       }

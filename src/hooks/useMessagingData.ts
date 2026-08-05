@@ -54,11 +54,12 @@ export function useMessagingData() {
     }
 
     // 1. Fetch user's study groups & conversations
-    const [userGroups, rawConversations, availableSessions, friendsList] = await Promise.all([
+    const [userGroups, rawConversations, availableSessions, friendsList, unreadCountsMap] = await Promise.all([
       StudyGroupsService.getUserGroups(),
       ChatService.getConversations(),
       StudySessionsService.getAvailableSessions(),
-      FriendsService.getUserFriends()
+      FriendsService.getUserFriends(),
+      ChatService.getUnreadCounts(user.id)
     ]);
 
     // Create lookup map for active group sessions
@@ -105,6 +106,7 @@ export function useMessagingData() {
             senderId: cData.latest_message.sender_id,
             senderName: cData.latest_message.sender?.display_name || 'Member'
           },
+          unreadCount: unreadCountsMap[cData.id] || 0,
           activeSession: activeMap[cData.group_id] || null,
           createdAt: cData.created_at || matchingGroup?.created_at || null,
           updatedAt: cData.updated_at || matchingGroup?.updated_at || null,
@@ -166,6 +168,7 @@ export function useMessagingData() {
             senderId: cData.latest_message.sender_id,
             senderName: senderName || (cData.latest_message.sender_id === user.id ? 'You' : displayName)
           } : null,
+          unreadCount: unreadCountsMap[cData.id] || 0,
           createdAt: cData.created_at || null,
           updatedAt: cData.updated_at || null,
         });

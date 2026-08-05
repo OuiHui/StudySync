@@ -20,7 +20,7 @@ export function useResolvedFileUrl(fileUrl: string | null | undefined) {
       return;
     }
 
-    if (fileUrl.includes('study_materials')) {
+    if (fileUrl.includes('study_materials') || fileUrl.includes('note-files')) {
       const cached = signedUrlCache.get(fileUrl);
       if (cached && Date.now() < cached.expiresAt) {
         setResolvedUrl(cached.url);
