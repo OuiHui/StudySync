@@ -102,65 +102,47 @@ export class StudySessionsQueries {
 
       const userId = session.user.id;
 
-      // Get sessions the user created OR sessions they're participating in
-      const { data: createdSessions, error: createdError } = await supabase
-        .from('study_sessions')
-        .select(STUDY_SESSION_SELECT)
-        .eq('created_by', userId)
-        .order('scheduled_start', { ascending: true });
-
-      if (createdError) {
-        console.error('Error fetching created sessions:', createdError);
-      }
-
-      // Get sessions the user is participating in (accepted or active, i.e., status in ('accepted', 'active'))
-      const { data: participations, error: participationError } = await supabase
-        .from('session_participants')
-        .select('session_id')
-        .eq('user_id', userId)
-        .in('status', ['accepted', 'active']);
-
-      let participatedSessions = [];
-      if (!participationError && participations && participations.length > 0) {
-        const sessionIds = participations.map(p => p.session_id);
-        const { data: sessions, error: sessionsError } = await supabase
+      // Wave 1: Fetch created sessions, participations, and group memberships concurrently
+      const [createdRes, participationsRes, membershipsRes] = await Promise.all([
+        supabase
           .from('study_sessions')
           .select(STUDY_SESSION_SELECT)
-          .in('id', sessionIds)
-          .order('scheduled_start', { ascending: true });
+          .eq('created_by', userId)
+          .order('scheduled_start', { ascending: true }),
+        supabase
+          .from('session_participants')
+          .select('session_id')
+          .eq('user_id', userId)
+          .in('status', ['accepted', 'active']),
+        supabase
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', userId)
+      ]);
 
-        if (!sessionsError) {
-          participatedSessions = sessions || [];
+      const createdSessions = createdRes.data || [];
+      const createdIds = new Set(createdSessions.map(s => s.id));
+
+      const partIds = (participationsRes.data || []).map(p => p.session_id).filter(id => !createdIds.has(id));
+      const groupIds = (membershipsRes.data || []).map(m => m.group_id);
+
+      let otherSessions: any[] = [];
+      if (partIds.length > 0 || groupIds.length > 0) {
+        let query = supabase.from('study_sessions').select(STUDY_SESSION_SELECT);
+        if (partIds.length > 0 && groupIds.length > 0) {
+          query = query.or(`id.in.(${partIds.join(',')}),group_id.in.(${groupIds.join(',')})`);
+        } else if (partIds.length > 0) {
+          query = query.in('id', partIds);
+        } else {
+          query = query.in('group_id', groupIds);
+        }
+        const { data: fetchRes, error: fetchErr } = await query.order('scheduled_start', { ascending: true });
+        if (!fetchErr) {
+          otherSessions = fetchRes || [];
         }
       }
 
-      // Get sessions from groups the user is a member of
-      const { data: groupMemberships, error: membershipError } = await supabase
-        .from('group_members')
-        .select('group_id')
-        .eq('user_id', userId);
-
-      let groupSessions = [];
-      if (!membershipError && groupMemberships && groupMemberships.length > 0) {
-        const groupIds = groupMemberships.map(m => m.group_id);
-        const { data: sessions, error: groupSessionsError } = await supabase
-          .from('study_sessions')
-          .select(STUDY_SESSION_SELECT)
-          .in('group_id', groupIds)
-          .order('scheduled_start', { ascending: true });
-
-        if (!groupSessionsError) {
-          groupSessions = sessions || [];
-        }
-      }
-
-      // Combine all sessions and remove duplicates
-      const allSessions = [
-        ...(createdSessions || []),
-        ...participatedSessions,
-        ...groupSessions
-      ];
-
+      const allSessions = [...createdSessions, ...otherSessions];
       const uniqueSessions = allSessions.filter((session, index, self) => 
         index === self.findIndex(s => s.id === session.id)
       );

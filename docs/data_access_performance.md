@@ -40,51 +40,46 @@ graph TD
     F --> G[Return Slim Projected Payload]
 ```
 
-### Phase 1: Collapse Network Waterfalls (Single-Query Joins)
-Replace sequential queries with Supabase PostgREST foreign-key joins:
-```ts
-const { data, error } = await supabase
-  .from('notes')
-  .select(`
-    id, title, subject, file_url, file_name, permission_level, created_at, updated_at, created_by,
-    profiles!notes_created_by_fkey(id, display_name, avatar_url),
-    note_group_shares(group_id, study_groups(id, name, is_public))
-  `)
-  .order('updated_at', { ascending: false });
-```
-*Impact: Reduces latency from 450ms to ~80ms (1 round-trip).*
+### Phase 1: Collapse Network Waterfalls & Parallelize Requests (Completed)
+- **Single-Query & Parallel Joins**: Consolidated `getSessions()` from 5 sequential round-trips into 2 parallel waves using `Promise.all` and `.or()` filters.
+- **Init Waterfalls**: Parallelized initialization waterfalls in `useGroupStudySessionData` with `Promise.all`.
+- **Polling Elimination**: Removed 8s periodic `setInterval` participant polling in favor of WebSocket Supabase Realtime channel changes and focus events.
 
 ---
 
-### Phase 2: Database & RLS Indexing
-Apply targeted PostgreSQL B-tree indexes to optimize RLS subqueries and sorting:
+### Phase 2: Database & RLS Indexing (Completed)
+Applied targeted PostgreSQL B-tree indexes across core tables (`study_sessions`, `messages`, `friendships`, `conversation_participants`, `notes`, `group_members`, `custom_subjects`):
 ```sql
--- Index foreign keys and sort columns
-CREATE INDEX IF NOT EXISTS idx_notes_created_by ON public.notes(created_by);
-CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON public.notes(updated_at DESC);
+-- Session lookup & sorting indexes
+CREATE INDEX IF NOT EXISTS idx_study_sessions_scheduled_start ON public.study_sessions (scheduled_start ASC);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_status ON public.study_sessions (status);
+CREATE INDEX IF NOT EXISTS idx_study_sessions_group_id ON public.study_sessions (group_id) WHERE group_id IS NOT NULL;
 
--- Composite indexes for RLS helper functions
-CREATE INDEX IF NOT EXISTS idx_ngs_note_group ON public.note_group_shares(note_id, group_id);
-CREATE INDEX IF NOT EXISTS idx_gm_group_user ON public.group_members(group_id, user_id);
+-- Messaging history sorting index
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_created ON public.messages (conversation_id, created_at DESC);
+
+-- Friendship status lookup indexes
+CREATE INDEX IF NOT EXISTS idx_friendships_user_status ON public.friendships (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_friendships_friend_status ON public.friendships (friend_id, status);
+
+-- Conversation participants composite index
+CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv_user ON public.conversation_participants (conversation_id, user_id);
 ```
-*Impact: Cuts Postgres query execution time from ~100ms to <5ms.*
 
 ---
 
-### Phase 3: Field Projection & Server-Side Pagination
-- **List Queries:** Omit full `content` from list views, fetching lightweight metadata only.
-- **Pagination:** Implement `.range(page * limit, (page + 1) * limit - 1)` at the database layer.
-*Impact: Decreases payload size by 80–90%.*
+### Phase 3: Field Projection & Server-Side Pagination (Completed)
+- **Field Projection:** Defined `NOTE_LIST_SELECT` omitting heavy markdown `content` bodies from list views (`getNotes`, `getGroupSharedNotes`, `getSessionNotes`), fetching full content only for single-note detail views (`getNote`).
+- **Route Code-Splitting:** Dynamic `React.lazy` imports wrapped with `<Suspense>` boundaries for all page routes in `App.tsx`.
 
 ---
 
-### Phase 4: Persistence & Optimistic UI
+### Phase 4: Persistence & Optimistic UI (Planned)
 - **IndexedDB Persistence:** Configure `@tanstack/react-query-persist-client` to render instant cached data on page load (<10ms).
 - **Optimistic Updates:** Update local cache immediately on mutations (e.g. creating/deleting notes) before waiting for server confirmation.
-*Impact: Perceived loading time drops to 0ms.*
 
 ---
 
-### Phase 5: Infrastructure & Connection Scaling
+### Phase 5: Infrastructure & Connection Scaling (Planned)
 - **Transaction Connection Pooling:** Route database traffic through Supabase Supavisor pooler (port `6543`).
 - **Realtime Subscriptions:** Use Supabase Realtime WebSocket changes instead of polling or aggressive invalidations.

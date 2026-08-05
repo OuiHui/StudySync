@@ -89,26 +89,23 @@ export const useGroupStudySessionData = () => {
   const isLeavingSessionRef = useRef(false);
   const userRef = useRef(user);
   const initCompletedRef = useRef(false);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep userRef in sync and retry init if user became available after sessionId was set
   useEffect(() => {
     const wasNull = !userRef.current;
     userRef.current = user;
     if (wasNull && user && sessionId && !initCompletedRef.current) {
-      // Auth resolved after sessionId was already set — run init now
-      loadSessionDetails(sessionId);
-      loadParticipants(sessionId);
-      loadGoals(sessionId);
-      loadNotes(sessionId).then(() => {
+      // Auth resolved after sessionId was already set — run init now concurrently
+      Promise.all([
+        loadSessionDetails(sessionId),
+        loadParticipants(sessionId),
+        loadGoals(sessionId),
+        loadNotes(sessionId)
+      ]).then(() => {
         if (!channelRef.current) setupRealTimeSync(sessionId);
         setLoading(false);
         initCompletedRef.current = true;
       });
-
-      if (!pollIntervalRef.current) {
-        pollIntervalRef.current = setInterval(() => loadParticipants(sessionId), 8000);
-      }
     }
   }, [user]);
 
@@ -313,10 +310,12 @@ export const useGroupStudySessionData = () => {
       if (!(savedId && hasCache)) {
         setLoading(true);
       }
-      await loadSessionDetails(sessionId);
-      await loadParticipants(sessionId);
-      await loadGoals(sessionId);
-      await loadNotes(sessionId);
+      await Promise.all([
+        loadSessionDetails(sessionId),
+        loadParticipants(sessionId),
+        loadGoals(sessionId),
+        loadNotes(sessionId)
+      ]);
 
       if (cancelled) return;
 
@@ -327,16 +326,8 @@ export const useGroupStudySessionData = () => {
 
     init();
 
-    pollIntervalRef.current = setInterval(() => {
-      loadParticipants(sessionId);
-    }, 8000);
-
     return () => {
       cancelled = true;
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -361,10 +352,12 @@ export const useGroupStudySessionData = () => {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadSessionDetails(sessionId);
-        loadParticipants(sessionId);
-        loadGoals(sessionId);
-        loadNotes(sessionId);
+        Promise.all([
+          loadSessionDetails(sessionId),
+          loadParticipants(sessionId),
+          loadGoals(sessionId),
+          loadNotes(sessionId)
+        ]);
       }
     };
 

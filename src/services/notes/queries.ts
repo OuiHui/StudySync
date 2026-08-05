@@ -7,6 +7,12 @@ const NOTE_JOIN_SELECT = `
   note_group_shares(group_id, study_groups(id, name, is_public))
 `;
 
+const NOTE_LIST_SELECT = `
+  id, title, subject, file_url, file_name, permission_level, created_at, updated_at, created_by, session_id, group_id, tags, is_collaborative,
+  profiles!notes_created_by_fkey(id, display_name, avatar_url, user_id),
+  note_group_shares(group_id, study_groups(id, name, is_public))
+`;
+
 function transformJoinedNote(rawNote: any) {
   if (!rawNote) return null;
   const noteShares = rawNote.note_group_shares || [];
@@ -38,7 +44,7 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('notes')
-        .select(NOTE_JOIN_SELECT)
+        .select(NOTE_LIST_SELECT)
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -161,7 +167,7 @@ export class NotesQueries {
 
       const { data, error } = await supabase
         .from('note_group_shares' as any)
-        .select(`note_id, notes(${NOTE_JOIN_SELECT})`)
+        .select(`note_id, notes(${NOTE_LIST_SELECT})`)
         .eq('group_id', groupId);
 
       if (error) {
@@ -186,7 +192,7 @@ export class NotesQueries {
 
       const { data: notes, error } = await supabase
         .from('notes')
-        .select(NOTE_JOIN_SELECT)
+        .select(NOTE_LIST_SELECT)
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
 
