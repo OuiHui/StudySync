@@ -127,7 +127,7 @@ export class StudySessionsQueries {
       const partIds = (participationsRes.data || []).map(p => p.session_id).filter(id => !createdIds.has(id));
       const groupIds = (membershipsRes.data || []).map(m => m.group_id);
 
-      let otherSessions: any[] = [];
+      let otherSessions: Record<string, unknown>[] = [];
       if (partIds.length > 0 || groupIds.length > 0) {
         let query = supabase.from('study_sessions').select(STUDY_SESSION_SELECT);
         if (partIds.length > 0 && groupIds.length > 0) {
@@ -139,7 +139,7 @@ export class StudySessionsQueries {
         }
         const { data: fetchRes, error: fetchErr } = await query.order('scheduled_start', { ascending: true });
         if (!fetchErr) {
-          otherSessions = fetchRes || [];
+          otherSessions = (fetchRes as Record<string, unknown>[]) || [];
         }
       }
 

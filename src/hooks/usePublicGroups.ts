@@ -55,6 +55,22 @@ const normalizeColor = (color: string) => {
   return colorMap[color] || `bg-gradient-to-br ${color}`;
 };
 
+export interface RawGroup {
+  id: string;
+  name: string;
+  subject?: string;
+  description?: string;
+  member_count?: number;
+  sessions_count?: number;
+  creator_profile?: { display_name?: string };
+  color?: string;
+  icon?: string;
+  created_at: string;
+  max_members: number;
+  created_by: string;
+  is_public?: boolean;
+}
+
 export function usePublicGroups(
   groupEnrollments: Record<string, boolean> = {},
   onUpdateEnrollment?: (groupId: string, enrolled: boolean) => void
@@ -62,11 +78,11 @@ export function usePublicGroups(
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: rawGroups = [], isLoading: loading, error, refetch: loadPublicGroups } = useQuery<any[], Error>({
+  const { data: rawGroups = [], isLoading: loading, error, refetch: loadPublicGroups } = useQuery<RawGroup[], Error>({
     queryKey: ['public-groups'],
     queryFn: async () => {
       const publicGroups = await StudyGroupsService.getPublicGroups();
-      return publicGroups || [];
+      return (publicGroups as unknown as RawGroup[]) || [];
     },
     staleTime: 5 * 60 * 1000, // cache for 5 minutes
   });
@@ -81,8 +97,8 @@ export function usePublicGroups(
       admin: group.creator_profile?.display_name || 'Group Admin',
       sessions: group.sessions_count || 0,
       isEnlisted: groupEnrollments[group.id] || false,
-      color: normalizeColor((group as any).color) || getSubjectColor(group.subject || 'General'),
-      icon: (group as any).icon || 'BookOpen',
+      color: normalizeColor(group.color || '') || getSubjectColor(group.subject || 'General'),
+      icon: group.icon || 'BookOpen',
       created_at: group.created_at,
       max_members: group.max_members,
       created_by: group.created_by,
@@ -93,7 +109,7 @@ export function usePublicGroups(
   const handleJoinGroup = async (groupId: string) => {
     try {
       await StudyGroupsService.joinGroup(groupId);
-      queryClient.setQueryData<any[]>(['public-groups'], (old) => {
+      queryClient.setQueryData<RawGroup[]>(['public-groups'], (old) => {
         if (!old) return old;
         return old.map(group =>
           group.id === groupId
@@ -111,7 +127,7 @@ export function usePublicGroups(
   const handleLeaveGroup = async (groupId: string, newAdminUserId?: string) => {
     try {
       await StudyGroupsService.leaveGroup(groupId, newAdminUserId);
-      queryClient.setQueryData<any[]>(['public-groups'], (old) => {
+      queryClient.setQueryData<RawGroup[]>(['public-groups'], (old) => {
         if (!old) return old;
         return old.map(group =>
           group.id === groupId
@@ -126,25 +142,25 @@ export function usePublicGroups(
     }
   };
 
-  const handleCreateGroup = (newGroup: any) => {
-    if (newGroup) {
-      const rawGroup = {
+  const handleCreateGroup = (newGroup: Partial<RawGroup>) => {
+    if (newGroup && newGroup.id && newGroup.name) {
+      const rawGroup: RawGroup = {
         id: newGroup.id,
         name: newGroup.name,
         subject: newGroup.subject,
         description: newGroup.description,
         member_count: 1,
         creator_profile: {
-          display_name: user?.email || user?.user_metadata?.display_name || 'You'
+          display_name: user?.email || (user?.user_metadata?.display_name as string) || 'You'
         },
         color: newGroup.color,
         icon: newGroup.icon,
-        created_at: newGroup.created_at,
-        max_members: newGroup.max_members,
+        created_at: newGroup.created_at || new Date().toISOString(),
+        max_members: newGroup.max_members || 10,
         created_by: user?.id || ''
       };
       
-      queryClient.setQueryData<any[]>(['public-groups'], (old) => {
+      queryClient.setQueryData<RawGroup[]>(['public-groups'], (old) => {
         if (!old) return [rawGroup];
         return [rawGroup, ...old];
       });

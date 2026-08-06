@@ -22,13 +22,28 @@ export interface UserStats {
   totalSessions: number;
 }
 
+export interface RecentActivityItem {
+  id: string;
+  type: string;
+  title: string;
+  timestamp: string;
+  [key: string]: unknown;
+}
+
 export interface ProfileData {
   userProfile: UserProfile;
   userStats: UserStats;
-  recentActivity: any[];
+  recentActivity: RecentActivityItem[];
 }
 
-export const getProfileQueryOptions = (user: any, authLoading: boolean) => ({
+export interface UserAuthLike {
+  id: string;
+  email?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const getProfileQueryOptions = (user: UserAuthLike | null, authLoading: boolean) => ({
   queryKey: ['profile', user?.id],
   queryFn: async () => {
     if (!user) throw new Error('User not authenticated');
@@ -78,9 +93,9 @@ export const getProfileQueryOptions = (user: any, authLoading: boolean) => ({
       userStats = statsResult.value;
     }
 
-    let recentActivity: any[] = [];
+    let recentActivity: RecentActivityItem[] = [];
     if (activityResult.status === 'fulfilled') {
-      recentActivity = activityResult.value;
+      recentActivity = activityResult.value as RecentActivityItem[];
     }
 
     return { userProfile, userStats, recentActivity };

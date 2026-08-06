@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -81,9 +81,9 @@ export const Messages: React.FC = () => {
   const handledUserIdRef = useRef<string | null>(null);
 
   // Fetch conversation messages with React Query cache
-  const { data: messages = [], isLoading: messagesLoading } = useQuery<any[]>({
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<RealtimeMessage[]>({
     queryKey: ['chat-messages', activeConvId],
-    queryFn: () => (activeConvId ? ChatService.getMessages(activeConvId) : Promise.resolve([])),
+    queryFn: () => (activeConvId ? (ChatService.getMessages(activeConvId) as Promise<RealtimeMessage[]>) : Promise.resolve([])),
     enabled: !!activeConvId && !activeConvId.startsWith('temp_group_'),
     staleTime: 2 * 60 * 1000,
   });
@@ -96,6 +96,65 @@ export const Messages: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  const loadConversationMessages = useCallback(async (convId: string, groupOrUserObj: FormattedConversation) => {
+    try {
+      let targetConvId = convId;
+      if (convId.startsWith('temp_group_') && groupOrUserObj.groupId) {
+        const createdId = await getOrCreateGroupChat(groupOrUserObj.groupId);
+        if (createdId) {
+          targetConvId = createdId;
+          groupOrUserObj.id = createdId;
+        } else {
+          return;
+        }
+      }
+
+      if (targetConvId.startsWith('temp_group_')) {
+        return;
+      }
+
+      setActiveConvId(targetConvId);
+      activeConvRef.current = targetConvId;
+
+      RealtimeService.subscribeToMessages(
+        targetConvId,
+        (newMessage: RealtimeMessage) => {
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: RealtimeMessage[] = []) => {
+            if (prev.some((m) => m.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
+        },
+        (updatedMessage: RealtimeMessage) => {
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: RealtimeMessage[] = []) =>
+            prev.map((msg) => (msg.id === updatedMessage.id ? updatedMessage : msg))
+          );
+        },
+        (deletedMessageId: string) => {
+          queryClient.setQueryData(['chat-messages', targetConvId], (prev: RealtimeMessage[] = []) =>
+            prev.filter((msg) => msg.id !== deletedMessageId)
+          );
+        }
+      );
+    } catch (err) {
+      console.error('Error loading conversation messages:', err);
+    }
+  }, [getOrCreateGroupChat, queryClient]);
+
+  const handleSelectConversation = useCallback((conv: FormattedConversation) => {
+    if (searchParams.has('userId')) {
+      setSearchParams({}, { replace: true });
+    }
+
+    if (activeConvRef.current && activeConvRef.current !== conv.id) {
+      RealtimeService.unsubscribe(`messages:${activeConvRef.current}`);
+    }
+
+    setSelectedConversation(conv);
+    setMobileShowChat(true);
+    loadConversationMessages(conv.id, conv);
+    ChatService.markConversationRead(conv.id);
+  }, [searchParams, setSearchParams, loadConversationMessages]);
+
   // Set initial default selected conversation when data finishes loading (only if no targetUserId in URL)
   useEffect(() => {
     if (!selectedConversation && !targetUserIdParam) {
@@ -105,7 +164,7 @@ export const Messages: React.FC = () => {
         handleSelectConversation(directConversations[0]);
       }
     }
-  }, [groupConversations, directConversations, activeCategory, targetUserIdParam, selectedConversation]);
+  }, [groupConversations, directConversations, activeCategory, targetUserIdParam, selectedConversation, handleSelectConversation]);
 
   // Handle direct navigation to a chat with a specific user (e.g. from Friends page)
   useEffect(() => {
@@ -156,7 +215,7 @@ export const Messages: React.FC = () => {
     return () => {
       isCancelled = true;
     };
-  }, [targetUserIdParam, dataLoading, user, directConversations, selectedConversation, setSearchParams, searchParams]);
+  }, [targetUserIdParam, dataLoading, user, directConversations, selectedConversation, setSearchParams, searchParams, handleSelectConversation, startDirectChatWithUser]);
 
   // Clean up realtime subscriptions on unmount or conversation switch
   useEffect(() => {
@@ -166,67 +225,6 @@ export const Messages: React.FC = () => {
       }
     };
   }, []);
-
-  const loadConversationMessages = async (convId: string, groupOrUserObj: FormattedConversation) => {
-    try {
-      let targetConvId = convId;
-      // If it's a temporary group conversation that hasn't been created in backend DB yet
-      if (convId.startsWith('temp_group_') && groupOrUserObj.groupId) {
-        const createdId = await getOrCreateGroupChat(groupOrUserObj.groupId);
-        if (createdId) {
-          targetConvId = createdId;
-          groupOrUserObj.id = createdId;
-        } else {
-          return;
-        }
-      }
-
-      if (targetConvId.startsWith('temp_group_')) {
-        return;
-      }
-
-      setActiveConvId(targetConvId);
-      activeConvRef.current = targetConvId;
-
-      // Subscribe to realtime messages
-      RealtimeService.subscribeToMessages(
-        targetConvId,
-        (newMessage: RealtimeMessage) => {
-          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) => {
-            if (prev.some((m) => m.id === newMessage.id)) return prev;
-            return [...prev, newMessage];
-          });
-        },
-        (updatedMessage: RealtimeMessage) => {
-          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) =>
-            prev.map((msg) => (msg.id === updatedMessage.id ? updatedMessage : msg))
-          );
-        },
-        (deletedMessageId: string) => {
-          queryClient.setQueryData(['chat-messages', targetConvId], (prev: any[] = []) =>
-            prev.filter((msg) => msg.id !== deletedMessageId)
-          );
-        }
-      );
-    } catch (err) {
-      console.error('Error loading conversation messages:', err);
-    }
-  };
-
-  const handleSelectConversation = (conv: FormattedConversation) => {
-    if (searchParams.has('userId')) {
-      setSearchParams({}, { replace: true });
-    }
-
-    if (activeConvRef.current && activeConvRef.current !== conv.id) {
-      RealtimeService.unsubscribe(`messages:${activeConvRef.current}`);
-    }
-
-    setSelectedConversation(conv);
-    setMobileShowChat(true);
-    loadConversationMessages(conv.id, conv);
-    ChatService.markConversationRead(conv.id);
-  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !user || !activeConvId) return;

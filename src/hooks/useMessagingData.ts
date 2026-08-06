@@ -6,6 +6,23 @@ import { ChatService, StudySessionsService, StudyGroupsService, FriendsService }
 import { MOCK_USERS } from '@/services/simulation';
 import { isValidImageUrl } from '@/lib/utils';
 
+export interface ActiveSession {
+  id: string;
+  group_id?: string;
+  status: string;
+  title?: string;
+  [key: string]: unknown;
+}
+
+export interface UserProfile {
+  id?: string;
+  user_id?: string;
+  display_name?: string | null;
+  avatar_url?: string | null;
+  email?: string | null;
+  [key: string]: unknown;
+}
+
 export interface FormattedConversation {
   id: string;
   isGroupChat: boolean;
@@ -21,11 +38,11 @@ export interface FormattedConversation {
   } | null;
   unreadCount?: number;
   // For group chats
-  activeSession?: any | null;
+  activeSession?: ActiveSession | null;
   groupSubject?: string | null;
   // For direct chats
   targetUserId?: string | null;
-  targetUserProfile?: any | null;
+  targetUserProfile?: UserProfile | null;
   createdAt?: string | null;
   updatedAt?: string | null;
 }
@@ -33,9 +50,9 @@ export interface FormattedConversation {
 interface MessagingData {
   groupConversations: FormattedConversation[];
   directConversations: FormattedConversation[];
-  activeSessionsMap: Record<string, any>;
-  userFriends: any[];
-  userGroups: any[];
+  activeSessionsMap: Record<string, ActiveSession>;
+  userFriends: UserProfile[];
+  userGroups: Record<string, unknown>[];
 }
 
 export function useMessagingData() {
@@ -63,8 +80,8 @@ export function useMessagingData() {
     ]);
 
     // Create lookup map for active group sessions
-    const activeMap: Record<string, any> = {};
-    (availableSessions || []).forEach((session: any) => {
+    const activeMap: Record<string, ActiveSession> = {};
+    (availableSessions || []).forEach((session: ActiveSession) => {
       if (session.group_id && ['active', 'running', 'scheduled'].includes(session.status)) {
         if (!activeMap[session.group_id] || session.status === 'active' || session.status === 'running') {
           activeMap[session.group_id] = session;
@@ -77,7 +94,7 @@ export function useMessagingData() {
     const processedGroupIds = new Set<string>();
 
     for (const conv of (rawConversations || [])) {
-      const cData = (conv as any).conversations || (conv as any);
+      const cData = (conv as Record<string, any>).conversations || conv;
       if (cData.is_group_chat && cData.group_id) {
         processedGroupIds.add(cData.group_id);
         
@@ -86,15 +103,15 @@ export function useMessagingData() {
           continue;
         }
 
-        const matchingGroup = (userGroups || []).find((g: any) => g.id === cData.group_id);
+        const matchingGroup = (userGroups || []).find((g: Record<string, any>) => g.id === cData.group_id);
         
         groupConvs.push({
           id: cData.id,
           isGroupChat: true,
           groupId: cData.group_id,
           name: cData.name || matchingGroup?.name || 'Study Group',
-          avatarUrl: isValidImageUrl((matchingGroup as any)?.avatar_url) 
-            ? (matchingGroup as any)?.avatar_url 
+          avatarUrl: isValidImageUrl(matchingGroup?.avatar_url) 
+            ? matchingGroup?.avatar_url 
             : isValidImageUrl(matchingGroup?.icon) 
               ? matchingGroup?.icon 
               : null,
@@ -118,7 +135,7 @@ export function useMessagingData() {
     const directConvs: FormattedConversation[] = [];
     
     for (const conv of (rawConversations || [])) {
-      const cData = (conv as any).conversations || (conv as any);
+      const cData = (conv as Record<string, any>).conversations || conv;
       if (!cData.is_group_chat) {
         let otherUserId = cData.target_user_id;
         let targetProfile = cData.target_profile;
@@ -131,7 +148,7 @@ export function useMessagingData() {
             .eq('conversation_id', cData.id);
 
           otherUserId =
-            participants?.find((p: any) => p.user_id !== user.id)?.user_id ||
+            participants?.find((p: { user_id: string }) => p.user_id !== user.id)?.user_id ||
             (cData.created_by !== user.id ? cData.created_by : null);
         }
 
