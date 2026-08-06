@@ -242,7 +242,7 @@ export class RealtimeService {
    */
   static subscribeToPresence(
     groupId: string,
-    onPresenceUpdate: (presences: Record<string, any[]>) => void
+    onPresenceUpdate: (presences: Record<string, unknown[]>) => void
   ): RealtimeChannel {
     const channelName = `presence:${groupId}`;
     
@@ -309,7 +309,7 @@ export class RealtimeService {
   static async broadcast(
     channelName: string,
     event: string,
-    payload: any
+    payload: Record<string, unknown>
   ): Promise<void> {
     const channel = this.channels.get(channelName);
     
@@ -328,7 +328,7 @@ export class RealtimeService {
   static subscribeToBroadcast(
     channelName: string,
     event: string,
-    callback: (payload: any) => void
+    callback: (payload: Record<string, unknown>) => void
   ): RealtimeChannel {
     // Remove existing channel if any
     this.unsubscribe(channelName);

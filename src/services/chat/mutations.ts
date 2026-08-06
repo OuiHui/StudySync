@@ -160,7 +160,7 @@ export class ChatMutations {
           .in('conversation_id', myConvIds);
 
         const existingDirectConv = targetParticipations?.find(
-          (tp: any) => tp.conversations && tp.conversations.is_group_chat === false
+          tp => tp.conversations && tp.conversations.is_group_chat === false
         );
 
         if (existingDirectConv?.conversations) {

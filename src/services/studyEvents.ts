@@ -30,7 +30,7 @@ export class StudyEventsService {
         .in('session_id', sessionIds);
 
       const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
-      let profiles: any[] = [];
+      let profiles: Array<{ id: string; display_name: string | null; avatar_url: string | null; user_id: string }> = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
@@ -39,10 +39,11 @@ export class StudyEventsService {
         profiles = profilesData || [];
       }
 
+      const win = window as unknown as Record<string, unknown>;
       const isAutomation = typeof window !== 'undefined' && Boolean(
         window.navigator.webdriver || 
-        (window as any).__playwright ||
-        (window as any).__PW_playwright
+        win.__playwright ||
+        win.__PW_playwright
       );
 
       const filteredSessions = sessions.filter(session => {

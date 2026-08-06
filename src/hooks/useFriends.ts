@@ -81,7 +81,7 @@ export function useFriends() {
 
       setFriends(mappedFriends);
       setFriendRequests(mappedRequests);
-      setSentRequests(sentData as any);
+      setSentRequests(sentData || []);
     } catch (error) {
       console.error('Error loading friends data:', error);
       toast({
@@ -111,7 +111,7 @@ export function useFriends() {
         },
         (payload) => {
           // If the payload concerns the current user, refresh the friends data
-          const row = (payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old) as any;
+          const row = (payload.new && Object.keys(payload.new).length > 0 ? payload.new : payload.old) as { user_id?: string; friend_id?: string } | null;
           if (row && (row.user_id === user.id || row.friend_id === user.id)) {
             console.log('Realtime friendship update received, reloading...', payload);
             loadFriendsData();
@@ -134,7 +134,7 @@ export function useFriends() {
     try {
       setSearching(true);
       const results = await FriendsService.searchUsers(searchTerm);
-      setSearchResults(results as any);
+      setSearchResults(results || []);
     } catch (error) {
       console.error('Error searching users:', error);
       toast({

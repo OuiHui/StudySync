@@ -10,7 +10,7 @@ export class FriendsMutations {
       }
 
       const { data: existing } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .select('*')
         .or(`and(user_id.eq.${session.user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${session.user.id})`)
         .maybeSingle();
@@ -20,7 +20,7 @@ export class FriendsMutations {
       }
 
       const { data, error } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .insert({
           user_id: session.user.id,
           friend_id: friendId,
@@ -49,7 +49,7 @@ export class FriendsMutations {
       }
 
       const { data, error } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .update({ 
           status: 'accepted',
           updated_at: new Date().toISOString()
@@ -79,7 +79,7 @@ export class FriendsMutations {
       }
 
       const { error } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .delete()
         .eq('id', requestId)
         .eq('friend_id', session.user.id);
@@ -104,7 +104,7 @@ export class FriendsMutations {
       }
 
       const { error } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .delete()
         .eq('id', friendshipId)
         .or(`user_id.eq.${session.user.id},friend_id.eq.${session.user.id}`);
@@ -129,7 +129,7 @@ export class FriendsMutations {
       }
 
       const { error } = await supabase
-        .from('friendships' as any)
+        .from('friendships')
         .delete()
         .eq('id', requestId)
         .eq('user_id', session.user.id);

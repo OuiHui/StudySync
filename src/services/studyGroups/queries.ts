@@ -74,7 +74,7 @@ export class StudyGroupsQueries {
         const conversations = conversationsRes.data || [];
         const convIds = conversations.map(c => c.id);
 
-        let latestMessages: any[] = [];
+        let latestMessages: Array<{ id: string; conversation_id: string; content: string; created_at: string; sender_id: string }> = [];
         if (convIds.length > 0) {
           const { data: msgs } = await supabase
             .from('messages')
@@ -95,11 +95,12 @@ export class StudyGroupsQueries {
           const conversation = conversations.find(c => c.group_id === group.id);
           const latestMsg = conversation ? latestMessages.find(m => m.conversation_id === conversation.id) : null;
           
+          const groupExtra = group as { icon?: string; color?: string };
           return {
             ...group,
             // Add fallback values for icon and color if not present in database
-            icon: (group as any).icon || 'Users',
-            color: (group as any).color || 'from-blue-500 to-blue-600',
+            icon: groupExtra.icon || 'Users',
+            color: groupExtra.color || 'from-blue-500 to-blue-600',
             creator_profile: creator,
             user_role: membership?.role || (isCreator ? 'admin' : 'member'),
             joined_at: membership?.joined_at || group.created_at,
@@ -196,11 +197,12 @@ export class StudyGroupsQueries {
           const memberCount = allMembers.filter(m => m.group_id === group.id).length;
           const sessionsCount = allSessions.filter(s => s.group_id === group.id).length;
 
+          const groupExtra = group as { icon?: string; color?: string };
           return {
             ...group,
             // Add fallback values for icon and color if not present in database
-            icon: (group as any).icon || 'Users',
-            color: (group as any).color || 'from-blue-500 to-blue-600',
+            icon: groupExtra.icon || 'Users',
+            color: groupExtra.color || 'from-blue-500 to-blue-600',
             creator_profile: creator || null,
             member_count: memberCount,
             sessions_count: sessionsCount

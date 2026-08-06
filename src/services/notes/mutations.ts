@@ -194,7 +194,7 @@ export class NotesMutations {
       }
 
       const { data, error } = await supabase
-        .from('custom_subjects' as any)
+        .from('custom_subjects')
         .insert({ name: name.trim(), created_by: session.user.id })
         .select()
         .single();
@@ -221,7 +221,7 @@ export class NotesMutations {
       }
 
       const { error } = await supabase
-        .from('custom_subjects' as any)
+        .from('custom_subjects')
         .delete()
         .eq('id', id)
         .eq('created_by', session.user.id);
@@ -246,7 +246,7 @@ export class NotesMutations {
 
       // Remove existing shares first
       const { error: deleteError } = await supabase
-        .from('note_group_shares' as any)
+        .from('note_group_shares')
         .delete()
         .eq('note_id', noteId);
 
@@ -263,7 +263,7 @@ export class NotesMutations {
         }));
 
         const { error } = await supabase
-          .from('note_group_shares' as any)
+          .from('note_group_shares')
           .insert(shares);
 
         if (error) {

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 import { checkAuth, handleDbError } from '../utils';
 
 export class ProfileQueries {
@@ -121,7 +122,7 @@ export class ProfileQueries {
     }
   }
 
-  static calculateStudyHours(sessions: any[]): number {
+  static calculateStudyHours(sessions: Array<Partial<Tables<'study_sessions'>>>): number {
     if (!sessions || sessions.length === 0) return 0;
 
     let totalMinutes = 0;
@@ -142,16 +143,20 @@ export class ProfileQueries {
     return Math.floor(totalMinutes / 60);
   }
 
-  static calculateStudyStreak(sessions: any[]) {
+  static calculateStudyStreak(sessions: Array<Partial<Tables<'study_sessions'>>>) {
     if (!sessions || sessions.length === 0) return 0;
 
     // Sort sessions by date (newest first)
-    const sortedSessions = sessions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const sortedSessions = sessions.sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
     
     // Get unique study dates
     const studyDates = [...new Set(sortedSessions.map(session => 
-      new Date(session.created_at).toDateString()
-    ))];
+      session.created_at ? new Date(session.created_at).toDateString() : ''
+    ).filter(Boolean))];
 
     if (studyDates.length === 0) return 0;
 
@@ -160,7 +165,7 @@ export class ProfileQueries {
     const hasStudiedToday = studyDates.includes(today);
     
     // Start from yesterday if no study today, otherwise start from today
-    let checkDate = new Date();
+    const checkDate = new Date();
     if (!hasStudiedToday) {
       checkDate.setDate(checkDate.getDate() - 1);
     }
@@ -189,7 +194,7 @@ export class ProfileQueries {
       }
 
       const userId = session.user.id;
-      const activities = [];
+      const activities: Array<{ id: string; action: string; time: string; type: string }> = [];
 
       // Get recent study sessions
       const { data: recentSessions, error: sessionsError } = await supabase
@@ -239,9 +244,10 @@ export class ProfileQueries {
 
       if (!membershipsError && recentMemberships) {
         recentMemberships.forEach(membership => {
+          const groupObj = membership.study_groups as { name: string } | null;
           activities.push({
             id: `membership-${membership.id}`,
-            action: `Joined ${(membership.study_groups as any)?.name || 'group'}`,
+            action: `Joined ${groupObj?.name || 'group'}`,
             time: this.formatTimeAgo(membership.joined_at),
             type: 'join'
           });

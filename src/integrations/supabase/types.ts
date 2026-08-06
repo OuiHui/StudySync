@@ -15,6 +15,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           joined_at: string
+          last_read_at: string | null
           left_at: string | null
           user_id: string
         }
@@ -23,6 +24,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           joined_at?: string
+          last_read_at?: string | null
           left_at?: string | null
           user_id: string
         }
@@ -31,6 +33,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           joined_at?: string
+          last_read_at?: string | null
           left_at?: string | null
           user_id?: string
         }
@@ -40,6 +43,126 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_subjects: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      group_invitations: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          invited_by_id: string
+          invited_user_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          invited_by_id: string
+          invited_user_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          invited_by_id?: string
+          invited_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actionable: boolean
+          created_at: string
+          friendship_id: string | null
+          group_id: string | null
+          id: string
+          message: string
+          read: boolean
+          sender_id: string | null
+          session_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actionable?: boolean
+          created_at?: string
+          friendship_id?: string | null
+          group_id?: string | null
+          id?: string
+          message: string
+          read?: boolean
+          sender_id?: string | null
+          session_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          actionable?: boolean
+          created_at?: string
+          friendship_id?: string | null
+          group_id?: string | null
+          id?: string
+          message?: string
+          read?: boolean
+          sender_id?: string | null
+          session_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_friendship_id_fkey"
+            columns: ["friendship_id"]
+            isOneToOne: false
+            referencedRelation: "friendships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "study_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -84,28 +207,34 @@ export type Database = {
       }
       friendships: {
         Row: {
-          addressee_id: string
+          addressee_id?: string
           created_at: string
+          friend_id: string
           id: string
-          requester_id: string
+          requester_id?: string
           status: Database["public"]["Enums"]["friendship_status"]
           updated_at: string
+          user_id: string
         }
         Insert: {
-          addressee_id: string
-          created_at?: string
-          id?: string
-          requester_id: string
-          status?: Database["public"]["Enums"]["friendship_status"]
-          updated_at?: string
-        }
-        Update: {
           addressee_id?: string
           created_at?: string
+          friend_id: string
           id?: string
           requester_id?: string
           status?: Database["public"]["Enums"]["friendship_status"]
           updated_at?: string
+          user_id: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          friend_id?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -645,6 +774,10 @@ export type Database = {
       get_user_conversations_overview: {
         Args: { _user_id: string }
         Returns: Json
+      }
+      get_unread_counts: {
+        Args: { _user_id: string }
+        Returns: { conversation_id: string; unread_count: number }[]
       }
       get_user_public_sessions: {
         Args: { _user_id: string }

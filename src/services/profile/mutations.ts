@@ -1,8 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
+import { TablesUpdate } from '@/integrations/supabase/types';
 import { checkAuth, handleDbError } from '../utils';
 
 export class ProfileMutations {
-  static async updateProfile(updates: any) {
+  static async updateProfile(updates: TablesUpdate<'profiles'>) {
     try {
       const session = await checkAuth();
       if (!session) {

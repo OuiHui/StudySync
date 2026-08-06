@@ -40,4 +40,4 @@ global.Audio = class {
   load = vi.fn();
   addEventListener = vi.fn();
   removeEventListener = vi.fn();
-} as any;
+} as unknown as typeof Audio;

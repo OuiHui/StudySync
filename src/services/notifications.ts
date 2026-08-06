@@ -10,7 +10,7 @@ export class NotificationsService {
       }
 
       const { data, error } = await supabase
-        .from('notifications' as any)
+        .from('notifications')
         .select('*')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
@@ -34,7 +34,7 @@ export class NotificationsService {
       }
 
       const { data, error } = await supabase
-        .from('notifications' as any)
+        .from('notifications')
         .update({ read: true })
         .eq('id', notificationId)
         .eq('user_id', session.user.id)
@@ -60,7 +60,7 @@ export class NotificationsService {
       }
 
       const { data, error } = await supabase
-        .from('notifications' as any)
+        .from('notifications')
         .update({ read: true })
         .eq('user_id', session.user.id)
         .select();
@@ -84,7 +84,7 @@ export class NotificationsService {
       }
 
       const { error } = await supabase
-        .from('notifications' as any)
+        .from('notifications')
         .delete()
         .eq('id', notificationId)
         .eq('user_id', session.user.id);

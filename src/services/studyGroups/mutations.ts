@@ -227,7 +227,7 @@ export class StudyGroupsMutations {
       }
 
       // Map avatar_url to icon column if present and remove avatar_url
-      const cleanUpdates: any = { ...updates };
+      const cleanUpdates: Record<string, unknown> = { ...updates };
       if (cleanUpdates.avatar_url) {
         cleanUpdates.icon = cleanUpdates.avatar_url;
         delete cleanUpdates.avatar_url;
@@ -248,18 +248,19 @@ export class StudyGroupsMutations {
         }
 
         return data;
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errObj = error as { message?: string; code?: string };
         // Handle missing column errors (e.g. icon/color/avatar_url not in schema cache)
         if (
-          error.message?.includes('column') ||
-          error.message?.includes('schema cache') ||
-          error.code === '42703' ||
-          error.code === 'PGRST204'
+          errObj.message?.includes('column') ||
+          errObj.message?.includes('schema cache') ||
+          errObj.code === '42703' ||
+          errObj.code === 'PGRST204'
         ) {
           console.warn('Appearance columns (icon/color/avatar_url) not supported in database schema, updating core fields');
           
           // Remove icon, color, and avatar_url from updates and save core fields
-          const { icon, color, avatar_url, ...safeUpdates } = cleanUpdates as any;
+          const { icon: _icon, color: _color, avatar_url: _avatar_url, ...safeUpdates } = cleanUpdates;
           
           const { data, error: fallbackError } = await supabase
             .from('study_groups')
@@ -321,7 +322,7 @@ export class StudyGroupsMutations {
       }
 
       const { data, error } = await supabase
-        .from('group_invitations' as any)
+        .from('group_invitations')
         .insert({
           group_id: groupId,
           invited_user_id: invitedUserId,
@@ -350,7 +351,7 @@ export class StudyGroupsMutations {
       }
 
       const { data, error } = await supabase
-        .from('group_invitations' as any)
+        .from('group_invitations')
         .select('*')
         .eq('group_id', groupId);
 
@@ -373,7 +374,7 @@ export class StudyGroupsMutations {
       }
 
       const { data, error } = await supabase
-        .from('group_invitations' as any)
+        .from('group_invitations')
         .update({ status: 'accepted' })
         .eq('group_id', groupId)
         .eq('invited_user_id', session.user.id)
@@ -440,7 +441,7 @@ export class StudyGroupsMutations {
       }
 
       const { data, error } = await supabase
-        .from('group_invitations' as any)
+        .from('group_invitations')
         .update({ status: 'declined' })
         .eq('group_id', groupId)
         .eq('invited_user_id', session.user.id)

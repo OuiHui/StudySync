@@ -21,7 +21,7 @@ interface UseTimerProps {
   };
   sessionId?: string;
   isHost?: boolean;
-  sessionData?: any;
+  sessionData?: Record<string, unknown>;
   timerSyncPayload?: {
     isActive: boolean;
     timeLeft: number;
@@ -112,7 +112,7 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
     const startMs = new Date(sessionData.actual_start).getTime();
     let totalPausedMs = 0;
     const logs = sessionData.pause_logs || [];
-    logs.forEach((log: any) => {
+    logs.forEach((log: { paused_at?: string; resumed_at?: string | null }) => {
       if (log.paused_at && log.resumed_at) {
         const pausedAt = new Date(log.paused_at).getTime();
         const resumedAt = new Date(log.resumed_at).getTime();
@@ -213,7 +213,9 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
       try {
         const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBtn20+3ahCsFJH3K8OKQR...');
         audio.play().catch(() => {});
-      } catch (error) {}
+      } catch {
+        // Ignored audio errors
+      }
       
       if (mode === 'work') {
         const newSessions = sessions + 1;
@@ -266,7 +268,7 @@ export const useTimer = ({ onTimerUpdate, globalTimerState, sessionId, isHost = 
     setIsActive(nextActive);
 
     const nowIso = new Date().toISOString();
-    let updatedLogs = [...pauseLogs];
+    const updatedLogs = [...pauseLogs];
 
     if (!nextActive) {
       updatedLogs.push({ paused_at: nowIso, resumed_at: null });

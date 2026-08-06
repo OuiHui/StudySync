@@ -26,32 +26,39 @@ export interface StudyEvent {
   };
 }
 
-export const getStudyEventsQueryOptions = (user: any) => ({
+export const getStudyEventsQueryOptions = (user: { id?: string } | null) => ({
   queryKey: ['studyEvents', user?.id],
   queryFn: async () => {
     const data = await StudyEventsService.getEvents();
     
-    return data.map((session: any) => ({
-      id: session.id,
-      title: session.title,
-      type: (session.group_id ? 'group-session' : 'study-session') as 'study-session' | 'test' | 'group-session',
-      date: new Date(session.scheduled_start),
-      time: `${format(new Date(session.scheduled_start), 'h:mm a')} - ${format(new Date(session.scheduled_end), 'h:mm a')}`,
-      subject: session.study_groups?.subject || 'General',
-      status: session.status,
-      scheduled_start: session.scheduled_start,
-      scheduled_end: session.scheduled_end,
-      description: session.description,
-      max_participants: session.max_participants,
-      created_by: session.created_by,
-      group_id: session.group_id,
-      is_public: session.is_public,
-      group: session.study_groups ? {
-        id: session.study_groups.id,
-        name: session.study_groups.name,
-        subject: session.study_groups.subject
-      } : undefined
-    }));
+    return data.map((session) => {
+      const sess = session as Record<string, unknown>;
+      const studyGroups = sess.study_groups as { id: string; name: string; subject: string | null } | null;
+      const scheduledStart = String(sess.scheduled_start);
+      const scheduledEnd = String(sess.scheduled_end);
+
+      return {
+        id: String(sess.id),
+        title: String(sess.title),
+        type: (sess.group_id ? 'group-session' : 'study-session') as 'study-session' | 'test' | 'group-session',
+        date: new Date(scheduledStart),
+        time: `${format(new Date(scheduledStart), 'h:mm a')} - ${format(new Date(scheduledEnd), 'h:mm a')}`,
+        subject: studyGroups?.subject || 'General',
+        status: sess.status as string,
+        scheduled_start: scheduledStart,
+        scheduled_end: scheduledEnd,
+        description: sess.description as string | undefined,
+        max_participants: sess.max_participants as number | undefined,
+        created_by: sess.created_by as string | undefined,
+        group_id: sess.group_id as string | undefined,
+        is_public: sess.is_public as boolean | undefined,
+        group: studyGroups ? {
+          id: studyGroups.id,
+          name: studyGroups.name,
+          subject: studyGroups.subject
+        } : undefined
+      };
+    });
   },
   enabled: !!user,
   staleTime: 5 * 60 * 1000,

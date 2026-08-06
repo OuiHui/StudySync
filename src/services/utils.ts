@@ -75,14 +75,15 @@ export const checkAuth = async () => {
 };
 
 // Helper function to handle database errors
-export const handleDbError = (error: any, operation: string) => {
+export const handleDbError = (error: { code?: string; message?: string } | unknown, operation: string) => {
+  const err = (error || {}) as { code?: string; message?: string };
   console.error(`Database error in ${operation}:`, error);
   
-  if (error.code === 'PGRST116') {
+  if (err.code === 'PGRST116') {
     throw new Error(`No data found for ${operation}`);
-  } else if (error.code === 'PGRST301') {
+  } else if (err.code === 'PGRST301') {
     // Check if it's a JWT expiration
-    if (error.message?.includes('JWT expired') || error.message?.includes('JWT')) {
+    if (err.message?.includes('JWT expired') || err.message?.includes('JWT')) {
       // Redirect to auth page for re-authentication
       console.log('JWT expired, redirecting to auth...');
       setTimeout(() => {
@@ -91,9 +92,9 @@ export const handleDbError = (error: any, operation: string) => {
       throw new Error(`Session expired. Please log in again.`);
     }
     throw new Error(`Authentication required for ${operation}`);
-  } else if (error.message?.includes('RLS')) {
+  } else if (err.message?.includes('RLS')) {
     throw new Error(`Access denied for ${operation}. Please ensure you're logged in.`);
-  } else if (error.message?.includes('JWT expired')) {
+  } else if (err.message?.includes('JWT expired')) {
     // Handle direct JWT expired messages
     console.log('Direct JWT expiration detected, redirecting to auth...');
     setTimeout(() => {
@@ -101,7 +102,7 @@ export const handleDbError = (error: any, operation: string) => {
     }, 1000);
     throw new Error(`Session expired. Please log in again.`);
   } else {
-    throw new Error(`Failed to ${operation}: ${error.message || 'Unknown error'}`);
+    throw new Error(`Failed to ${operation}: ${err.message || 'Unknown error'}`);
   }
 };
 

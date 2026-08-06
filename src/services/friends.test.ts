@@ -38,16 +38,16 @@ describe('FriendsService', () => {
         },
       ];
 
-      (supabase.rpc as any).mockResolvedValue({
+      vi.mocked(supabase.rpc).mockResolvedValue({
         data: mockMutualFriends,
         error: null,
-      });
+      } as any);
 
       const result = await FriendsService.getMutualFriends('target-user-456');
 
       expect(supabase.rpc).toHaveBeenCalledWith('get_mutual_friends', {
-        target_user_id: 'target-user-456',
-        current_user_id: 'current-user-123',
+        _user_id1: 'target-user-456',
+        _user_id2: 'current-user-123',
       });
       expect(result).toEqual(mockMutualFriends);
     });

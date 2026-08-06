@@ -7,12 +7,12 @@ export class ChatQueries {
       const session = await checkAuth();
       if (!session) return [];
 
-      const { data: rpcData, error: rpcError } = await (supabase.rpc as any)('get_user_conversations_overview', {
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_user_conversations_overview', {
         _user_id: session.user.id
       });
 
       if (!rpcError && Array.isArray(rpcData)) {
-        return rpcData.map((row: any) => ({
+        return (rpcData as Array<Record<string, unknown>>).map((row) => ({
           user_id: session.user.id,
           conversations: {
             id: row.conversation_id,
@@ -142,7 +142,7 @@ export class ChatQueries {
       if (!session) return;
 
       await supabase
-        .from('conversation_participants' as any)
+        .from('conversation_participants')
         .update({ last_read_at: new Date().toISOString() })
         .eq('conversation_id', conversationId)
         .eq('user_id', session.user.id);
@@ -153,7 +153,7 @@ export class ChatQueries {
 
   static async getUnreadCounts(userId: string): Promise<Record<string, number>> {
     try {
-      const { data, error } = await (supabase.rpc as any)('get_unread_counts', {
+      const { data, error } = await supabase.rpc('get_unread_counts', {
         _user_id: userId
       });
 

@@ -13,9 +13,9 @@ const NOTE_LIST_SELECT = `
   note_group_shares(group_id, study_groups(id, name, is_public))
 `;
 
-function transformJoinedNote(rawNote: any) {
+function transformJoinedNote(rawNote: Record<string, unknown> | null) {
   if (!rawNote) return null;
-  const noteShares = rawNote.note_group_shares || [];
+  const noteShares = (rawNote.note_group_shares as Array<Record<string, unknown>>) || [];
   const firstShare = noteShares[0];
   const group_id = firstShare?.group_id || rawNote.group_id || null;
   const study_group = firstShare?.study_groups || null;
@@ -29,7 +29,7 @@ function transformJoinedNote(rawNote: any) {
   };
 }
 
-function transformJoinedNotes(rawNotes: any[]) {
+function transformJoinedNotes(rawNotes: Array<Record<string, unknown>>) {
   if (!rawNotes || !Array.isArray(rawNotes)) return [];
   return rawNotes.map(transformJoinedNote);
 }
@@ -116,7 +116,7 @@ export class NotesQueries {
       }
 
       const { data, error } = await supabase
-        .from('custom_subjects' as any)
+        .from('custom_subjects')
         .select('*')
         .eq('created_by', session.user.id)
         .order('name');
@@ -142,7 +142,7 @@ export class NotesQueries {
       }
 
       const { data, error } = await supabase
-        .from('note_group_shares' as any)
+        .from('note_group_shares')
         .select('group_id, study_groups(id, name, is_public)')
         .eq('note_id', noteId);
 
@@ -151,7 +151,7 @@ export class NotesQueries {
         return [];
       }
 
-      return (data as any) || [];
+      return data || [];
     } catch (error) {
       console.error('Error fetching shared groups:', error);
       return [];
@@ -166,7 +166,7 @@ export class NotesQueries {
       }
 
       const { data, error } = await supabase
-        .from('note_group_shares' as any)
+        .from('note_group_shares')
         .select(`note_id, notes(${NOTE_LIST_SELECT})`)
         .eq('group_id', groupId);
 
@@ -175,7 +175,7 @@ export class NotesQueries {
         return [];
       }
 
-      const rawNotes = (data as any[])?.map((item: any) => item.notes).filter(Boolean) || [];
+      const rawNotes = (data as unknown as Array<{ notes: Record<string, unknown> }>)?.map(item => item.notes).filter(Boolean) || [];
       return transformJoinedNotes(rawNotes);
     } catch (error) {
       console.error('Error fetching group shared notes:', error);

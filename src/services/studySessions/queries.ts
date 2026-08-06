@@ -25,8 +25,8 @@ const STUDY_SESSION_SELECT = `
 
 export class StudySessionsQueries {
   private static async enrichSessionsWithParticipants(
-    sessions: any[],
-    additionalFilter?: (session: any) => boolean
+    sessions: Array<Record<string, unknown>>,
+    additionalFilter?: (session: Record<string, unknown>) => boolean
   ) {
     if (!sessions || sessions.length === 0) {
       return [];
@@ -44,7 +44,7 @@ export class StudySessionsQueries {
       ...creatorIds
     ])];
     
-    let profiles: any[] = [];
+    let profiles: Array<Record<string, unknown>> = [];
     if (userIds.length > 0) {
       const { data: profilesData } = await supabase
         .from('profiles')
@@ -53,10 +53,11 @@ export class StudySessionsQueries {
       profiles = profilesData || [];
     }
 
+    const win = window as unknown as Record<string, unknown>;
     const isAutomation = typeof window !== 'undefined' && Boolean(
       window.navigator.webdriver || 
-      (window as any).__playwright ||
-      (window as any).__PW_playwright
+      win.__playwright ||
+      win.__PW_playwright
     );
 
     return sessions
@@ -195,7 +196,7 @@ export class StudySessionsQueries {
         if (studySession.is_public === false) {
           const isCreator = userId && studySession.created_by === userId;
           const isParticipant = userId && studySession.session_participants?.some(
-            (p: any) => p.user_id === userId
+            (p: { user_id: string }) => p.user_id === userId
           );
           const isGroupMember = userId && studySession.group_id && userGroupIds.includes(studySession.group_id);
           return isCreator || isParticipant || isGroupMember;
@@ -259,7 +260,7 @@ export class StudySessionsQueries {
         studySession.created_by
       ].filter(Boolean))];
       
-      let participantProfiles: any[] = [];
+      let participantProfiles: Array<Record<string, unknown>> = [];
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
@@ -308,7 +309,7 @@ export class StudySessionsQueries {
 
       if (partErr) console.error('[sessionHistory] participations error:', partErr);
 
-      let participatedData: any[] = [];
+      let participatedData: Array<Record<string, unknown>> = [];
       if (participations && participations.length > 0) {
         const partIds = participations.map((p) => p.session_id);
         const { data: partSessions, error: partSessionsErr } = await supabase

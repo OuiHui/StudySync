@@ -1,8 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { checkAuth, handleDbError, StudySession } from '../utils';
 
-const isRlsRecursionError = (error: any): boolean => {
-  return error && (error.code === '42P17' || error.message?.includes('infinite recursion'));
+const isRlsRecursionError = (error: unknown): boolean => {
+  const err = (error || {}) as { code?: string; message?: string };
+  return Boolean(err.code === '42P17' || err.message?.includes('infinite recursion'));
 };
 
 export class StudySessionsMutations {
@@ -164,7 +165,7 @@ export class StudySessionsMutations {
         handleDbError(fetchError, 'fetch session for status update');
       }
 
-      const updates: any = { status };
+      const updates: Record<string, unknown> = { status };
       const now = new Date().toISOString();
 
       if (status === 'running' || status === 'active') {
@@ -251,7 +252,7 @@ export class StudySessionsMutations {
         handleDbError(fetchError, 'fetch session for resume');
       }
 
-      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] as any[] : [];
+      const logs = Array.isArray(currentSession?.pause_logs) ? [...currentSession.pause_logs] as Array<{ paused_at: string; resumed_at?: string | null }> : [];
       if (logs.length > 0 && logs[logs.length - 1]?.resumed_at === null) {
         logs[logs.length - 1].resumed_at = new Date().toISOString();
       }
@@ -330,7 +331,7 @@ export class StudySessionsMutations {
         }
 
         return data;
-      } catch (directError: any) {
+      } catch (directError: unknown) {
         // If it's RLS recursion, try a simpler approach
         if (isRlsRecursionError(directError)) {
           console.warn('RLS recursion in updateSession, attempting minimal update...');
@@ -390,7 +391,7 @@ export class StudySessionsMutations {
         }
 
         return true;
-      } catch (directError: any) {
+      } catch (directError: unknown) {
         if (isRlsRecursionError(directError)) {
           console.warn('RLS recursion in deleteSession, attempting minimal delete...');
           

@@ -19,14 +19,14 @@ describe('OAuth Handler Utility', () => {
 
   function setMockUrl(url: string) {
     const parsed = new URL(url);
-    delete (window as any).location;
+    delete (window as unknown as Record<string, unknown>).location;
     window.location = {
       href: parsed.href,
       origin: parsed.origin,
       pathname: parsed.pathname,
       search: parsed.search,
       hash: parsed.hash,
-    } as any;
+    } as unknown as Location;
   }
 
   it('returns null when URL contains no OAuth error', () => {

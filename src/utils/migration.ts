@@ -47,4 +47,4 @@ export async function applyGroupAppearanceMigration() {
 }
 
 // Export for console usage
-(window as any).applyGroupAppearanceMigration = applyGroupAppearanceMigration;
+(window as unknown as Record<string, unknown>).applyGroupAppearanceMigration = applyGroupAppearanceMigration;

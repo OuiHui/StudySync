@@ -9,7 +9,7 @@ export interface GroupInfo {
   subject: string;
   members: number;
   user_role: string;
-  nextSession: any;
+  nextSession: unknown;
   description: string;
   color: string;
   icon: string;
@@ -17,14 +17,14 @@ export interface GroupInfo {
   created_at: string;
   created_by?: string;
   is_public: boolean;
-  creator_profile?: any;
+  creator_profile?: Record<string, unknown>;
   role?: string; // For visitor/anonymous
   sessions?: number;
   admin?: string;
-  latest_message?: any;
+  latest_message?: Record<string, unknown> | null;
 }
 
-export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
+export const getUserGroupsQueryOptions = (user: { id?: string } | null, isAnonymous: boolean) => ({
   queryKey: ['user-groups', user?.id, isAnonymous],
   queryFn: async () => {
     if (isAnonymous) {
@@ -32,7 +32,7 @@ export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
       const publicGroups = await StudyGroupsService.getPublicGroups();
       
       // Transform public groups to match our component structure
-      return publicGroups.map((group: any) => ({
+      return publicGroups.map((group: Record<string, unknown>) => ({
         id: group.id,
         name: group.name,
         subject: group.subject || 'General',
@@ -57,7 +57,7 @@ export const getUserGroupsQueryOptions = (user: any, isAnonymous: boolean) => ({
     const data = await StudyGroupsService.getUserGroups();
     
     // Transform the data to match our component structure
-    return data.map((group: any) => ({
+    return data.map((group: Record<string, unknown>) => ({
       id: group.id,
       name: group.name,
       subject: group.subject || 'General',
@@ -119,7 +119,7 @@ export function useUserGroups() {
     }
   };
 
-  const handleGroupUpdated = (updatedGroup?: any) => {
+  const handleGroupUpdated = (updatedGroup?: { id?: string }) => {
     if (!updatedGroup?.id) {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       return;

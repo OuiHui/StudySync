@@ -106,7 +106,7 @@ export class SimulatedUserBot {
 
     // Insert friendship row
     const { error } = await this.client
-      .from('friendships' as any)
+      .from('friendships')
       .insert({
         user_id: this.user.id,
         friend_id: targetId,
@@ -134,7 +134,7 @@ export class SimulatedUserBot {
 
     // Find the friendship first
     const { data: friendship, error: findError } = await this.client
-      .from('friendships' as any)
+      .from('friendships')
       .select('id')
       .or(`and(user_id.eq.${senderId},friend_id.eq.${this.user.id}),and(user_id.eq.${this.user.id},friend_id.eq.${senderId})`)
       .maybeSingle();
@@ -149,11 +149,10 @@ export class SimulatedUserBot {
       return;
     }
 
-    const friendshipObj = friendship as any;
     const { error } = await this.client
-      .from('friendships' as any)
+      .from('friendships')
       .update({ status: 'accepted' })
-      .eq('id', friendshipObj.id);
+      .eq('id', friendship.id);
 
     if (error) {
       this.manager.log(`❌ Error accepting request: ${error.message}`);
@@ -172,7 +171,7 @@ export class SimulatedUserBot {
 
     // Find the friendship first
     const { data: friendship, error: findError } = await this.client
-      .from('friendships' as any)
+      .from('friendships')
       .select('id')
       .or(`and(user_id.eq.${senderId},friend_id.eq.${this.user.id}),and(user_id.eq.${this.user.id},friend_id.eq.${senderId})`)
       .maybeSingle();
@@ -187,11 +186,10 @@ export class SimulatedUserBot {
       return;
     }
 
-    const friendshipObj = friendship as any;
     const { error } = await this.client
-      .from('friendships' as any)
+      .from('friendships')
       .delete()
-      .eq('id', friendshipObj.id);
+      .eq('id', friendship.id);
 
     if (error) {
       this.manager.log(`❌ Error rejecting request: ${error.message}`);
@@ -653,7 +651,7 @@ export class SimulatedUserBot {
     this.manager.log(`Bot ${this.user.name} is inviting ${targetName} to group ID ${groupId}...`);
 
     const { error } = await this.client
-      .from('group_invitations' as any)
+      .from('group_invitations')
       .insert({
         group_id: groupId,
         invited_user_id: targetId,
@@ -708,7 +706,7 @@ export class SimulatedUserBot {
     const groupId = await this.resolveGroupId(groupIdentifier);
     this.manager.log(`Bot ${this.user.name} is accepting group invitation for group ID ${groupId}...`);
     const { error } = await this.client
-      .from('group_invitations' as any)
+      .from('group_invitations')
       .update({ status: 'accepted' })
       .eq('group_id', groupId)
       .eq('invited_user_id', this.user.id);
@@ -724,7 +722,7 @@ export class SimulatedUserBot {
     const groupId = await this.resolveGroupId(groupIdentifier);
     this.manager.log(`Bot ${this.user.name} is declining group invitation for group ID ${groupId}...`);
     const { error } = await this.client
-      .from('group_invitations' as any)
+      .from('group_invitations')
       .update({ status: 'declined' })
       .eq('group_id', groupId)
       .eq('invited_user_id', this.user.id);
@@ -887,8 +885,9 @@ class SimulationManager {
       await receiver.sendMessage(sender.user.id, `No problem ${sender.user.name}! Let's study together soon.`);
       
       this.log(`🏆 Friendship Scenario completed successfully!`);
-    } catch (err: any) {
-      this.log(`❌ Scenario failed: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as { message: string };
+      this.log(`❌ Scenario failed: ${error.message}`);
     }
   }
 
@@ -912,8 +911,9 @@ class SimulationManager {
       await creator.sendGroupMessage(groupId, `Awesome, welcome everyone! Let's get to work.`);
       
       this.log(`🏆 Group Study Scenario completed successfully!`);
-    } catch (err: any) {
-      this.log(`❌ Scenario failed: ${err.message}`);
+    } catch (err: unknown) {
+      const error = err as { message: string };
+      this.log(`❌ Scenario failed: ${error.message}`);
     }
   }
 }
@@ -922,5 +922,5 @@ export const simulationManager = new SimulationManager();
 
 // Bind to window for console commands in development
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
-  (window as any).simulation = simulationManager;
+  (window as unknown as Record<string, unknown>).simulation = simulationManager;
 }
