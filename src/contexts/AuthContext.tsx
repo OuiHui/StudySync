@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, OAuthResponse } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<OAuthResponse>;
   signInAnonymously: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -59,6 +59,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session || typeof window === 'undefined') return;
+
+    if (window.opener && !window.opener.closed) {
+      try {
+        window.close();
+      } catch (err) {
+        console.warn('Failed to close Google OAuth popup:', err);
+      }
+    }
+  }, [session]);
+
   const signUp = async (email: string, password: string, displayName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -89,14 +101,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/#/auth`;
-    const { error } = await supabase.auth.signInWithOAuth({
+    const redirectUrl = `${window.location.origin}/#/auth/callback`;
+    const response = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
+        skipBrowserRedirect: true,
       },
     });
-    return { error };
+    return response;
   };
 
   const signOut = async () => {

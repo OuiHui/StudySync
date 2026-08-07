@@ -43,9 +43,11 @@ describe('AuthContext', () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/#/auth`,
+        redirectTo: `${window.location.origin}/#/auth/callback`,
+        skipBrowserRedirect: true,
       },
     });
+    expect(res.data?.url).toBe('https://accounts.google.com');
     expect(res.error).toBeNull();
   });
 

@@ -18,7 +18,7 @@ Google OAuth is initiated via Supabase's `signInWithOAuth` client function:
 
 ```typescript
 const signInWithGoogle = async () => {
-  const redirectUrl = `${window.location.origin}/#/auth`;
+  const redirectUrl = `${window.location.origin}/#/auth/callback`;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -32,8 +32,8 @@ const signInWithGoogle = async () => {
 When a user clicks "Continue with Google":
 1. `supabase.auth.signInWithOAuth` redirects the browser to Google's OAuth 2.0 authorization screen.
 2. After successful authentication, Google redirects back to Supabase's OAuth callback handler (`https://<project-ref>.supabase.co/auth/v1/callback`).
-3. Supabase issues session tokens and redirects back to the StudySync app (`redirectTo` URL).
-4. `supabase.auth.onAuthStateChange` in `AuthContext` detects the signed-in session and updates the user state across the app.
+3. Supabase issues session tokens and redirects back to the StudySync app (`redirectTo` URL), which now points to the dedicated `#/auth/callback` route.
+4. The callback page detects the completed session and closes the popup, while `supabase.auth.onAuthStateChange` in `AuthContext` updates the user state across the app.
 
 ---
 

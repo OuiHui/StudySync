@@ -9,6 +9,7 @@ import { ProtectedRoute, AuthRoute } from "@/components/common/RouteGuards";
 import { PageFallback } from "@/components/common/LoadingScreen";
 
 const Auth = lazy(() => import("@/pages/Auth").then(m => ({ default: m.Auth })));
+const AuthCallback = lazy(() => import("@/pages/Auth/Callback"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const SoloStudy = lazy(() => import("@/pages/SoloStudy"));
 const GroupSessions = lazy(() => import("@/pages/GroupSessions"));
@@ -36,6 +37,7 @@ const App = () => (
                 </AuthRoute>
               }
             />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route
               path="/"
               element={

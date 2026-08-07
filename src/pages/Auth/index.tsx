@@ -56,8 +56,15 @@ export function Auth() {
     setLoading(true);
     setError('');
     setMessage('');
-    const { error } = await signInWithGoogle();
-    if (error) setError(error.message);
+    const { error, data } = await signInWithGoogle();
+    if (error) {
+      setError(error.message);
+    } else if (data?.url) {
+      const popup = window.open(data.url, 'studysync-google-oauth', 'popup,width=500,height=650');
+      if (!popup) {
+        window.location.href = data.url;
+      }
+    }
     setLoading(false);
   };
 
