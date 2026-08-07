@@ -8,7 +8,8 @@ export class FriendsQueries {
       if (!session) return [];
 
       const { data, error } = await supabase.rpc('search_users', {
-        _search_term: searchTerm
+        search_term: searchTerm,
+        current_user_id: session.user.id
       });
 
       if (error) {
