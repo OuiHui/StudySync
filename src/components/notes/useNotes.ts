@@ -294,18 +294,35 @@ export const useNotes = () => {
       toast({ title: 'Validation Error', description: 'Note title is required.', variant: 'destructive' });
       return;
     }
+
+    const noteId = editingNote.id;
+    const updatedData = {
+      title: editFormData.title.trim(),
+      content: editFormData.content.trim(),
+      subject: editFormData.subject.trim() || null,
+      permission_level: editFormData.permission_level,
+      updated_at: new Date().toISOString()
+    };
+
+    let previousNotes: any[] | undefined;
+    queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+      if (!Array.isArray(old)) return old;
+      previousNotes = old;
+      return old.map((n: any) => (n.id === noteId ? { ...n, ...updatedData } : n));
+    });
+
+    toast({ title: 'Note Updated', description: 'Your note has been updated successfully.' });
+    setEditingNote(null);
+
     try {
-      await NotesService.updateNote(editingNote.id, {
-        title: editFormData.title.trim(),
-        content: editFormData.content.trim(),
-        subject: editFormData.subject.trim() || null,
-        permission_level: editFormData.permission_level
-      });
-      await NotesService.shareNoteWithGroups?.(editingNote.id, editFormData.selectedGroups);
-      toast({ title: 'Note Updated', description: 'Your note has been updated successfully.' });
-      setEditingNote(null);
+      await NotesService.updateNote(noteId, updatedData);
+      await NotesService.shareNoteWithGroups?.(noteId, editFormData.selectedGroups);
       refreshData();
     } catch (err) {
+      if (previousNotes) {
+        queryClient.setQueriesData({ queryKey: ['notes'] }, () => previousNotes);
+      }
+      refreshData();
       const errorMessage = err instanceof Error ? err.message : 'Failed to update note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {
         toast({ title: 'Session Expired', description: 'Your session has expired. Redirecting...', variant: 'destructive' });
@@ -330,19 +347,34 @@ export const useNotes = () => {
 
   const handleSaveShare = async () => {
     if (!sharingNote) return;
+    const noteId = sharingNote.id;
+    const targetPermission = shareSelectedGroups.length > 0 ? 'group' : 'private';
+
+    let previousNotes: any[] | undefined;
+    queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+      if (!Array.isArray(old)) return old;
+      previousNotes = old;
+      return old.map((n: any) => (n.id === noteId ? { ...n, permission_level: targetPermission } : n));
+    });
+
+    toast({ title: 'Sharing Updated', description: `Note is now shared with ${shareSelectedGroups.length} group(s)` });
+    setShareDialogOpen(false);
+    setSharingNote(null);
+
     try {
-      await NotesService.shareNoteWithGroups?.(sharingNote.id, shareSelectedGroups);
+      await NotesService.shareNoteWithGroups?.(noteId, shareSelectedGroups);
       if (shareSelectedGroups.length > 0 && sharingNote.permission_level !== 'group') {
-        await NotesService.updateNote(sharingNote.id, { permission_level: 'group' });
+        await NotesService.updateNote(noteId, { permission_level: 'group' });
       } else if (shareSelectedGroups.length === 0 && sharingNote.permission_level === 'group') {
-        await NotesService.updateNote(sharingNote.id, { permission_level: 'private' });
+        await NotesService.updateNote(noteId, { permission_level: 'private' });
       }
-      toast({ title: 'Sharing Updated', description: `Note is now shared with ${shareSelectedGroups.length} group(s)` });
-      setShareDialogOpen(false);
-      setSharingNote(null);
       setShareSelectedGroups([]);
       refreshData();
     } catch (err) {
+      if (previousNotes) {
+        queryClient.setQueriesData({ queryKey: ['notes'] }, () => previousNotes);
+      }
+      refreshData();
       toast({
         title: 'Sharing Failed',
         description: err instanceof Error ? err.message : 'Failed to update sharing.',
@@ -367,11 +399,40 @@ export const useNotes = () => {
       toast({ title: 'Validation Error', description: 'Note title is required.', variant: 'destructive' });
       return;
     }
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticNote = {
+      id: tempId,
+      title: newNoteData.title.trim(),
+      content: newNoteData.content.trim(),
+      subject: newNoteData.subject.trim() || null,
+      created_by: user?.id,
+      permission_level: newNoteData.group_id ? 'group' : 'private',
+      group_id: newNoteData.group_id || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      profiles: {
+        display_name: user?.user_metadata?.display_name || 'You',
+        avatar_url: user?.user_metadata?.avatar_url || null
+      }
+    };
+
+    let previousNotes: any[] | undefined;
+    queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+      if (!Array.isArray(old)) return [optimisticNote];
+      previousNotes = old;
+      return [optimisticNote, ...old];
+    });
+
+    toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
+    setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
+    setIsCreateDialogOpen(false);
+
     try {
       const createdNote = await NotesService.createNote({
-        title: newNoteData.title.trim(),
-        content: newNoteData.content.trim(),
-        subject: newNoteData.subject.trim() || null,
+        title: optimisticNote.title,
+        content: optimisticNote.content,
+        subject: optimisticNote.subject,
         is_collaborative: true
       });
       if (newNoteData.group_id && createdNote?.id) {
@@ -380,14 +441,16 @@ export const useNotes = () => {
       if (createdNote) {
         queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
           if (!Array.isArray(old)) return [createdNote];
-          return [createdNote, ...old];
+          return old.map((n: any) => (n.id === tempId ? createdNote : n));
         });
       }
-      toast({ title: 'Note Created', description: 'Your note has been created successfully.' });
-      setNewNoteData({ title: '', content: '', subject: '', group_id: '' });
-      setIsCreateDialogOpen(false);
       refreshData();
     } catch (err) {
+      queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+        if (!Array.isArray(old)) return [];
+        return old.filter((n: any) => n.id !== tempId);
+      });
+      refreshData();
       toast({ title: 'Create Failed', description: err instanceof Error ? err.message : 'Failed to create note.', variant: 'destructive' });
     }
   };
@@ -398,15 +461,22 @@ export const useNotes = () => {
     if (!note?.id || deletingNoteIds.has(note.id)) return;
     setDeletingNoteIds(prev => new Set(prev).add(note.id));
 
+    let previousNotes: any[] | undefined;
+    queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
+      if (!Array.isArray(old)) return old;
+      previousNotes = old;
+      return old.filter((n: any) => n.id !== note.id);
+    });
+
+    toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
+
     try {
-      queryClient.setQueriesData({ queryKey: ['notes'] }, (old: any) => {
-        if (!Array.isArray(old)) return old;
-        return old.filter((n: any) => n.id !== note.id);
-      });
       await NotesService.deleteNote(note.id);
-      toast({ title: 'Note Deleted', description: 'Your note has been permanently deleted.' });
       refreshData();
     } catch (err) {
+      if (previousNotes) {
+        queryClient.setQueriesData({ queryKey: ['notes'] }, () => previousNotes);
+      }
       refreshData();
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete note.';
       if (errorMessage.includes('Authentication required') || errorMessage.includes('session has expired')) {

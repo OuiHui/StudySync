@@ -149,22 +149,18 @@ export function useFriends() {
 
   const handleSendRequest = async (friendId: string) => {
     try {
+      setSearchResults(prev =>
+        prev.map(u => (u.id === friendId ? { ...u, friendship_status: 'pending' } : u))
+      );
       await FriendsService.sendFriendRequest(friendId);
       toast({
         title: "Friend Request Sent",
         description: "Your friend request has been sent successfully.",
       });
-      
       await loadFriendsData();
-      setSearchResults(prev => 
-        prev.map(u => 
-          u.id === friendId 
-            ? { ...u, friendship_status: 'pending' }
-            : u
-        )
-      );
     } catch (error: any) {
       console.error('Error sending friend request:', error);
+      await loadFriendsData();
       toast({
         title: "Error",
         description: error.message || "Failed to send friend request.",
@@ -174,15 +170,36 @@ export function useFriends() {
   };
 
   const handleAcceptRequest = async (requestId: string) => {
+    const targetRequest = friendRequests.find(r => r.id === requestId);
+    const prevRequests = friendRequests;
+    const prevFriends = friends;
+
+    if (targetRequest && targetRequest.requester) {
+      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+      setFriends(prev => [
+        ...prev,
+        {
+          id: targetRequest.requester!.id,
+          display_name: targetRequest.requester!.display_name,
+          email: targetRequest.requester!.email,
+          avatar_url: targetRequest.requester!.avatar_url,
+          friendshipId: requestId,
+        }
+      ]);
+    }
+
+    toast({
+      title: "Friend Request Accepted",
+      description: "You are now friends!",
+    });
+
     try {
       await FriendsService.acceptFriendRequest(requestId);
-      toast({
-        title: "Friend Request Accepted",
-        description: "You are now friends!",
-      });
       await loadFriendsData();
     } catch (error) {
       console.error('Error accepting friend request:', error);
+      setFriendRequests(prevRequests);
+      setFriends(prevFriends);
       toast({
         title: "Error",
         description: "Failed to accept friend request.",
@@ -192,15 +209,20 @@ export function useFriends() {
   };
 
   const handleRejectRequest = async (requestId: string) => {
+    const prevRequests = friendRequests;
+    setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+
+    toast({
+      title: "Friend Request Rejected",
+      description: "The friend request has been rejected.",
+    });
+
     try {
       await FriendsService.rejectFriendRequest(requestId);
-      toast({
-        title: "Friend Request Rejected",
-        description: "The friend request has been rejected.",
-      });
       await loadFriendsData();
     } catch (error) {
       console.error('Error rejecting friend request:', error);
+      setFriendRequests(prevRequests);
       toast({
         title: "Error",
         description: "Failed to reject friend request.",
@@ -210,15 +232,20 @@ export function useFriends() {
   };
 
   const handleCancelRequest = async (requestId: string) => {
+    const prevSent = sentRequests;
+    setSentRequests(prev => prev.filter(r => r.id !== requestId));
+
+    toast({
+      title: "Request Cancelled",
+      description: "Your friend request has been cancelled.",
+    });
+
     try {
       await FriendsService.cancelFriendRequest(requestId);
-      toast({
-        title: "Request Cancelled",
-        description: "Your friend request has been cancelled.",
-      });
       await loadFriendsData();
     } catch (error) {
       console.error('Error cancelling friend request:', error);
+      setSentRequests(prevSent);
       toast({
         title: "Error",
         description: "Failed to cancel friend request.",
@@ -232,15 +259,20 @@ export function useFriends() {
       return;
     }
 
+    const prevFriends = friends;
+    setFriends(prev => prev.filter(f => f.friendshipId !== friendshipId));
+
+    toast({
+      title: "Friend Removed",
+      description: `${friendName} has been removed from your friends.`,
+    });
+
     try {
       await FriendsService.removeFriend(friendshipId);
-      toast({
-        title: "Friend Removed",
-        description: `${friendName} has been removed from your friends.`,
-      });
       await loadFriendsData();
     } catch (error) {
       console.error('Error removing friend:', error);
+      setFriends(prevFriends);
       toast({
         title: "Error",
         description: "Failed to remove friend.",

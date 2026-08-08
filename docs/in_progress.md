@@ -27,6 +27,7 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Dropdown Transitions** | [x] Complete | Shared dropdown transition wrapper implemented across select components. |
 | **Notes Backend & Scalability** | [x] Complete | Base query service, query keys, optimistic updates, and response caching implemented. |
 | **Simulated User Testing Framework** | [/] Partial | Dev bot control console active; dropdown lists and additional bot actions need expansion. |
+| **Active Friends & Social Presence** | [ ] Pending | Dashboard widget showing online friends, active Pomodoro state (focus/break), and quick-join buttons. |
 
 ---
 
@@ -49,6 +50,9 @@ This document tracks completed systems, details current gaps, and lists future t
 
 ### E. Simulated User Testing Framework ([simulation.ts](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/simulation/SimConsole.tsx))
 * **Action Menu & Dropdown Expansion**: Expand bot action options and fix truncated dropdown options in the Dev Sim Console overlay.
+
+### F. Active Friends & Social Presence Widget ([Dashboard.tsx](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/dashboard/Dashboard.tsx))
+* **Dashboard Presence Widget**: Display online friends, their real-time study/Pomodoro status (e.g. Focus / Break / In Group Session), and quick-join action buttons to enter public study sessions.
 
 ---
 

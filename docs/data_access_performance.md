@@ -74,9 +74,9 @@ CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv_user ON public.con
 
 ---
 
-### Phase 4: Persistence & Optimistic UI (Planned)
-- **IndexedDB Persistence:** Configure `@tanstack/react-query-persist-client` to render instant cached data on page load (<10ms).
-- **Optimistic Updates:** Update local cache immediately on mutations (e.g. creating/deleting notes) before waiting for server confirmation.
+### Phase 4: Persistence & Optimistic UI (Completed)
+- **IndexedDB Persistence:** Configured `@tanstack/react-query-persist-client` with `@tanstack/query-async-storage-persister` & `idb-keyval` in `src/contexts/AppProviders.tsx` and `src/lib/persister.ts`, enabling instant cached data rendering on page load (<10ms) with a 7-day max cache TTL.
+- **Optimistic Updates:** Implemented immediate local cache updates and error rollback state handling across note creation/editing/sharing/deletion (`useNotes.ts`), messaging sending/editing/deletion, and friend request actions (`useFriends.ts`).
 
 ---
 
