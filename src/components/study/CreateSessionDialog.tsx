@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { StudyGroupsService } from '@/services/database';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -182,6 +182,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
             </div>
             Create Study Session
           </DialogTitle>
+          <DialogDescription className="sr-only">Create a new scheduled or instant study session</DialogDescription>
           <button
             type="button"
             onClick={() => setOpen(false)}

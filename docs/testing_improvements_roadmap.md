@@ -7,7 +7,7 @@ This document outlines the current state of the StudySync testing framework, ide
 ## 1. Executive Summary & Current Architecture
 
 StudySync currently uses a multi-tier testing setup:
-1. **Unit & Component Integration Testing**: Built with **Vitest**, **Happy DOM**, and **React Testing Library**. Covers 25 test files across hooks (`useTimer`, `useTabQueryState`), components (`CreateSessionDialog`, `StudyTimer`, `MarkdownEditor`), and core services (`profile`, `notes`, `friends`).
+1. **Unit & Component Integration Testing**: Built with **Vitest**, **Happy DOM**, and **React Testing Library**. Covers 26 test files across hooks (`useTimer`, `useTabQueryState`), components (`CreateSessionDialog`, `StudyTimer`, `MarkdownEditor`), and core services (`profile`, `notes`, `friends`).
 2. **End-to-End (E2E) Browser Testing**: Built with **Playwright** (`playwright.config.ts`), running across Chromium, Firefox, and Webkit against a dev server. Uses `auth.setup.ts` for authenticated storage state and `scripts/cleanup-e2e.js` for database teardown.
 3. **Simulated User Testing Framework**: Accessible in development mode (`window.simulation`), allowing programmatic and bot-driven multi-user interactions (using 10 seeded database accounts with `persistSession: false` auxiliary Supabase clients).
 
@@ -20,12 +20,12 @@ StudySync currently uses a multi-tier testing setup:
 * **Proposed Enhancement**: Bridge Playwright with `window.simulation`. In Playwright E2E tests, invoke bot actions programmatically via page evaluation (`await page.evaluate(() => window.simulation.bot('u2').sendGroupMessage(...))`). Assert that the primary user UI updates automatically via Supabase Realtime subscriptions.
 
 ### Priority 2: Standardization of Network Mocks with MSW (Mock Service Worker)
-* **Current State**: Vitest component tests rely on ad-hoc `vi.fn()` Supabase client mocks or local fallback data arrays (`mockNotes`, `MOCK_PEOPLE`), resulting in `act(...)` warning noise and duplication across test files.
+* **Current State**: Vitest component tests rely on ad-hoc `vi.fn()` Supabase client mocks or local fallback data arrays (`mockNotes`, `MOCK_PEOPLE`), resulting in warning noise and duplication across test files.
 * **Proposed Enhancement**: Implement **MSW (Mock Service Worker)** for Node and browser test environments. MSW will intercept Supabase REST endpoints (`/rest/v1/*`) and Realtime WebSockets at the network level, providing clean, reusable handlers across component tests.
 
-### Priority 3: Custom Playwright Fixtures & Isolated Teardown
-* **Current State**: Playwright configuration uses sequential execution (`workers: 1`) and relies on global cleanup scripts (`scripts/cleanup-e2e.js`) searching for hardcoded entity prefixes (`E2E Test Group`).
-* **Proposed Enhancement**: Implement custom Playwright fixtures:
+### Priority 3: Parallel Execution & Custom Playwright Fixtures
+* **Current State**: Playwright configuration had sequential execution (`workers: 1`) and Vitest disabled file parallelism (`fileParallelism: false`).
+* **Proposed Enhancement**: Enable `fileParallelism: true` in Vitest and multi-worker execution (`workers: undefined`) in Playwright. Implement custom Playwright fixtures:
   ```typescript
   export const test = base.extend<{ testGroup: Group; testSession: Session }>({
     testGroup: async ({ page }, use) => {
@@ -37,20 +37,14 @@ StudySync currently uses a multi-tier testing setup:
   ```
   This guarantees test isolation, enables parallel test execution (`fullyParallel: true`), and prevents orphaned database records upon test failures.
 
-### Priority 4: Code Coverage Metrics & CI Quality Gates
-* **Current State**: No test coverage provider configured in `vitest.config.ts`.
-* **Proposed Enhancement**: Integrate `@vitest/coverage-v8`:
-  - Add script: `"test:coverage": "vitest run --coverage"`
-  - Set baseline threshold (e.g. 80% coverage for `src/services/` and `src/hooks/`).
-
-### Priority 5: Visual Regression Testing
+### Priority 4: Visual Regression Testing
 * **Current State**: CSS themes, dark mode toggles, and dynamic glassmorphism UI are tested only by checking DOM element presence, not visual layout accuracy.
 * **Proposed Enhancement**: Leverage Playwright snapshot testing (`expect(page).toHaveScreenshot()`) for key components:
   - Dashboard overview & widgets
   - Pomodoro Timer ring & active session controls
   - Theme customizer & color palettes
 
-### Priority 6: React `act(...)` & Accessibility Warning Remediation
+### Priority 5: React `act(...)` & Accessibility Warning Remediation
 * **Current State**: Unit test runs emit React state update warnings (`act(...)`) in `SessionNotes`, `CreateSessionDialog`, and `StudyProgress`, along with missing Radix UI dialog accessible descriptions.
 * **Proposed Enhancement**: Update async component tests to use React Testing Library's `waitFor()` and `userEvent`, and add `<DialogDescription>` to Radix UI dialog contents.
 
@@ -60,7 +54,7 @@ StudySync currently uses a multi-tier testing setup:
 
 | Phase | Milestone | Key Deliverables |
 | :--- | :--- | :--- |
-| **Phase 1** | **Coverage & Warning Cleanup** | Enable `@vitest/coverage-v8`, fix `act(...)` warnings in existing Vitest suite, add accessible dialog descriptions. |
+| **Phase 1** | **Parallel Execution & Warning Cleanup** | Enable `fileParallelism` in Vitest and multi-worker in Playwright, fix incomplete mocks in `useGroupStudySessionData.test.tsx`, add accessible dialog descriptions. |
 | **Phase 2** | **MSW Network Layer Mocks** | Setup MSW server in `src/test/setup.ts`, replace custom Supabase inline mocks with MSW request handlers. |
 | **Phase 3** | **Playwright Fixtures & Isolation** | Refactor `tests/e2e/flows.spec.ts` to use scoped Playwright fixtures and enable multi-worker parallel E2E runs. |
 | **Phase 4** | **E2E + Simulation Integration** | Create automated multi-user E2E tests driving background bots via `window.simulation` to test real-time chat and notifications. |

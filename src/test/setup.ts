@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeAll, afterEach, afterAll } from 'vitest';
+import { server } from './mocks/server';
+
+// MSW Server setup
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 if (typeof window !== 'undefined') {
   // Mock window.matchMedia

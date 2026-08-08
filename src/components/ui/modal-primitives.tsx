@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 export interface StandardDialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogContent> {
@@ -34,6 +34,7 @@ StandardDialogContent.displayName = 'StandardDialogContent';
 
 export interface ModalHeaderProps {
   title: string;
+  description?: string;
   icon?: React.ReactNode;
   iconVariant?: 'default' | 'danger' | 'warning';
   onClose?: () => void;
@@ -49,6 +50,7 @@ const iconVariantClasses = {
 
 export const ModalHeader = ({
   title,
+  description,
   icon,
   iconVariant = 'default',
   onClose,
@@ -66,6 +68,9 @@ export const ModalHeader = ({
         <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
           {title}
         </DialogTitle>
+        <DialogDescription className="sr-only">
+          {description || `Modal dialog for ${title}`}
+        </DialogDescription>
         {titleBadge}
       </div>
       {onClose && (

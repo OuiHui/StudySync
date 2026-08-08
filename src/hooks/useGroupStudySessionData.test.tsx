@@ -21,7 +21,8 @@ vi.mock('@/contexts/AuthContext', () => ({
 vi.mock('@/contexts/SessionContext', () => ({
   useSession: () => ({
     isInGroupSession: true,
-    setIsInGroupSession: vi.fn()
+    setIsInGroupSession: vi.fn(),
+    setSessionStarted: vi.fn()
   })
 }));
 
@@ -82,12 +83,19 @@ vi.mock('@/services/database', () => ({
     getGoals: vi.fn().mockResolvedValue([]),
     joinSession: vi.fn().mockResolvedValue({}),
     updateParticipantStatus: vi.fn().mockResolvedValue({})
+  },
+  NotesService: {
+    getSessionNotes: vi.fn().mockResolvedValue([]),
+    createNote: vi.fn().mockResolvedValue({}),
+    deleteNote: vi.fn().mockResolvedValue({})
   }
 }));
 
 vi.mock('@/services/notes', () => ({
   NotesService: {
-    getSessionNotes: vi.fn().mockResolvedValue([])
+    getSessionNotes: vi.fn().mockResolvedValue([]),
+    createNote: vi.fn().mockResolvedValue({}),
+    deleteNote: vi.fn().mockResolvedValue({})
   }
 }));
 
@@ -113,6 +121,13 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     channel: vi.fn().mockImplementation(() => mockChannel),
     removeChannel: vi.fn(),
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { display_name: 'Sarah Chen' }, error: null }),
+      insert: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      update: vi.fn().mockResolvedValue({ data: {}, error: null }),
+    }),
   }
 }));
 

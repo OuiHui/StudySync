@@ -2,6 +2,7 @@ import { BookOpen, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -61,6 +62,7 @@ export const SessionDetailsDialog = ({
             </div>
             Session Information
           </DialogTitle>
+          <DialogDescription className="sr-only">Session Information details and parameters</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 pt-2 text-sm text-gray-700 dark:text-zinc-300">
           <div className="grid grid-cols-3 gap-2 border-b border-gray-200 dark:border-slate-700/80 pb-2">
