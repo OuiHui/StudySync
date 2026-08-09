@@ -1,5 +1,6 @@
 import { test as setup, expect } from '@playwright/test';
 import * as fs from 'fs';
+import * as path from 'path';
 
 const authFile = 'playwright/.auth/user.json';
 
@@ -54,6 +55,10 @@ setup('authenticate as guest', async ({ page }) => {
     
     try {
       await expect(dashboardHeader).toBeVisible({ timeout: 15000 });
+      const dir = path.dirname(authFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
       await page.context().storageState({ path: authFile });
       console.log('Authentication successful. Storage state saved.');
       return;
