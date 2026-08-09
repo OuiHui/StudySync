@@ -1,27 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Bell, Mail, MessageSquare, Calendar, Settings, X, Loader2 } from 'lucide-react';
+import { Bell, Mail, MessageSquare, Calendar, X, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ProfileService } from '@/services/database';
+import { NotificationSettings } from '@/hooks/useProfileData';
 
 interface NotificationSettingsPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  onSaveSuccess?: () => void;
 }
 
-export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSettingsPopupProps) => {
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    studyReminders: true,
-    groupMessages: true,
-    sessionInvites: true,
-    weeklyDigest: false,
-    friendRequests: true,
-    systemUpdates: false,
-  });
+const DEFAULT_SETTINGS: NotificationSettings = {
+  emailNotifications: true,
+  pushNotifications: true,
+  studyReminders: true,
+  groupMessages: true,
+  sessionInvites: true,
+  friendRequests: true,
+};
+
+export const NotificationSettingsPopup = ({ isOpen, onClose, onSaveSuccess }: NotificationSettingsPopupProps) => {
+  const [settings, setSettings] = useState<NotificationSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(false);
 
   const { toast } = useToast();
@@ -32,10 +34,10 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
         const profile = await ProfileService.getCurrentUser();
         const prof = profile as any;
         if (prof && prof.notification_settings) {
-          setSettings(prev => ({
-            ...prev,
+          setSettings({
+            ...DEFAULT_SETTINGS,
             ...prof.notification_settings
-          }));
+          });
         }
       } catch (error) {
         console.error('Error loading notification settings:', error);
@@ -47,7 +49,7 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
     }
   }, [isOpen]);
 
-  const handleToggle = (key: keyof typeof settings) => {
+  const handleToggle = (key: keyof NotificationSettings) => {
     setSettings(prev => ({
       ...prev,
       [key]: !prev[key]
@@ -62,8 +64,11 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
       });
       toast({
         title: "Settings Saved",
-        description: "Your notification preferences have been updated"
+        description: "Your notification preferences have been updated."
       });
+      if (onSaveSuccess) {
+        onSaveSuccess();
+      }
       onClose();
     } catch (error) {
       console.error('Error saving notification settings:', error);
@@ -82,32 +87,24 @@ export const NotificationSettingsPopup = ({ isOpen, onClose }: NotificationSetti
       title: "Study & Learning",
       icon: Calendar,
       settings: [
-        { key: 'studyReminders', label: 'Study session reminders', description: 'Get notified before scheduled study sessions' },
-        { key: 'sessionInvites', label: 'Session invitations', description: 'Receive invites to join study groups' },
+        { key: 'studyReminders' as keyof NotificationSettings, label: 'Study session reminders', description: 'Get notified before scheduled study sessions' },
+        { key: 'sessionInvites' as keyof NotificationSettings, label: 'Session invitations', description: 'Receive invites to join study groups' },
       ]
     },
     {
       title: "Social",
       icon: MessageSquare,
       settings: [
-        { key: 'groupMessages', label: 'Group messages', description: 'Notifications for new messages in study groups' },
-        { key: 'friendRequests', label: 'Friend requests', description: 'Get notified of new friend requests' },
+        { key: 'groupMessages' as keyof NotificationSettings, label: 'Group messages', description: 'Notifications for new messages in study groups' },
+        { key: 'friendRequests' as keyof NotificationSettings, label: 'Friend requests', description: 'Get notified of new friend requests' },
       ]
     },
     {
       title: "Communication",
       icon: Mail,
       settings: [
-        { key: 'emailNotifications', label: 'Email notifications', description: 'Receive notifications via email' },
-        { key: 'pushNotifications', label: 'Push notifications', description: 'Browser push notifications' },
-      ]
-    },
-    {
-      title: "Digest & Updates",
-      icon: Settings,
-      settings: [
-        { key: 'weeklyDigest', label: 'Weekly digest', description: 'Summary of your study activities' },
-        { key: 'systemUpdates', label: 'System updates', description: 'Information about new features and updates' },
+        { key: 'emailNotifications' as keyof NotificationSettings, label: 'Email notifications', description: 'Receive notifications via email' },
+        { key: 'pushNotifications' as keyof NotificationSettings, label: 'Push notifications', description: 'Browser push notifications' },
       ]
     }
   ];

@@ -7,3 +7,4 @@ export { NotificationsService } from './notifications';
 export { FriendsService } from './friends';
 export { ProfileService } from './profile';
 export { ChatService } from './chat';
+export { EmailService } from './email';

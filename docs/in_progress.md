@@ -16,8 +16,8 @@ This document tracks completed systems, details current gaps, and lists future t
 | **Profile - Personal Info** | [x] Complete | Edit bio, display name, major, year, and avatar image. |
 | **Profile - Friends List** | [/] Partial | `FriendsSection` component built, but not yet embedded on `Profile.tsx`. |
 | **Profile - Privacy Settings** | [/] Partial | UI popup exists, but settings are not persisted in Supabase database. |
-| **Profile - Notification Settings**| [/] Partial | UI popup exists, but toggles are not saved to database column/table. |
-| **Notifications System** | [x] Complete | Database table, migration scripts, real-time channels, and NotificationCenter UI implemented. |
+| **Profile - Notification Settings**| [x] Complete | UI popup toggles loaded from and persisted to `public.profiles.notification_settings` JSONB column. Digest & updates options removed. |
+| **Notifications System** | [x] Complete | Real-time notifications, NotificationCenter UI, and Email Notification delivery service implemented. |
 | **Group Session Layout** | [x] Complete | Resolved viewport vertical clipping on laptops/1080p screens with responsive flex container and inner scroll. |
 | **Group Member Limit Enforce**| [x] Complete | Enforced via PostgreSQL database trigger (`tr_check_group_member_limit`). |
 | **Editing Goals & Calendar** | [ ] Pending | Ability to set goal end/target dates and visualize on a calendar view. |
@@ -36,7 +36,7 @@ This document tracks completed systems, details current gaps, and lists future t
 
 ### A. Profile Page Integration ([Profile.tsx](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/profile/Profile.tsx))
 * **Friends List Integration**: Import and render the [FriendsSection](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/profile/FriendsSection.tsx) component directly on the profile view.
-* **Notification Settings Persistence**: Wire up toggles in [NotificationSettingsPopup](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/profile/NotificationSettingsPopup.tsx) to save user preferences in database profile configurations.
+* **Notification Settings Persistence**: [Completed] Wired up toggles in [NotificationSettingsPopup](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/profile/NotificationSettingsPopup.tsx) to load from and save user preferences to `public.profiles.notification_settings`.
 * **Avatar Image Binding in UserMenu**: Pass `userProfile.avatar_url` to the Avatar component in [UserMenu.tsx](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/common/layout/UserMenu.tsx).
 
 ### B. Group Study Session Layout ([GroupStudySession.tsx](file:///c:/Users/Huy%20Nguyen/OneDrive%20-%20Georgia%20Institute%20of%20Technology/StudySync/src/components/study/GroupStudySession.tsx))

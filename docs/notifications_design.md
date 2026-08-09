@@ -30,7 +30,7 @@ Stores individual notifications destined for users.
 | `session_id` | `UUID` | `REFERENCES public.study_sessions(id) ON DELETE CASCADE` | Optional link to study session |
 
 ### B. Profile Customizations (`public.profiles`)
-Two new columns are added to allow users to toggle notifications and privacy settings.
+Two JSONB columns allow users to persist notification preferences and privacy settings across logins.
 
 * **`notification_settings` (JSONB)**:
   * Default value:
@@ -41,11 +41,11 @@ Two new columns are added to allow users to toggle notifications and privacy set
       "studyReminders": true,
       "groupMessages": true,
       "sessionInvites": true,
-      "weeklyDigest": false,
-      "friendRequests": true,
-      "systemUpdates": false
+      "friendRequests": true
     }
     ```
+  * Note: Weekly digest and system updates have been removed from StudySync notification categories.
+
 * **`privacy_settings` (JSONB)**:
   * Default value:
     ```json
@@ -172,4 +172,17 @@ Below is the list of platform events categorized by notification `type` that sho
 3. **Comment or Edit on Shared Note**:
    * **Trigger**: A collaborator adds a comment or saves a new version of a note.
    * **Action**: Create an informational notification for the note owner and other active collaborators.
+
+---
+
+## 8. Email Notification Delivery System (`src/services/email.ts`)
+
+* **Preference Enforcement**:
+  * Before an email is dispatched, `EmailService.processNotificationEmail()` evaluates the user's persisted `notification_settings`.
+  * If `emailNotifications` is set to `false`, email dispatching is globally suppressed.
+  * If category-level switches (e.g. `friendRequests`, `sessionInvites`, `groupMessages`, `studyReminders`) are set to `false`, emails for matching notification types are suppressed.
+* **Dispatching & Audit Trail**:
+  * Email dispatches are logged to the console and saved into local audit history (`localStorage.studysync_sent_emails`) for inspection and testing.
+  * Integration hooks exist in `NotificationsService.createNotification()` and `NotificationContext` real-time listeners.
+
 

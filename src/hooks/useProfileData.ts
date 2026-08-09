@@ -2,6 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProfileService } from '@/services/database';
 
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  studyReminders: boolean;
+  groupMessages: boolean;
+  sessionInvites: boolean;
+  friendRequests: boolean;
+}
+
 export interface UserProfile {
   id: string;
   display_name: string;
@@ -12,6 +21,7 @@ export interface UserProfile {
   updated_at: string;
   major?: string;
   year?: string;
+  notification_settings?: NotificationSettings;
 }
 
 export interface UserStats {
@@ -54,6 +64,15 @@ export const getProfileQueryOptions = (user: UserAuthLike | null, authLoading: b
       ProfileService.getRecentActivity()
     ]);
 
+    const defaultSettings: NotificationSettings = {
+      emailNotifications: true,
+      pushNotifications: true,
+      studyReminders: true,
+      groupMessages: true,
+      sessionInvites: true,
+      friendRequests: true,
+    };
+
     let userProfile: UserProfile = {
       id: user.id,
       display_name: user.email?.split('@')[0] || 'User',
@@ -63,7 +82,8 @@ export const getProfileQueryOptions = (user: UserAuthLike | null, authLoading: b
       created_at: user.created_at || new Date().toISOString(),
       updated_at: user.updated_at || new Date().toISOString(),
       major: '',
-      year: ''
+      year: '',
+      notification_settings: defaultSettings,
     };
 
     if (profileResult.status === 'fulfilled' && profileResult.value) {
@@ -77,7 +97,11 @@ export const getProfileQueryOptions = (user: UserAuthLike | null, authLoading: b
         created_at: profile.created_at,
         updated_at: profile.updated_at,
         major: profile.major || '',
-        year: profile.year || ''
+        year: profile.year || '',
+        notification_settings: profile.notification_settings ? {
+          ...defaultSettings,
+          ...profile.notification_settings
+        } : defaultSettings
       };
     }
 
