@@ -24,22 +24,24 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
-    {
-      name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        storageState: 'playwright/.auth/user.json',
+    ...(process.env.CI ? [] : [
+      {
+        name: 'firefox',
+        use: { 
+          ...devices['Desktop Firefox'],
+          storageState: 'playwright/.auth/user.json',
+        },
+        dependencies: ['setup'],
       },
-      dependencies: ['setup'],
-    },
-    {
-      name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        storageState: 'playwright/.auth/user.json',
+      {
+        name: 'webkit',
+        use: { 
+          ...devices['Desktop Safari'],
+          storageState: 'playwright/.auth/user.json',
+        },
+        dependencies: ['setup'],
       },
-      dependencies: ['setup'],
-    },
+    ]),
   ],
   webServer: {
     command: 'npm run dev',
