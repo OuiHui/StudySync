@@ -9,7 +9,8 @@ This document tracks completed systems, details current gaps, and lists future t
 | Feature Area | Status | Notes |
 | :--- | :--- | :--- |
 | **Authentication** | [x] Complete | Email login, guest login, and Google OAuth enabled and functional. |
-| **Dashboard Stats** | [/] Partial | Displays study metrics and progress bars. Lacks GitHub-style activity heatmap. |
+| **Dashboard Stats** | [/] Partial | Weekly goal progress bars and focus time snapshot implemented; pending 30-day activity heatmap & social presence. |
+| **Profile Stats** | [/] Partial | Lifetime study hours & session history implemented; pending subject breakdown chart & personal best streak record. Achievements/Badges intentionally excluded. |
 | **Solo Study Goals** | [/] Partial | Persisted in `localStorage` (`solo_study_goals`). Needs DB persistence & target date editing. |
 | **Group Timer Sync** | [x] Complete | Real-time broadcast sync controlled by session host with database integration. |
 | **Profile - Personal Info** | [x] Complete | Edit bio, display name, major, year, and avatar image. |

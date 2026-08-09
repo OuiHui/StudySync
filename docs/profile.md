@@ -24,6 +24,21 @@ The Profile module provides user profile management, profile stats display, sess
 | `top_subjects` | TEXT[] | Selected study subjects |
 | `study_hours` | INT | Total calculated study hours |
 
+## Study Stats Architecture (Dashboard vs. Profile)
+
+StudySync strictly separates short-term actionable goals from historical profile metrics. Gamified achievements and badges are **excluded** across the application in favor of clean numerical logs.
+
+### 🏠 Dashboard Stats (Short-Term & Actionable)
+- **Weekly Goal Progress Bars**: Hours & sessions completed this week vs. target.
+- **Today's Focus Snapshot**: Today's focus hours & Pomodoro sessions count.
+- **Current Active Streak**: Current consecutive daily study streak (e.g., `🔥 5 Days`).
+- **30-Day Activity Heatmap**: Interactive activity grid showing recent daily study minutes.
+
+### 👤 Profile Stats (Long-Term & Historical)
+- **Lifetime Summary Counters**: Total cumulative hours, total lifetime sessions completed, and personal best streak record.
+- **Subject Distribution Breakdown**: Time distribution across study subjects/courses (e.g., 40% CS, 30% Math).
+- **Chronological Session History Log**: Detailed log of all past sessions (solo & group) with attached notes, dates, and durations.
+
 ## Workflow & Operations
 1. **Fetching Profile**: `useProfileData` executes `ProfileService.getCurrentUser()`, fetching profile details including `major`, `year`, and `avatar_url`.
 2. **Editing Profile**: Clicking "Edit" opens `ProfileEditPopup`, pre-filling fields for Name, Email, Major, Academic Year, Bio, and Avatar.
