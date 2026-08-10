@@ -223,7 +223,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
 
         {fetching ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2a78d6] mb-3" />
+            <Loader2 className="w-8 h-8 animate-spin text-brand mb-3" />
             <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">
               Loading settings...
             </p>
@@ -307,7 +307,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Group name"
                   disabled={loading}
-                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
                 />
               </div>
 
@@ -321,7 +321,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   onChange={(e) => setFormData((prev) => ({ ...prev, subject: e.target.value }))}
                   placeholder="Course (e.g. CHEM 202)"
                   disabled={loading}
-                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
                 />
               </div>
 
@@ -338,7 +338,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   placeholder="Describe your group..."
                   rows={3}
                   disabled={loading}
-                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
+                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
                 />
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 text-right mt-0.5">
                   {formData.description.length}/500 characters
@@ -370,7 +370,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                       }))
                     }
                     disabled={loading}
-                    className="w-14 h-9 text-center bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-lg text-gray-900 dark:text-white font-bold text-sm focus:outline-none focus:border-[#2a78d6] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-14 h-9 text-center bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-lg text-gray-900 dark:text-white font-bold text-sm focus:outline-none focus:border-brand [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
@@ -392,7 +392,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: true }))}
                     disabled={loading}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${formData.is_public
-                        ? 'bg-[#2a78d6] text-white shadow-sm'
+                        ? 'bg-brand text-white shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
@@ -403,7 +403,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: false }))}
                     disabled={loading}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${!formData.is_public
-                        ? 'bg-[#2a78d6] text-white shadow-sm'
+                        ? 'bg-brand text-white shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
@@ -417,7 +417,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   type="button"
                   onClick={handleUpdateGroup}
                   disabled={loading || !formData.name.trim()}
-                  className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+                  className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
                 >
                   {loading && <Loader2 size={14} className="mr-2 animate-spin" />}
                   Save changes

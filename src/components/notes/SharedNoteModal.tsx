@@ -133,7 +133,7 @@ export const SharedNoteModal = ({
       <DialogContent className={`${hasFile ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl [&>button]:hidden`}>
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <FileText size={18} />
             </div>
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
@@ -146,7 +146,7 @@ export const SharedNoteModal = ({
                 : 'View Note'}
             </DialogTitle>
             {note.subject && (
-              <Badge variant="secondary" className="text-xs bg-[#2a78d6]/10 text-[#2a78d6]">
+              <Badge variant="secondary" className="text-xs bg-brand/10 text-brand">
                 {note.subject}
               </Badge>
             )}
@@ -284,7 +284,7 @@ export const SharedNoteModal = ({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving || !form.title.trim()}
-                  className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
+                  className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
                 >
                   <Save className="w-4 h-4" /> Save Changes
                 </button>

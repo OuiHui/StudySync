@@ -35,7 +35,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
                 value={newNote.title}
                 onChange={(e) => setNewNote((prev: any) => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter note title..."
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
@@ -45,7 +45,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
                 value={newNote.subject}
                 onChange={(e) => setNewNote((prev: any) => ({ ...prev, subject: e.target.value }))}
                 placeholder="e.g., Mathematics, Physics..."
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
               type="button"
               onClick={onCreate}
               disabled={!newNote.title.trim()}
-              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               Create Note
             </button>

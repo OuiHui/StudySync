@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ProfileEditPopup } from '@/components/profile/ProfileEditPopup';
 import { ChangePasswordPopup } from '@/components/profile/ChangePasswordPopup';
 import { NotificationSettingsPopup } from '@/components/profile/NotificationSettingsPopup';
+import { AppearanceSettingsPopup } from '@/components/profile/AppearanceSettingsPopup';
 import { DeleteAccountPopup } from '@/components/profile/DeleteAccountPopup';
 import { ProfileService } from '@/services/database';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +22,7 @@ export const Profile = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
+  const [appearanceSettingsOpen, setAppearanceSettingsOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   const handleSaveProfile = async (updatedProfile: any) => {
@@ -99,6 +101,7 @@ export const Profile = () => {
       <ProfileSettings 
         onChangePassword={() => setChangePasswordOpen(true)}
         onNotificationSettings={() => setNotificationSettingsOpen(true)}
+        onAppearanceSettings={() => setAppearanceSettingsOpen(true)}
         onDeleteAccount={() => setDeleteAccountOpen(true)}
       />
 
@@ -118,7 +121,9 @@ export const Profile = () => {
 
       <ChangePasswordPopup isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
       <NotificationSettingsPopup isOpen={notificationSettingsOpen} onClose={() => setNotificationSettingsOpen(false)} />
+      <AppearanceSettingsPopup isOpen={appearanceSettingsOpen} onClose={() => setAppearanceSettingsOpen(false)} />
       <DeleteAccountPopup isOpen={deleteAccountOpen} onClose={() => setDeleteAccountOpen(false)} />
     </div>
   );
 };
+

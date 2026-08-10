@@ -1,12 +1,13 @@
-import { Lock, Bell, Trash2, ChevronRight } from 'lucide-react';
+import { Lock, Bell, Palette, Trash2, ChevronRight } from 'lucide-react';
 
 interface ProfileSettingsProps {
   onChangePassword: () => void;
   onNotificationSettings: () => void;
+  onAppearanceSettings?: () => void;
   onDeleteAccount: () => void;
 }
 
-export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onDeleteAccount }: ProfileSettingsProps) => {
+export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onAppearanceSettings, onDeleteAccount }: ProfileSettingsProps) => {
   const settingsItems = [
     {
       icon: Lock,
@@ -22,6 +23,13 @@ export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onDe
       onClick: onNotificationSettings,
       danger: false,
     },
+    ...(onAppearanceSettings ? [{
+      icon: Palette,
+      label: 'Appearance & Theme',
+      description: 'Customize theme mode and accent colors',
+      onClick: onAppearanceSettings,
+      danger: false,
+    }] : []),
   ];
 
   return (
@@ -68,3 +76,4 @@ export const ProfileSettings = ({ onChangePassword, onNotificationSettings, onDe
     </div>
   );
 };
+

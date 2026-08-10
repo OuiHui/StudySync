@@ -4,13 +4,17 @@ import React from 'react';
 import { ThemeProvider, useTheme } from './ThemeContext';
 
 const TestComponent = () => {
-  const { theme, setTheme } = useTheme();
+  const { mode, setMode, colorTheme, setColorTheme, resetColorTheme } = useTheme();
   return (
     <div>
-      <span data-testid="theme-val">{theme}</span>
-      <button data-testid="set-light" onClick={() => setTheme('light')}>Light</button>
-      <button data-testid="set-dark" onClick={() => setTheme('dark')}>Dark</button>
-      <button data-testid="set-system" onClick={() => setTheme('system')}>System</button>
+      <span data-testid="theme-val">{mode}</span>
+      <span data-testid="color-val">{colorTheme.name}</span>
+      <span data-testid="primary-val">{colorTheme.primary}</span>
+      <button data-testid="set-light" onClick={() => setMode('light')}>Light</button>
+      <button data-testid="set-dark" onClick={() => setMode('dark')}>Dark</button>
+      <button data-testid="set-system" onClick={() => setMode('system')}>System</button>
+      <button data-testid="set-custom-color" onClick={() => setColorTheme({ name: 'Custom Emerald', primary: '#059669', secondary: '#10b981', gradient: '' })}>Custom Color</button>
+      <button data-testid="reset-color" onClick={resetColorTheme}>Reset Color</button>
     </div>
   );
 };
@@ -43,9 +47,10 @@ describe('ThemeContext & ThemeProvider', () => {
     document.body.innerHTML = '';
     localStorage.clear();
     document.documentElement.className = '';
+    document.documentElement.style.cssText = '';
   });
 
-  it('should initialize with defaultTheme', () => {
+  it('should initialize with defaultTheme and default color theme', () => {
     render(
       <ThemeProvider defaultTheme="dark">
         <TestComponent />
@@ -53,10 +58,12 @@ describe('ThemeContext & ThemeProvider', () => {
     );
 
     expect(screen.getByTestId('theme-val').textContent).toBe('dark');
+    expect(screen.getByTestId('color-val').textContent).toBe('Default Blue');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.style.getPropertyValue('--theme-primary')).toBe('#2a78d6');
   });
 
-  it('should initialize with stored theme from localStorage', () => {
+  it('should initialize with stored mode from localStorage', () => {
     localStorage.setItem('ui-theme', 'light');
     render(
       <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
@@ -68,7 +75,7 @@ describe('ThemeContext & ThemeProvider', () => {
     expect(document.documentElement.classList.contains('light')).toBe(true);
   });
 
-  it('should change theme and save to localStorage', () => {
+  it('should change mode independently and save to localStorage', () => {
     render(
       <ThemeProvider defaultTheme="light" storageKey="ui-theme">
         <TestComponent />
@@ -86,6 +93,24 @@ describe('ThemeContext & ThemeProvider', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.classList.contains('light')).toBe(false);
     expect(localStorage.getItem('ui-theme')).toBe('dark');
+  });
+
+  it('should change accent color theme and update CSS variables', () => {
+    render(
+      <ThemeProvider defaultTheme="dark">
+        <TestComponent />
+      </ThemeProvider>
+    );
+
+    const customColorBtn = screen.getByTestId('set-custom-color');
+    act(() => {
+      customColorBtn.click();
+    });
+
+    expect(screen.getByTestId('color-val').textContent).toBe('Custom Emerald');
+    expect(screen.getByTestId('primary-val').textContent).toBe('#059669');
+    expect(document.documentElement.style.getPropertyValue('--theme-primary')).toBe('#059669');
+    expect(localStorage.getItem('study-app-color-theme')).toContain('Custom Emerald');
   });
 
   it('should handle system theme preferences when set to system', () => {
@@ -111,3 +136,4 @@ describe('ThemeContext & ThemeProvider', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 });
+
