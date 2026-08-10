@@ -130,7 +130,7 @@ export const SharedNoteModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`${hasFile ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto flex flex-col w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl [&>button]:hidden`}>
+      <DialogContent className={`${hasFile ? 'max-w-4xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl [&>button]:hidden`}>
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
@@ -161,7 +161,7 @@ export const SharedNoteModal = ({
           </button>
         </DialogHeader>
 
-        <div className="space-y-6 py-4 flex-1 overflow-y-auto">
+        <div className="space-y-6 py-4 flex-1 overflow-y-auto custom-scrollbar">
           {isEditing ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -236,7 +236,7 @@ export const SharedNoteModal = ({
                   <h4 className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider">
                     Content
                   </h4>
-                  <div className="p-4 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-xl max-h-[500px] overflow-y-auto">
+                  <div className="p-4 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-xl max-h-[500px] overflow-y-auto custom-scrollbar">
                     <MarkdownRenderer content={note.content} />
                   </div>
                 </div>

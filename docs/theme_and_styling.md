@@ -34,3 +34,11 @@ All theme definitions, color options, and default page background styles are cen
 
 ## Page & Tab Transitions
 - **Tab/Page Entrance Animations**: Page container components utilize `.animate-fade-in` (`src/App.css`). Entrance animations are set to `animation: none` to ensure instant tab switching without transition delay or motion effect.
+
+## Global Dark Mode Scrollbars
+- **`color-scheme: dark`**: Explicitly declared on `.dark` in `src/index.css` to force native OS and browser UI scrollable containers to render in dark theme.
+- **Custom Webkit & Firefox Scrollbars**:
+  - Global `::-webkit-scrollbar` rules for `.dark` set track background to dark surface (`#12151e`) with dark slate thumb (`#334155`, hover `#475569`).
+  - `.custom-scrollbar` utility class provides subtle dark trackless scrollbar thumbs (`rgba(100, 116, 139, 0.6)`, hover `rgba(148, 163, 184, 0.9)`) for modals, chat popups, markdown editors, and list scrollables.
+  - Firefox support is enforced via `scrollbar-color: #334155 transparent` and `scrollbar-width: thin`.
+

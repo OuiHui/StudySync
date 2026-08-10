@@ -25,32 +25,34 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
       <StandardDialogContent size="xl">
         <ModalHeader title="Create New Note" icon={<FilePlus size={18} />} onClose={() => onOpenChange(false)} />
 
-        <div className="space-y-4 pt-1.5">
-          <div className="space-y-1">
-            <FormLabel required>
-              Title
-            </FormLabel>
-            <Input
-              value={newNote.title}
-              onChange={(e) => setNewNote((prev: any) => ({ ...prev, title: e.target.value }))}
-              placeholder="Enter note title..."
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
-            />
-          </div>
-          
-          <div className="space-y-1">
-            <FormLabel>Subject</FormLabel>
-            <Input
-              value={newNote.subject}
-              onChange={(e) => setNewNote((prev: any) => ({ ...prev, subject: e.target.value }))}
-              placeholder="e.g., Mathematics, Physics..."
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
-            />
+        <div className="space-y-3.5 pt-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <FormLabel required>
+                Title
+              </FormLabel>
+              <Input
+                value={newNote.title}
+                onChange={(e) => setNewNote((prev: any) => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter note title..."
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              />
+            </div>
+            
+            <div className="space-y-1">
+              <FormLabel>Subject</FormLabel>
+              <Input
+                value={newNote.subject}
+                onChange={(e) => setNewNote((prev: any) => ({ ...prev, subject: e.target.value }))}
+                placeholder="e.g., Mathematics, Physics..."
+                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              />
+            </div>
           </div>
           
           <div className="space-y-1">
             <FormLabel>Content</FormLabel>
-            <MarkdownEditor value={newNote.content || ''} onChange={(val) => setNewNote((prev: any) => ({ ...prev, content: val }))} placeholder="Write your note content..." />
+            <MarkdownEditor value={newNote.content || ''} onChange={(val) => setNewNote((prev: any) => ({ ...prev, content: val }))} placeholder="Write your note content..." minHeight="200px" />
           </div>
           
           {!groupId && (

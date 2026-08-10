@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { EditorToolbar } from './EditorToolbar';
 import { useEditorHistory } from './useEditorHistory';
 import { markdownToHtml, htmlToMarkdown } from './markdownUtils';
@@ -9,6 +9,7 @@ interface MarkdownEditorProps {
   onCursorChange?: (position: number) => void;
   placeholder?: string;
   className?: string;
+  minHeight?: string;
 }
 
 const EMPTY_EDITOR = '<p><br></p>';
@@ -19,6 +20,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onCursorChange,
   placeholder = 'Write something...',
   className = '',
+  minHeight = '200px',
 }) => {
   const [isRichText, setIsRichText] = useState(true);
   const [currentBlockStyle, setCurrentBlockStyle] = useState('p');
@@ -381,7 +383,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         onRedo={handleRedo}
       />
 
-      <div className="relative flex-1 min-h-[300px] overflow-y-auto">
+      <div className="relative flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight }}>
         {isRichText ? (
           <div
             ref={editorRef}
@@ -391,8 +393,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onSelect={handleSelectionChange}
             onKeyUp={handleSelectionChange}
             onMouseUp={handleSelectionChange}
-            className="prose dark:prose-invert max-w-none min-h-[300px] p-4 focus:outline-none overflow-y-auto"
-            style={{ minHeight: '300px' }}
+            className="prose dark:prose-invert max-w-none p-4 focus:outline-none custom-scrollbar"
+            style={{ minHeight }}
           />
         ) : (
           <textarea
@@ -404,8 +406,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onKeyUp={handleSelectionChange}
             onMouseUp={handleSelectionChange}
             placeholder={placeholder}
-            className="w-full min-h-[300px] p-4 font-mono text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-0 focus:outline-none focus:ring-0 resize-y"
-            style={{ minHeight: '300px' }}
+            className="w-full p-4 font-mono text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-0 focus:outline-none focus:ring-0 resize-y custom-scrollbar"
+            style={{ minHeight }}
           />
         )}
       </div>

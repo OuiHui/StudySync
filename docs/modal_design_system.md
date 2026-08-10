@@ -94,3 +94,11 @@ import { StandardDialogContent, ModalHeader, FormLabel, ModalFooter } from '@/co
 </Dialog>
 ```
 
+---
+
+## 7. Modal Sizing & Dark Scrollbar System
+- **Compact Form Layouts**: Modal fields (such as Title and Subject in Create Note dialogs) should be arranged in 2-column grids (`grid grid-cols-1 sm:grid-cols-2 gap-4`) to optimize vertical space and avoid unnecessary modal scrollbars on standard viewports.
+- **Embedded Editor Heights**: Embedded Markdown Editors inside modal dialogs use `minHeight="200px"` to allow full form visibility within `90vh` without overflow.
+- **Dark Scrollbars**: All modal scrollable containers apply `.custom-scrollbar` and support dark theme scrollbars (`color-scheme: dark`) to eliminate white browser scrollbars in dark mode.
+
+

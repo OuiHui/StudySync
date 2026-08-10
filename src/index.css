@@ -52,9 +52,15 @@
 
     --brand-primary: 213 67% 50%;
     --brand-primary-hover: 213 69% 44%;
+
+    color-scheme: light;
+    scrollbar-color: #cbd5e1 transparent;
   }
 
   .dark {
+    color-scheme: dark;
+    scrollbar-color: #334155 #12151e;
+
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
@@ -90,6 +96,53 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  /* Global Webkit Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Global Webkit Scrollbar Styling for Dark Mode */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #12151e;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 9999px;
+    border: 2px solid #12151e;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+
+  .dark ::-webkit-scrollbar-corner {
+    background: #12151e;
   }
 }
 
@@ -192,10 +245,12 @@
   /* Custom scrollbar utility */
   .custom-scrollbar {
     scrollbar-gutter: stable;
+    scrollbar-width: thin;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -204,10 +259,28 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(156, 163, 175, 0.5);
-    border-radius: 3px;
+    border-radius: 9999px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.7);
+    background: rgba(156, 163, 175, 0.8);
+  }
+
+  .dark .custom-scrollbar {
+    scrollbar-color: #334155 transparent;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.6);
+    border-radius: 9999px;
+    border: none;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.9);
   }
 }

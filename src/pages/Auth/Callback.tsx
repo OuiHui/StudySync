@@ -84,14 +84,14 @@ export function AuthCallback() {
       if (intervalId) window.clearInterval(intervalId);
       if (maxTimeoutId) window.clearTimeout(maxTimeoutId);
 
+      try {
+        window.close();
+      } catch (e) {
+        console.warn('Failed to close OAuth popup:', e);
+      }
+
       timeoutId = window.setTimeout(() => {
-        if (window.opener && !window.opener.closed) {
-          try {
-            window.close();
-          } catch (e) {
-            console.warn('Failed to close OAuth popup:', e);
-          }
-        } else if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && !window.closed) {
           window.location.hash = '#/';
         }
       }, 300);

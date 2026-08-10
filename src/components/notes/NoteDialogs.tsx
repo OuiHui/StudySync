@@ -39,7 +39,7 @@ export const NoteDialogs = (props: any) => {
               <X size={18} />
             </button>
           </DialogHeader>
-          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-180px)] pt-1.5">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-180px)] pt-1.5 custom-scrollbar">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label htmlFor="note-title" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
@@ -65,7 +65,7 @@ export const NoteDialogs = (props: any) => {
             </div>
             <div className="space-y-1">
               <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Content</Label>
-              <MarkdownEditor value={newNoteData.content || ''} onChange={(val) => setNewNoteData((prev: any) => ({ ...prev, content: val }))} />
+              <MarkdownEditor value={newNoteData.content || ''} onChange={(val) => setNewNoteData((prev: any) => ({ ...prev, content: val }))} minHeight="200px" />
             </div>
           </div>
           <div className="flex items-center justify-end gap-2.5 border-t border-gray-200 dark:border-slate-700/80 pt-4">
