@@ -16,9 +16,37 @@ export default function Groups() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const handleGroupCreated = () => {
+  const handleGroupCreated = (newGroup?: any) => {
     queryClient.invalidateQueries({ queryKey: ['user-groups'] });
     queryClient.invalidateQueries({ queryKey: ['public-groups'] });
+    if (newGroup && newGroup.id) {
+      const formattedGroup = {
+        id: newGroup.id,
+        name: newGroup.name,
+        subject: newGroup.subject || 'General',
+        members: 1,
+        user_role: 'admin',
+        nextSession: null,
+        description: newGroup.description || '',
+        color: newGroup.color || 'from-blue-500 to-blue-600',
+        icon: newGroup.icon || 'Users',
+        recentActivity: 'Just created',
+        created_at: newGroup.created_at || new Date().toISOString(),
+        is_public: newGroup.is_public ?? true,
+        max_members: newGroup.max_members || 50,
+        sessions: 0,
+        admin: 'You'
+      };
+
+      queryClient.setQueriesData({ queryKey: ['user-groups'] }, (old: any) => {
+        if (!old || !Array.isArray(old)) return [formattedGroup];
+        return [formattedGroup, ...old.filter((g: any) => g.id !== newGroup.id)];
+      });
+      queryClient.setQueriesData({ queryKey: ['public-groups'] }, (old: any) => {
+        if (!old || !Array.isArray(old)) return [formattedGroup];
+        return [formattedGroup, ...old.filter((g: any) => g.id !== newGroup.id)];
+      });
+    }
   };
   const selectedGroupId = searchParams.get('groupId');
   const [activeTab, setActiveTab] = useTabQueryState<GroupsTab>('my-groups', ['my-groups', 'browse']);

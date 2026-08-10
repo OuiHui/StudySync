@@ -46,7 +46,7 @@ StudySync implements a multi-tiered testing strategy:
     *   **Flow A Test**: Logs out a Guest user and verifies they return to `/auth`.
     *   **Flow B Test**: Checks dashboard statistic layout cards and verifies the notifications popup toggles.
     *   **Flow C Test**: Simulates solo study, updates the work timer to 30 minutes, starts it, pauses, and resets it.
-    *   **Flow D Test**: Creates a test group named `'E2E Test Group'`, searches for it, and confirms it displays.
+    *   **Flow D Test**: Creates a test group named `'E2E Test Group'`, searches for it, and confirms it displays. *(Uses explicit role heading locators to prevent strict mode collisions with screen reader descriptions and updates React Query cache optimistically).*
     *   **Flow E Test**: Creates an upcoming group study session named `'E2E Session'` scheduled for tomorrow.
     *   **Flow F Test**: Creates a note with a unique timestamped title (`E2E Test Note <timestamp>`), asserts its presence in the notes table, deletes it via the row actions dropdown, and verifies its removal.
     *   *Includes database teardown in `afterAll()` and `scripts/cleanup-e2e.js` to remove orphaned E2E study groups, sessions, and notes.*

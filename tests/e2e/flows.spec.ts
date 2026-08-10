@@ -131,7 +131,7 @@ test.describe('StudySync E2E User Flows', () => {
     await page.getByRole('button', { name: 'Create Group', exact: true }).click();
 
     // Wait for dialog to close and page reload if triggered
-    await expect(page.getByText('Create Study Group')).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Study Group' })).not.toBeVisible();
     await page.waitForLoadState('domcontentloaded');
 
     // Switch to "My Groups" tab where created group resides

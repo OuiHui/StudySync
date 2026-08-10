@@ -90,7 +90,8 @@ export class StudyGroupsQueries {
           const membership = memberships?.find(m => m.group_id === group.id);
           const isCreator = group.created_by === userId;
           
-          const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const rawMemberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const memberCount = Math.max(1, rawMemberCount);
           const sessionsCount = sessionsData.filter(s => s.group_id === group.id).length;
           const conversation = conversations.find(c => c.group_id === group.id);
           const latestMsg = conversation ? latestMessages.find(m => m.conversation_id === conversation.id) : null;
@@ -115,16 +116,7 @@ export class StudyGroupsQueries {
           };
         });
 
-        const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-        const filteredGroups = groupsWithDetails
-          .filter(Boolean)
-          .filter(group => {
-            if (group.member_count <= 0) return false;
-            if (!isAutomation && group?.name === 'E2E Test Group') {
-              return false;
-            }
-            return true;
-          });
+        const filteredGroups = groupsWithDetails.filter(Boolean);
         return filteredGroups;
         
       } catch (error) {
@@ -182,19 +174,12 @@ export class StudyGroupsQueries {
       const allMembers = membersData.data || [];
       const allSessions = sessionsData.data || [];
 
-      const isAutomation = typeof window !== 'undefined' && window.navigator.webdriver;
-
       // Get creator profiles and member counts for each group
       const groupsWithCreators = groups
-        .filter(group => {
-          if (!isAutomation && group.name === 'E2E Test Group') {
-            return false;
-          }
-          return true;
-        })
         .map((group) => {
           const creator = creators.find(c => c.user_id === group.created_by);
-          const memberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const rawMemberCount = allMembers.filter(m => m.group_id === group.id).length;
+          const memberCount = Math.max(1, rawMemberCount);
           const sessionsCount = allSessions.filter(s => s.group_id === group.id).length;
 
           const groupExtra = group as { icon?: string; color?: string };
@@ -207,8 +192,7 @@ export class StudyGroupsQueries {
             member_count: memberCount,
             sessions_count: sessionsCount
           };
-        })
-        .filter(group => group.member_count > 0);
+        });
 
       return groupsWithCreators;
     } catch (error) {
