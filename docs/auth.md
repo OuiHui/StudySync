@@ -33,7 +33,9 @@ When a user clicks "Continue with Google":
 1. `supabase.auth.signInWithOAuth` redirects the browser to Google's OAuth 2.0 authorization screen.
 2. After successful authentication, Google redirects back to Supabase's OAuth callback handler (`https://<project-ref>.supabase.co/auth/v1/callback`).
 3. Supabase issues session tokens and redirects back to the StudySync app (`redirectTo` URL), which now points to the dedicated `#/auth/callback` route.
-4. The callback page detects the completed session and closes the popup, while `supabase.auth.onAuthStateChange` in `AuthContext` updates the user state across the app.
+4. The callback page (`src/pages/Auth/Callback.tsx`) extracts `access_token` / `refresh_token` (Implicit Flow) or `code` (PKCE Flow) via `parseOAuthCallbackUrl()` across HashRouter query and fragment formats.
+5. It invokes `supabase.auth.setSession({ access_token, refresh_token })` or `supabase.auth.exchangeCodeForSession(code)` to persist the session in Supabase client storage, triggering `supabase.auth.onAuthStateChange` across windows.
+6. If in a popup, `AuthCallback` closes the popup; if full-page, it redirects to `#/`. A 6-second timeout safeguard prevents hanging screens by surfacing a clear retry button ("Return to Sign In") if authentication stalls.
 
 ---
 

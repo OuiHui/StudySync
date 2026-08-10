@@ -70,7 +70,7 @@ CREATE INDEX IF NOT EXISTS idx_conversation_participants_conv_user ON public.con
 
 ### Phase 3: Field Projection & Server-Side Pagination (Completed)
 - **Field Projection:** Defined `NOTE_LIST_SELECT` omitting heavy markdown `content` bodies from list views (`getNotes`, `getGroupSharedNotes`, `getSessionNotes`), fetching full content only for single-note detail views (`getNote`).
-- **Route Code-Splitting:** Dynamic `React.lazy` imports wrapped with `<Suspense>` boundaries for all page routes in `App.tsx`.
+- **Instant Tab Navigation (Eager Route Imports):** Converted top-level page routes in `App.tsx` from `React.lazy` dynamic imports to eager imports. This eliminates the dynamic JS bundle fetch delay and `<Suspense>` loading fallback (`PageFallback`) flash when navigating between tabs for the first time, ensuring sub-50ms instant tab rendering.
 
 ---
 

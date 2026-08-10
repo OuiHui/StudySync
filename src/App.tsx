@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { UserProfileModalProvider } from "@/contexts/UserProfileModalContext";
 import { AppProviders } from "@/contexts/AppProviders";
@@ -8,18 +8,18 @@ import { handleOAuthErrorRedirect } from "@/utils/oauthHandler";
 import { ProtectedRoute, AuthRoute } from "@/components/common/RouteGuards";
 import { PageFallback } from "@/components/common/LoadingScreen";
 
-const Auth = lazy(() => import("@/pages/Auth").then(m => ({ default: m.Auth })));
-const AuthCallback = lazy(() => import("@/pages/Auth/Callback"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const SoloStudy = lazy(() => import("@/pages/SoloStudy"));
-const GroupSessions = lazy(() => import("@/pages/GroupSessions"));
-const AvailableSessions = lazy(() => import("@/pages/AvailableSessions"));
-const MyGroups = lazy(() => import("@/pages/MyGroups"));
-const Notes = lazy(() => import("@/pages/Notes"));
-const Profile = lazy(() => import("@/pages/Profile"));
-const Friends = lazy(() => import("@/pages/Friends"));
-const Messages = lazy(() => import("@/pages/Messages"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+import { Auth } from "@/pages/Auth";
+import AuthCallback from "@/pages/Auth/Callback";
+import Dashboard from "@/pages/Dashboard";
+import SoloStudy from "@/pages/SoloStudy";
+import GroupSessions from "@/pages/GroupSessions";
+import AvailableSessions from "@/pages/AvailableSessions";
+import MyGroups from "@/pages/MyGroups";
+import Notes from "@/pages/Notes";
+import Profile from "@/pages/Profile";
+import Friends from "@/pages/Friends";
+import Messages from "@/pages/Messages";
+import NotFound from "@/pages/NotFound";
 
 handleOAuthErrorRedirect();
 
