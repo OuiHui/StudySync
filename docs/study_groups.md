@@ -191,15 +191,17 @@ The Edit Study Group modal (`GroupSettingsDialog.tsx`) provides group creators/a
 
 The Study Group Details page (`GroupPage.tsx` and `GroupPageHeader.tsx`) adopts modern UI patterns inspired by popular collaboration tools (Linear, Discord, Notion, GitHub):
 
+- **Header Card Container**: Styled using central theme tokens (`bg-card text-card-foreground border border-gray-200 dark:border-gray-800 shadow-md rounded-xl`) for seamless light mode and dark mode visual integration.
 - **Back Navigation**: Subtle pill button (`Back to Groups`) with hover styling to return to previous views.
-- **Group Icon & Title Area**: Custom group avatar icon with shadow styling alongside group title, creator crown icon, and subject pill badge (`bg-blue-500/10 text-blue-400 border border-blue-500/20`).
+- **Group Icon & Title Area**: Custom group avatar icon with shadow styling alongside group title (`text-gray-900 dark:text-white`), creator crown icon, and subject pill badge (`bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20`).
 - **Group Admin Metadata**: Prominent Admin display showing a Crown icon and admin name, linking directly to the admin's user profile dialog.
 - **Description Fallback**: Displays group description text or an italicized fallback string (`"No description provided for this study group."`) when empty.
 - **Header Action & Avatar Stack**:
-  - `Public` / `Private` status indicator badges.
+  - `Public` / `Private` status indicator badges with theme-aware background/text tokens.
   - Member count badge and action triggers (`Chat Panel`, `Settings`, `Join/Leave Group`).
-  - Overlapping member avatars (`-space-x-2`) with hover scaling transitions (`hover:scale-110`) and "+N" overflow badge.
+  - Overlapping member avatars (`-space-x-2`) with theme-adaptive rings (`ring-white dark:ring-gray-900`), hover scaling transitions (`hover:scale-110`), and "+N" overflow badge.
 - **Standardized Sub-Navigation**: Integrates the application's shared `PageTabs` component for `Sessions ({count})`, `Notes`, and `Members ({count})`.
+
 
 
 
