@@ -41,9 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session) {
+        if (error) {
+          console.warn('Initial auth session check error:', error);
+          // If the stored refresh token is invalid or revoked, clear the stale local session
+          if (error.message?.includes('Refresh Token') || error.message?.includes('invalid_grant')) {
+            try {
+              await supabase.auth.signOut({ scope: 'local' });
+            } catch (_) {}
+          }
+        } else if (session) {
           setSession(session);
           setUser(session.user);
         }
@@ -72,7 +80,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session]);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const baseUrl = typeof window !== 'undefined' ? window.location.href.split('#')[0].replace(/\/$/, '') : '';
+    const redirectUrl = `${baseUrl}/`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -101,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/#/auth/callback`;
+    const baseUrl = typeof window !== 'undefined' ? window.location.href.split('#')[0].replace(/\/$/, '') : '';
+    const redirectUrl = `${baseUrl}/#/auth/callback`;
     const response = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

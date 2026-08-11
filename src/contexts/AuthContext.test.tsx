@@ -43,7 +43,7 @@ describe('AuthContext', () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/#/auth/callback`,
+        redirectTo: `${window.location.href.split('#')[0].replace(/\/$/, '')}/#/auth/callback`,
         skipBrowserRedirect: true,
       },
     });
@@ -70,5 +70,25 @@ describe('AuthContext', () => {
     });
 
     expect(res.error).toEqual(mockError);
+  });
+
+  it('clears local session if getSession returns an invalid refresh token error on init', async () => {
+    const mockSignOut = vi.mocked(supabase.auth.signOut);
+    vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+      data: { session: null },
+      error: { name: 'AuthApiError', message: 'Invalid Refresh Token: Refresh Token Not Found', status: 400 },
+    });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AuthProvider>{children}</AuthProvider>
+    );
+
+    renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: 'local' });
   });
 });

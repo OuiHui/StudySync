@@ -47,3 +47,14 @@ To address this:
 - **`src/utils/oauthHandler.ts`**: Helper functions (`checkForOAuthError`, `handleOAuthErrorRedirect`, `getAndClearStoredOAuthError`) parse error params from `window.location.search` and `window.location.hash`.
 - **Pre-Router Interception**: `handleOAuthErrorRedirect()` runs at top level in `App.tsx` prior to router mounting. It cleans up the URL hash to `/#/auth` via `window.history.replaceState` and stores a user-friendly error message ("Google sign-in was cancelled or access was denied.") in `sessionStorage`.
 - **UI Error Display**: The `Auth` page retrieves the error message on mount and displays a prominent error alert banner.
+
+---
+
+## Stale Refresh Token Recovery
+
+When a user's local session in `localStorage` (`sb-<project-ref>-auth-token`) contains a refresh token that has been invalidated, expired, or deleted on the Supabase backend (e.g. after database resets, user deletions, or session revocation), Supabase Auth returns:
+`400 Bad Request - AuthApiError: Invalid Refresh Token: Refresh Token Not Found`
+
+To handle this gracefully:
+- **`AuthContext` (`src/contexts/AuthContext.tsx`)**: Inspects errors during `supabase.auth.getSession()` on app startup. If an invalid or revoked refresh token is detected, it automatically executes `supabase.auth.signOut({ scope: 'local' })` to purge the corrupted local storage session.
+- **Developer Resolution**: Clearing browser `localStorage` (or DevTools > Application > Storage > Local Storage) removes any residual stale tokens.
