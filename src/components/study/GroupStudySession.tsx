@@ -153,12 +153,12 @@ export const GroupStudySession = ({
             <span>Invite Friends</span>
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className="h-8 text-xs flex items-center space-x-1 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50"
+            className="flex items-center gap-1.5 rounded-xl border border-border bg-card/90 hover:bg-brand/10 hover:border-brand/40 text-card-foreground hover:text-brand transition-all duration-200 shadow-sm px-3.5 h-9 text-xs font-semibold"
           >
-            <MessageSquare size={14} />
+            <MessageSquare size={14} className="text-brand" />
             <span>{isChatOpen ? 'Hide Chat' : 'Show Chat'}</span>
           </Button>
           <ColorCustomizer

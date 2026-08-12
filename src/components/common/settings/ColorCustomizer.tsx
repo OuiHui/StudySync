@@ -36,13 +36,17 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2 border-border hover:bg-muted transition-colors">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-2 rounded-xl border border-border bg-card/90 hover:bg-brand/10 hover:border-brand/40 text-card-foreground hover:text-brand transition-all duration-200 shadow-sm px-3.5 h-9"
+        >
           <div 
-            className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-sm" 
+            className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-xs" 
             style={{ backgroundColor: activeColorTheme.primary }} 
           />
-          <Palette size={15} />
-          <span className="font-medium">Theme Options</span>
+          <Palette size={15} className="text-brand" />
+          <span className="font-semibold text-xs">Theme Options</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[360px] p-4 bg-popover text-popover-foreground border border-border shadow-xl rounded-xl">
