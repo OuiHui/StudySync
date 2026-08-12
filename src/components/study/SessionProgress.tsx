@@ -36,9 +36,9 @@ export const SessionProgress = ({ sessions, sessionGoal, onSessionGoalChange }: 
             <div className="text-3xl font-bold text-brand">{sessions}</div>
             <div className="text-sm text-muted-foreground">Sessions Completed</div>
           </div>
-          <div className="w-full bg-muted rounded-full h-2">
+          <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
             <div 
-              className="bg-brand h-2 rounded-full transition-all duration-300"
+              className="bg-brand h-full rounded-full transition-all duration-300"
               style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }}
             ></div>
           </div>

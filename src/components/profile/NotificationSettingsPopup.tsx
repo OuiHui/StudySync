@@ -111,9 +111,9 @@ export const NotificationSettingsPopup = ({ isOpen, onClose, onSaveSuccess }: No
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <Bell size={18} />
             </div>
@@ -122,7 +122,7 @@ export const NotificationSettingsPopup = ({ isOpen, onClose, onSaveSuccess }: No
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -134,18 +134,18 @@ export const NotificationSettingsPopup = ({ isOpen, onClose, onSaveSuccess }: No
             const IconComponent = category.icon;
             return (
               <div key={category.title} className="space-y-2.5">
-                <h3 className="flex items-center font-bold text-sm text-gray-800 dark:text-zinc-200">
+                <h3 className="flex items-center font-bold text-sm text-foreground">
                   <IconComponent size={16} className="mr-2 text-brand" />
                   {category.title}
                 </h3>
                 <div className="space-y-2">
                   {category.settings.map((setting) => (
-                    <div key={setting.key} className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 gap-3">
+                    <div key={setting.key} className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border gap-3">
                       <div className="flex-1">
-                        <Label htmlFor={setting.key} className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                        <Label htmlFor={setting.key} className="text-sm font-semibold text-foreground">
                           {setting.label}
                         </Label>
-                        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {setting.description}
                         </p>
                       </div>
@@ -162,12 +162,12 @@ export const NotificationSettingsPopup = ({ isOpen, onClose, onSaveSuccess }: No
           })}
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-200 dark:border-slate-700/80 shrink-0">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border shrink-0">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+            className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

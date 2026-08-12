@@ -114,7 +114,7 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
                 </span>
               )}
             </div>
-            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
               <div 
                 className="bg-brand h-full rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${hoursPercent}%` }}
@@ -144,9 +144,9 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
                 </span>
               )}
             </div>
-            <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
               <div 
-                className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" 
+                className="bg-brand-hover h-full rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${sessionsPercent}%` }}
               ></div>
             </div>

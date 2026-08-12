@@ -13,19 +13,19 @@ interface GlobalTimerIndicatorProps {
 
 export const GlobalTimerIndicator = ({ timeLeft, isActive, onToggle, onCancel, formatTime }: GlobalTimerIndicatorProps) => {
   return (
-    <Card className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 border-0 shadow-xl bg-white dark:bg-gray-800 min-w-[200px]">
+    <Card className="fixed top-4 left-1/2 transform -translate-x-1/2 z-30 border border-border shadow-2xl bg-card/95 text-card-foreground backdrop-blur-md min-w-[200px] rounded-2xl">
       <CardContent className="p-3">
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <Clock size={18} className="text-blue-500" />
-            <span className="font-mono font-bold text-base text-gray-800 dark:text-white">{formatTime(timeLeft)}</span>
+            <Clock size={18} className="text-brand" />
+            <span className="font-mono font-bold text-base text-foreground">{formatTime(timeLeft)}</span>
           </div>
           <div className="flex items-center space-x-1">
             <Button
               size="sm"
               variant="ghost"
               onClick={onToggle}
-              className="p-1.5 h-auto dark:text-gray-300 dark:hover:bg-gray-700"
+              className="p-1.5 h-auto text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
               title={isActive ? "Pause" : "Resume"}
             >
               {isActive ? <Pause size={14} /> : <Play size={14} />}
@@ -35,7 +35,7 @@ export const GlobalTimerIndicator = ({ timeLeft, isActive, onToggle, onCancel, f
                 size="sm"
                 variant="ghost"
                 onClick={onCancel}
-                className="p-1.5 h-auto text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                className="p-1.5 h-auto text-red-500 hover:text-red-700 hover:bg-muted rounded-lg transition-colors"
                 title="Cancel Timer"
               >
                 <X size={14} />

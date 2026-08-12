@@ -47,7 +47,7 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
             placeholder="Search groups by name, course, or description..."

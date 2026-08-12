@@ -244,20 +244,20 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="subject" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Course (Optional)</Label>
+            <Label htmlFor="subject" className="text-sm font-semibold text-foreground">Course (Optional)</Label>
             <Input
               id="subject"
               value={formData.subject}
               onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
               placeholder="e.g. CS 2110"
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="scheduledStart" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="scheduledStart" className="text-sm font-semibold text-foreground">
                 Start time <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <Input
@@ -269,12 +269,12 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 required
                 disabled={loading}
-                className="datetime-input bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-foreground">
                 End time <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <Input
@@ -286,13 +286,13 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 required
                 disabled={loading}
-                className="datetime-input bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="maxParticipants" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Max Participants</Label>
+            <Label htmlFor="maxParticipants" className="text-sm font-semibold text-foreground">Max Participants</Label>
             <Input
               id="maxParticipants"
               type="number"
@@ -301,12 +301,12 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
               value={formData.maxParticipants}
               onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 20 }))}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
-            <Label htmlFor="isPublic" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+          <div className="flex items-center justify-between p-3 bg-muted/60 rounded-xl border border-border">
+            <Label htmlFor="isPublic" className="text-sm font-semibold text-foreground cursor-pointer">
               Public session (visible to everyone)
             </Label>
             <Switch
@@ -317,12 +317,12 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
             />
           </div>
           
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={() => setOpen(false)}
               disabled={loading}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+              className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
             >
               Cancel
             </button>

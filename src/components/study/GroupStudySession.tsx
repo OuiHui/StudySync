@@ -144,10 +144,10 @@ export const GroupStudySession = ({
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             onClick={() => setInviteOpen(true)}
-            className="h-8 text-xs flex items-center space-x-1.5 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 text-blue-600 dark:text-blue-400 font-semibold"
+            className="h-8 text-xs flex items-center space-x-1.5 bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold"
           >
             <UserPlus size={14} />
             <span>Invite Friends</span>
@@ -228,19 +228,19 @@ export const GroupStudySession = ({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center justify-center py-6 px-4 flex-1">
-                    <div className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
+                    <div className="text-4xl font-extrabold text-brand mb-1">
                       {sessions}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-4">
+                    <div className="text-xs text-muted-foreground font-medium mb-4">
                       Sessions Completed
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden mb-3">
+                    <div className="w-full bg-muted h-2 rounded-full overflow-hidden mb-3">
                       <div 
-                        className="bg-indigo-600 dark:bg-indigo-500 h-full transition-all duration-300" 
+                        className="bg-brand h-full transition-all duration-300" 
                         style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }} 
                       />
                     </div>
-                    <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                       <span>Goal: {sessionGoal} sessions</span>
                       {isHost && (
                         <Button 

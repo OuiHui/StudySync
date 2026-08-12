@@ -96,6 +96,8 @@ export function ThemeProvider({
 
     root.style.setProperty('--brand-primary', brandHsl);
     root.style.setProperty('--brand-primary-hover', brandHoverHsl);
+    root.style.setProperty('--primary', brandHsl);
+    root.style.setProperty('--primary-foreground', '0 0% 100%');
 
     // Inject full platform surface & structure CSS variables
     if (colorTheme.background) root.style.setProperty('--background', colorTheme.background);
@@ -104,7 +106,10 @@ export function ThemeProvider({
     if (colorTheme.cardForeground) root.style.setProperty('--card-foreground', colorTheme.cardForeground);
     if (colorTheme.popover) root.style.setProperty('--popover', colorTheme.popover);
     if (colorTheme.popoverForeground) root.style.setProperty('--popover-foreground', colorTheme.popoverForeground);
-    if (colorTheme.border) root.style.setProperty('--border', colorTheme.border);
+    if (colorTheme.border) {
+      root.style.setProperty('--border', colorTheme.border);
+      root.style.setProperty('--muted', colorTheme.border);
+    }
     if (colorTheme.input) root.style.setProperty('--input', colorTheme.input);
     if (colorTheme.ring) root.style.setProperty('--ring', colorTheme.ring);
     // Sidebar defaults to card surface and border tokens for full platform visual consistency

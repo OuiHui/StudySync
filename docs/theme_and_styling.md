@@ -49,11 +49,17 @@ All theme definitions, presets, and color calculation utilities are centralized 
 ## Panel & Card Container Styling
 - **Unified Card Fill & Border**: All major content cards and panel boxes strictly use panel card fill (`bg-card text-card-foreground`) paired with `border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl` to maintain visual consistency across all pages.
 
+## Modal & Dialog Styling Standards
+- **Unified Modal Fills**: All dialogs, popovers, and popup menus strictly use `bg-popover text-popover-foreground border border-border` to automatically adjust according to active Light/Dark mode and custom color presets.
+- **Nested Inner Containers**: Sub-items and form section rows inside modals use `bg-muted/60 border border-border text-foreground` instead of hardcoded hex colors (`#12151e`, `#1a1f2c`).
+- **Interactive UI Primitives**: Switches, select items, tab buttons, and primary action buttons consume dynamic Tailwind tokens (`bg-brand`, `text-brand`, `border-brand`, `ring-brand`, `data-[state=checked]:bg-brand`).
+
 ## Global Dark Mode Scrollbars
 - **`color-scheme: dark`**: Explicitly declared on `.dark` in `src/index.css` to force native OS and browser UI scrollable containers to render in dark theme.
 - **Custom Webkit & Firefox Scrollbars**:
   - Global `::-webkit-scrollbar` rules for `.dark` set track background to dark surface (`#12151e`) with dark slate thumb (`#334155`, hover `#475569`).
   - `.custom-scrollbar` utility class provides subtle dark trackless scrollbar thumbs (`rgba(100, 116, 139, 0.6)`, hover `rgba(148, 163, 184, 0.9)`) for modals, chat popups, markdown editors, and list scrollables.
   - Firefox support is enforced via `scrollbar-color: #334155 transparent` and `scrollbar-width: thin`.
+
 
 

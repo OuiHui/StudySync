@@ -375,14 +375,14 @@ export const Messages: React.FC = () => {
           }`}
         >
           {/* Category Tabs: Study Groups vs Direct Messages */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-800 space-y-3">
-            <div className="grid grid-cols-2 p-1 bg-gray-200/60 dark:bg-gray-800/80 rounded-lg text-xs font-semibold">
+          <div className="p-3 border-b border-border space-y-3">
+            <div className="grid grid-cols-2 p-1 bg-muted rounded-lg text-xs font-semibold">
               <button
                 onClick={() => setActiveCategory('groups')}
                 className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                   activeCategory === 'groups'
-                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-card text-brand shadow-sm font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -398,8 +398,8 @@ export const Messages: React.FC = () => {
                 onClick={() => setActiveCategory('direct')}
                 className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                   activeCategory === 'direct'
-                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-card text-brand shadow-sm font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
@@ -414,12 +414,12 @@ export const Messages: React.FC = () => {
 
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-400" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={activeCategory === 'groups' ? 'Filter group chats...' : 'Filter direct chats...'}
-                className="pl-8 h-8 text-xs bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                className="pl-8 h-8 text-xs bg-muted/60 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brand"
               />
             </div>
           </div>
@@ -431,12 +431,12 @@ export const Messages: React.FC = () => {
             }`}
           >
             {dataLoading ? (
-              <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-500 mb-2" />
+              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin text-brand mb-2" />
                 <span className="text-xs">Loading conversations...</span>
               </div>
             ) : currentConversations.length === 0 ? (
-              <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-xs">
+              <div className="p-6 text-center text-muted-foreground text-xs">
                 {searchQuery ? (
                   <p>No conversations matching &quot;{searchQuery}&quot;</p>
                 ) : activeCategory === 'groups' ? (
@@ -456,15 +456,15 @@ export const Messages: React.FC = () => {
                     onClick={() => handleSelectConversation(conv)}
                     className={`w-full p-2.5 rounded-xl text-left transition-all flex items-center gap-3 relative ${
                       isSelected
-                        ? 'bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800/60 border border-transparent'
+                        ? 'bg-brand/10 border border-brand/30'
+                        : 'hover:bg-muted/60 border border-transparent'
                     }`}
                   >
                     {/* Avatar with Active Group Session Indicator */}
                     <div className="relative shrink-0">
-                      <Avatar className="w-10 h-10 border border-gray-200 dark:border-gray-700">
+                      <Avatar className="w-10 h-10 border border-border">
                         {conv.avatarUrl && <AvatarImage src={conv.avatarUrl} alt={conv.name} />}
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
+                        <AvatarFallback className="bg-brand text-white font-bold text-xs">
                           {conv.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>

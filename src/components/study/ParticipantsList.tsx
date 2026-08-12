@@ -38,13 +38,13 @@ export const ParticipantsList = ({
   const invitedParticipants = participants.filter(p => p.status === 'invited');
 
   return (
-    <Card className="border-0 shadow-sm bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+    <Card className="border border-border shadow-sm bg-card text-card-foreground backdrop-blur-sm">
       <CardContent className="p-3 space-y-3">
         {/* Active participants section */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
-            <Users size={18} className="text-blue-500" />
-            <span className="text-sm font-semibold text-gray-800 dark:text-white">
+            <Users size={18} className="text-brand" />
+            <span className="text-sm font-semibold text-card-foreground">
               Active Study Group ({activeParticipants.length})
             </span>
           </div>
@@ -52,7 +52,7 @@ export const ParticipantsList = ({
           {/* Horizontal scroll list of active avatars and names */}
           <div className="flex items-center space-x-3 overflow-x-auto py-1 flex-1 px-2 justify-start max-w-xl">
             {activeParticipants.length === 0 ? (
-              <span className="text-xs text-gray-400 italic">No active study buddies yet</span>
+              <span className="text-xs text-muted-foreground italic">No active study buddies yet</span>
             ) : (
               activeParticipants.map((p) => {
                 const displayName = p.profiles?.display_name || 'Anonymous User';
@@ -60,7 +60,7 @@ export const ParticipantsList = ({
                   id: p.user_id,
                   name: displayName,
                   status: p.status === 'active' ? 'Active' : 'Away',
-                  avatar: p.role === 'host' ? 'bg-indigo-600' : 'bg-blue-500',
+                  avatar: p.role === 'host' ? 'bg-brand' : 'bg-brand/80',
                   role: p.role
                 };
                 const isSelf = p.user_id === currentUserId;
@@ -68,22 +68,22 @@ export const ParticipantsList = ({
                 return (
                   <div
                     key={p.user_id}
-                    className="relative group flex items-center bg-gray-50/80 dark:bg-gray-700/40 rounded-full pl-1 pr-3 py-1 border border-gray-200/40 dark:border-gray-800 space-x-2 shrink-0 select-none"
+                    className="relative group flex items-center bg-muted/60 rounded-full pl-1 pr-3 py-1 border border-border space-x-2 shrink-0 select-none"
                   >
                     <div className="relative shrink-0">
                       <ParticipantHoverCard
                         participant={mappedParticipantForHover}
                         onChatClick={() => onChatWithParticipant?.(mappedParticipantForHover)}
                       />
-                      <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background ${
                         p.status === 'active' ? 'bg-green-500' : 'bg-amber-400'
                       }`} />
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+                    <span className="text-xs font-semibold text-foreground">
                       {displayName}
                     </span>
                     {p.role === 'host' && (
-                      <Shield size={12} className="text-indigo-500 shrink-0" />
+                      <Shield size={12} className="text-brand shrink-0" />
                     )}
                     {isHost && !isSelf && (
                       <button

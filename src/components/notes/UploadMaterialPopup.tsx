@@ -183,7 +183,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
                 id="file"
                 type="file"
                 onChange={handleFileChange}
-                className="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer"
+                className="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand file:text-white hover:file:bg-brand-hover cursor-pointer transition-colors shadow-sm"
                 accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
               />
               {file && (

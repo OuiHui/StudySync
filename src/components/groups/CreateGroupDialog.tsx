@@ -114,7 +114,7 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
               placeholder="Brief description of the group..."
               rows={3}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
+              className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
             />
           </div>
           
@@ -128,17 +128,17 @@ export const CreateGroupDialog = ({ onGroupCreated }: CreateGroupDialogProps) =>
               value={formData.maxMembers}
               onChange={(e) => setFormData(prev => ({ ...prev, maxMembers: parseInt(e.target.value) || 50 }))}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+              className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
           
           {/* Who Can Join Switch */}
-          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
+          <div className="flex items-center justify-between p-3 bg-muted/60 rounded-xl border border-border">
             <div>
               <FormLabel htmlFor="isPublic" className="cursor-pointer">
                 Public group
               </FormLabel>
-              <p className="text-xs text-gray-500 dark:text-zinc-400">
+              <p className="text-xs text-muted-foreground">
                 Anyone can search for and join this study group
               </p>
             </div>

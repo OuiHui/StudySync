@@ -150,12 +150,12 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4 border-0 shadow-xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
-        <CardHeader>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50">
+      <Card className="w-full max-w-md mx-4 border border-border shadow-2xl max-h-[80vh] overflow-y-auto bg-popover text-popover-foreground rounded-2xl">
+        <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center dark:text-white">
-              {unreadCount > 0 ? <BellDot size={20} className="mr-2" /> : <Bell size={20} className="mr-2" />}
+            <CardTitle className="flex items-center text-foreground font-bold">
+              {unreadCount > 0 ? <BellDot size={20} className="mr-2 text-brand animate-pulse" /> : <Bell size={20} className="mr-2 text-brand" />}
               Notifications
             </CardTitle>
             <div className="flex items-center space-x-2">
@@ -164,7 +164,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                   variant="ghost"
                   size="sm"
                   onClick={markAllAsRead}
-                  className="text-blue-500 hover:text-blue-600"
+                  className="text-brand hover:text-brand-hover hover:bg-brand/10 font-semibold"
                 >
                   <Check size={14} className="mr-1" />
                   Mark all read
@@ -175,7 +175,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                 size="sm"
                 onClick={onClose}
                 aria-label="Close notifications"
-                className="dark:text-gray-300 dark:hover:bg-gray-700"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted"
               >
                 <X size={16} />
               </Button>
@@ -184,7 +184,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
         </CardHeader>
 
         {error && (
-          <div className="px-6 pb-2">
+          <div className="px-6 pt-3 pb-2">
             <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
               <AlertDescription className="text-red-800 dark:text-red-200">
                 {error}
@@ -193,45 +193,45 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
           </div>
         )}
 
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-2 pt-4">
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading notifications...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-brand" />
+              <span className="ml-2 text-muted-foreground text-xs font-semibold">Loading notifications...</span>
             </div>
           ) : displayNotifications.length === 0 ? (
             <div className="text-center py-8">
-              <Bell size={48} className="mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-500 dark:text-gray-400">No notifications</p>
+              <Bell size={48} className="mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-muted-foreground text-sm font-medium">No notifications</p>
             </div>
           ) : (
             displayNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-3 rounded-lg border transition-colors ${
+                className={`p-3 rounded-xl border transition-colors ${
                   notification.read 
-                    ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600' 
-                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                    ? 'bg-muted/60 border-border text-foreground' 
+                    : 'bg-brand/10 border-brand/30 text-foreground'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3 flex-1">
                     {getIcon(notification.type)}
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm text-gray-800 dark:text-white">
+                      <h4 className="font-semibold text-sm text-foreground">
                         {notification.title}
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                         {notification.message}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      <p className="text-[10px] text-muted-foreground/80 mt-2 font-medium">
                         {notification.time}
                       </p>
                       {notification.actionable && (
                         <div className="flex space-x-2 mt-3">
                           <Button 
                             size="sm" 
-                            className="bg-blue-500 hover:bg-blue-600 text-white"
+                            className="bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg h-8 text-xs"
                             onClick={async () => {
                               try {
                                 if (notification.type === 'friend' && notification.friendship_id) {
@@ -255,7 +255,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="dark:border-gray-600 dark:text-gray-300"
+                            className="border-border text-foreground hover:bg-muted font-semibold rounded-lg h-8 text-xs"
                             onClick={async () => {
                               try {
                                 if (notification.type === 'friend' && notification.friendship_id) {
@@ -284,18 +284,18 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                     {!notification.read && (
                       <button
                         onClick={() => markAsRead(notification.id)}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                        className="p-1 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
                         title="Mark as read"
                       >
-                        <Check size={12} className="text-gray-500" />
+                        <Check size={12} />
                       </button>
                     )}
                     <button
                       onClick={() => removeNotification(notification.id)}
-                      className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                      className="p-1 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
                       title="Remove"
                     >
-                      <X size={12} className="text-gray-500" />
+                      <X size={12} />
                     </button>
                   </div>
                 </div>

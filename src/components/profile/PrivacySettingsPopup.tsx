@@ -90,10 +90,10 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <Shield size={18} />
             </div>
             Privacy Settings
@@ -101,7 +101,7 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -111,23 +111,23 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
         <div className="space-y-5 py-2 overflow-y-auto flex-1">
           {/* Profile Visibility */}
           <div className="space-y-2.5">
-            <h3 className="flex items-center font-bold text-sm text-gray-800 dark:text-zinc-200">
-              <Eye size={16} className="mr-2 text-[#2a78d6]" />
+            <h3 className="flex items-center font-bold text-sm text-foreground">
+              <Eye size={16} className="mr-2 text-brand" />
               Profile Visibility
             </h3>
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80">
-                <Label htmlFor="profileVisibility" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
+                <Label htmlFor="profileVisibility" className="text-sm font-semibold text-foreground">
                   Who can see your profile
                 </Label>
                 <Select 
                   value={settings.profileVisibility} 
                   onValueChange={(value) => handleSelectChange('profileVisibility', value)}
                 >
-                  <SelectTrigger className="w-36 bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 h-9 text-xs font-semibold">
+                  <SelectTrigger className="w-36 bg-popover border-border h-9 text-xs font-semibold">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-[#1a1f2c] border-gray-200 dark:border-slate-700 text-gray-900 dark:text-zinc-200">
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
                     <SelectItem value="everyone">Everyone</SelectItem>
                     <SelectItem value="friends">Friends Only</SelectItem>
                     <SelectItem value="private">Private</SelectItem>
@@ -135,66 +135,108 @@ export const PrivacySettingsPopup = ({ isOpen, onClose }: PrivacySettingsPopupPr
                 </Select>
               </div>
               
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
                 <div>
-                  <Label htmlFor="studyStats" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                  <Label htmlFor="studyStats" className="text-sm font-semibold text-foreground">
                     Show study statistics
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400">
-                    Display study hours, streaks, and achievements
+                  <p className="text-xs text-muted-foreground">
+                    Allow others to see your total study hours
                   </p>
                 </div>
                 <Switch
                   id="studyStats"
-                  checked={settings.studyStatsVisible}
-                  onCheckedChange={() => handleToggle('studyStatsVisible')}
+                  checked={settings.showStudyStats}
+                  onCheckedChange={() => handleToggle('showStudyStats')}
                 />
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
                 <div>
-                  <Label htmlFor="achievements" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
-                    Show achievements
+                  <Label htmlFor="showGroups" className="text-sm font-semibold text-foreground">
+                    Show joined study groups
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400">
-                    Display earned badges and milestones
+                  <p className="text-xs text-muted-foreground">
+                    Display public study groups on your profile
                   </p>
                 </div>
                 <Switch
-                  id="achievements"
-                  checked={settings.showAchievements}
-                  onCheckedChange={() => handleToggle('showAchievements')}
+                  id="showGroups"
+                  checked={settings.showJoinedGroups}
+                  onCheckedChange={() => handleToggle('showJoinedGroups')}
                 />
               </div>
             </div>
           </div>
 
-          {/* Social Settings */}
+          {/* Social Privacy */}
           <div className="space-y-2.5">
-            <h3 className="flex items-center font-bold text-sm text-gray-800 dark:text-zinc-200">
-              <Users size={16} className="mr-2 text-[#2a78d6]" />
-              Social
+            <h3 className="flex items-center font-bold text-sm text-foreground">
+              <Users size={16} className="mr-2 text-brand" />
+              Social Privacy
             </h3>
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
+                <Label htmlFor="friendRequests" className="text-sm font-semibold text-foreground">
+                  Who can send friend requests
+                </Label>
+                <Select 
+                  value={settings.allowFriendRequests} 
+                  onValueChange={(value) => handleSelectChange('allowFriendRequests', value)}
+                >
+                  <SelectTrigger className="w-36 bg-popover border-border h-9 text-xs font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
+                    <SelectItem value="everyone">Everyone</SelectItem>
+                    <SelectItem value="none">Nobody</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
                 <div>
-                  <Label htmlFor="onlineStatus" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+                  <Label htmlFor="directMessages" className="text-sm font-semibold text-foreground">
+                    Direct messages
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Control who can message you directly
+                  </p>
+                </div>
+                <Select 
+                  value={settings.allowDirectMessages} 
+                  onValueChange={(value) => handleSelectChange('allowDirectMessages', value)}
+                >
+                  <SelectTrigger className="w-36 bg-popover border-border h-9 text-xs font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border text-popover-foreground">
+                    <SelectItem value="everyone">Everyone</SelectItem>
+                    <SelectItem value="friends">Friends Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Activity Status */}
+          <div className="space-y-2.5">
+            <h3 className="flex items-center font-bold text-sm text-foreground">
+              <Bell size={16} className="mr-2 text-brand" />
+              Activity Status
+            </h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/60 border border-border">
+                <div>
+                  <Label htmlFor="onlineStatus" className="text-sm font-semibold text-foreground">
                     Show online status
                   </Label>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400">
-                    Let others see when you're online
+                  <p className="text-xs text-muted-foreground">
+                    Let others see when you are active
                   </p>
                 </div>
                 <Switch
                   id="onlineStatus"
-                  checked={settings.onlineStatus}
-                  onCheckedChange={() => handleToggle('onlineStatus')}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-[#12151e] dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80">
-                <div>
-                  <Label htmlFor="friendRequests" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                     Allow friend requests
                   </Label>
                   <p className="text-xs text-gray-500 dark:text-zinc-400">

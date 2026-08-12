@@ -65,8 +65,8 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border">
           <DialogTitle className="text-2xl font-bold text-red-600 dark:text-red-500 tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center flex-shrink-0">
               <Trash2 size={18} />
@@ -76,7 +76,7 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
           <button
             type="button"
             onClick={handleClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -89,10 +89,10 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
               <AlertTriangle size={16} />
               Warning: This action cannot be undone
             </h4>
-            <p className="text-xs text-gray-700 dark:text-zinc-300">
+            <p className="text-xs text-foreground">
               Deleting your account will permanently remove all of your data, including:
             </p>
-            <ul className="text-xs text-gray-600 dark:text-zinc-400 mt-2 space-y-1 pl-1">
+            <ul className="text-xs text-muted-foreground mt-2 space-y-1 pl-1">
               <li>• All study sessions and progress</li>
               <li>• Notes and shared materials</li>
               <li>• Study group memberships</li>
@@ -102,16 +102,16 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
           </div>
 
           <div className="space-y-2.5">
-            <h4 className="font-semibold text-sm text-gray-800 dark:text-zinc-200">Please confirm by checking all boxes:</h4>
+            <h4 className="font-semibold text-sm text-foreground">Please confirm by checking all boxes:</h4>
             
-            <div className="space-y-2 bg-gray-100 dark:bg-[#12151e] p-3 rounded-xl border border-gray-200 dark:border-slate-700/80">
+            <div className="space-y-2 bg-muted/60 p-3 rounded-xl border border-border">
               <div className="flex items-start space-x-2.5">
                 <Checkbox 
                   id="dataLoss"
                   checked={confirmations.dataLoss}
                   onCheckedChange={(checked) => handleConfirmationChange('dataLoss', checked as boolean)}
                 />
-                <Label htmlFor="dataLoss" className="text-xs font-semibold text-gray-800 dark:text-zinc-200 leading-normal cursor-pointer">
+                <Label htmlFor="dataLoss" className="text-xs font-semibold text-foreground leading-normal cursor-pointer">
                   I understand that all my data will be permanently deleted
                 </Label>
               </div>
@@ -122,7 +122,7 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
                   checked={confirmations.permanent}
                   onCheckedChange={(checked) => handleConfirmationChange('permanent', checked as boolean)}
                 />
-                <Label htmlFor="permanent" className="text-xs font-semibold text-gray-800 dark:text-zinc-200 leading-normal cursor-pointer">
+                <Label htmlFor="permanent" className="text-xs font-semibold text-foreground leading-normal cursor-pointer">
                   I understand that this action is permanent and irreversible
                 </Label>
               </div>
@@ -133,7 +133,7 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
                   checked={confirmations.noRecovery}
                   onCheckedChange={(checked) => handleConfirmationChange('noRecovery', checked as boolean)}
                 />
-                <Label htmlFor="noRecovery" className="text-xs font-semibold text-gray-800 dark:text-zinc-200 leading-normal cursor-pointer">
+                <Label htmlFor="noRecovery" className="text-xs font-semibold text-foreground leading-normal cursor-pointer">
                   I understand that my account cannot be recovered after deletion
                 </Label>
               </div>
@@ -141,7 +141,7 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="confirmText" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+            <Label htmlFor="confirmText" className="text-sm font-semibold text-foreground">
               Type "DELETE" to confirm account deletion: <span className="text-red-500 ml-0.5">*</span>
             </Label>
             <Input
@@ -149,15 +149,15 @@ export const DeleteAccountPopup = ({ isOpen, onClose }: DeleteAccountPopupProps)
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Type DELETE here"
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-red-500 focus-visible:border-red-500 text-sm font-semibold"
+              className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-red-500 focus-visible:border-red-500 text-sm font-semibold"
             />
           </div>
 
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={handleClose}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+              className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
             >
               Cancel
             </button>

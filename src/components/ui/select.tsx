@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800/80 px-3.5 py-2 text-sm text-gray-800 dark:text-gray-100 shadow-sm transition-colors duration-150 ease-in-out hover:border-blue-400 dark:hover:border-blue-500 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 data-[state=open]:border-blue-500 dark:data-[state=open]:border-blue-500 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 active:scale-[0.99]",
+      "flex h-10 w-full items-center justify-between rounded-xl border border-border bg-card px-3.5 py-2 text-sm text-card-foreground shadow-sm transition-colors duration-150 ease-in-out hover:border-brand hover:bg-muted/50 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 data-[state=open]:border-brand data-[state=open]:ring-2 data-[state=open]:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 active:scale-[0.99]",
       className
     )}
     {...props}
@@ -116,12 +116,12 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-3 text-sm font-medium outline-none transition-colors text-gray-700 dark:text-gray-200 hover:bg-[#2a78d6]/10 hover:text-[#2a78d6] focus:bg-[#2a78d6]/15 focus:text-[#2a78d6] dark:hover:bg-[#2a78d6]/20 dark:hover:text-blue-400 dark:focus:bg-[#2a78d6]/25 dark:focus:text-blue-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-3 text-sm font-medium outline-none transition-colors text-foreground hover:bg-brand/10 hover:text-brand focus:bg-brand/15 focus:text-brand data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
   >
-    <span className="absolute left-2.5 flex h-3.5 w-3.5 items-center justify-center text-[#2a78d6] dark:text-blue-400">
+    <span className="absolute left-2.5 flex h-3.5 w-3.5 items-center justify-center text-brand">
       <SelectPrimitive.ItemIndicator>
         <Check className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>

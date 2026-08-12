@@ -258,12 +258,12 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
                 min={currentDateTime}
                 required
                 disabled={loading}
-                className="datetime-input bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-foreground">
                 End time <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <Input
@@ -276,13 +276,13 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
                 min={formData.scheduledStart || currentDateTime}
                 required
                 disabled={loading}
-                className="datetime-input bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="maxParticipants" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Max Participants</Label>
+            <Label htmlFor="maxParticipants" className="text-sm font-semibold text-foreground">Max Participants</Label>
             <Input
               id="maxParticipants"
               type="number"
@@ -291,21 +291,21 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
               value={formData.maxParticipants}
               onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 20 }))}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
           
           <div className="space-y-1">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Status</Label>
+            <Label className="text-sm font-semibold text-foreground">Status</Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
               disabled={loading}
             >
-              <SelectTrigger className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus:ring-[#2a78d6] text-sm font-semibold">
+              <SelectTrigger className="bg-muted/60 border-border text-foreground rounded-lg h-10 focus:ring-brand text-sm font-semibold">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-[#1a1f2c] border-gray-200 dark:border-slate-700 text-gray-900 dark:text-zinc-200">
+              <SelectContent className="bg-popover border-border text-popover-foreground">
                 <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
@@ -314,8 +314,8 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
             </Select>
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
-            <Label htmlFor="isPublic" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+          <div className="flex items-center justify-between p-3 bg-muted/60 rounded-xl border border-border">
+            <Label htmlFor="isPublic" className="text-sm font-semibold text-foreground cursor-pointer">
               Public session (visible to everyone)
             </Label>
             <Switch
@@ -326,7 +326,7 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
             />
           </div>
           
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-between">
+          <div className="pt-3 border-t border-border flex items-center justify-between">
             <button
               type="button"
               onClick={handleDelete}
@@ -342,14 +342,14 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
                 type="button"
                 onClick={() => setOpen(false)}
                 disabled={loading}
-                className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+                className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || !formData.title.trim() || !formData.scheduledStart || !formData.scheduledEnd}
-                className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+                className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
               >
                 {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
                 {loading ? 'Updating...' : 'Update Session'}

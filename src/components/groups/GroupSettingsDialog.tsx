@@ -245,7 +245,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                       <MoreHorizontal size={18} />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-white dark:bg-[#1a1f2c] border-gray-200 dark:border-slate-700 text-gray-900 dark:text-zinc-200">
+                  <DropdownMenuContent align="end" className="bg-popover border-border text-popover-foreground">
                     <DropdownMenuItem
                       onClick={() => setShowDeleteConfirm(true)}
                       className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
