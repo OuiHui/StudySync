@@ -97,7 +97,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
                     } ${isDisabled
                       ? 'opacity-40 cursor-not-allowed text-muted-foreground/40'
                       : isActive
-                        ? 'bg-brand text-white shadow-sm font-medium'
+                        ? 'bg-brand text-primary-foreground shadow-sm font-semibold'
                         : 'text-muted-foreground hover:bg-muted hover:text-card-foreground'
                     }`}
                   title={!isOpen ? item.label : undefined}

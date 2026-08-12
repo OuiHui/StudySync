@@ -70,17 +70,20 @@ export const useStudyEvents = () => {
   const { data: rawEvents = [], isLoading: loading, error, refetch: loadEvents } = useQuery(getStudyEventsQueryOptions(user));
   const events = (rawEvents || []) as StudyEvent[];
 
+  const toDate = (d: Date | string): Date => (d instanceof Date ? d : new Date(d));
+
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => 
-      event.date.toDateString() === date.toDateString()
+    return events.filter(event =>
+      toDate(event.date).toDateString() === date.toDateString()
     );
   };
 
   const getUpcomingEvents = () => {
     const now = new Date();
-    return events.filter(event => 
-      isAfter(event.date, now) || event.date.toDateString() === now.toDateString()
-    );
+    return events.filter(event => {
+      const d = toDate(event.date);
+      return isAfter(d, now) || d.toDateString() === now.toDateString();
+    });
   };
 
   const hasEvents = (date: Date) => {

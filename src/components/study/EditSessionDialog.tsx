@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Edit, Calendar, X, Loader2, Trash2 } from 'lucide-react';
+import { DateTimeInput } from '@/components/ui/date-time-input';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -248,17 +249,15 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
               <Label htmlFor="scheduledStart" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
                 Start time <span className="text-red-500 ml-0.5">*</span>
               </Label>
-              <Input
+              <DateTimeInput
                 id="scheduledStart"
-                type="datetime-local"
                 value={formData.scheduledStart}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                onChange={(v) => setFormData(prev => ({ ...prev, scheduledStart: v }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 min={currentDateTime}
                 required
                 disabled={loading}
-                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
@@ -266,17 +265,15 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
               <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-foreground">
                 End time <span className="text-red-500 ml-0.5">*</span>
               </Label>
-              <Input
+              <DateTimeInput
                 id="scheduledEnd"
-                type="datetime-local"
                 value={formData.scheduledEnd}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledEnd: e.target.value }))}
+                onChange={(v) => setFormData(prev => ({ ...prev, scheduledEnd: v }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 min={formData.scheduledStart || currentDateTime}
                 required
                 disabled={loading}
-                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>

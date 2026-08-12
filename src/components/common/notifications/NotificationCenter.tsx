@@ -231,7 +231,7 @@ export const NotificationCenter = ({ isOpen, onClose, hasUnread, onMarkAllRead }
                         <div className="flex space-x-2 mt-3">
                           <Button 
                             size="sm" 
-                            className="bg-brand hover:bg-brand-hover text-white font-semibold rounded-lg h-8 text-xs"
+                            className="bg-brand hover:bg-brand-hover text-primary-foreground font-semibold rounded-lg h-8 text-xs"
                             onClick={async () => {
                               try {
                                 if (notification.type === 'friend' && notification.friendship_id) {

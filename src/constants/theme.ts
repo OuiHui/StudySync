@@ -21,7 +21,7 @@ export interface Theme {
 
 export const BRAND_PRIMARY = '#2a78d6';
 export const BRAND_PRIMARY_HOVER = '#2268bc';
-export const BRAND_BUTTON_CLASS = 'bg-brand hover:bg-brand-hover text-white';
+export const BRAND_BUTTON_CLASS = 'bg-brand hover:bg-brand-hover text-primary-foreground';
 export const BRAND_TEXT_CLASS = 'text-brand';
 export const BRAND_BORDER_CLASS = 'border-brand';
 export const PAGE_TITLE_CLASS = 'text-3xl font-bold text-gray-800 dark:text-white';
@@ -154,24 +154,24 @@ export const COLOR_THEMES: Theme[] = [
     sidebarBorder: '20 35% 25%',
   },
   {
-    id: 'rose-pink',
-    name: 'Rose Pink',
+    id: 'warm-mocha',
+    name: 'Warm Mocha',
     mode: 'dark',
-    primary: '#e11d48',
-    secondary: '#f43f5e',
-    gradient: 'from-[#19050b] via-[#270814] to-[#be123c]/30',
-    background: '345 50% 4%',
-    foreground: '345 30% 98%',
-    card: '345 40% 14%',
-    cardForeground: '345 30% 98%',
-    popover: '345 40% 14%',
-    popoverForeground: '345 30% 98%',
-    border: '345 35% 25%',
-    input: '345 35% 25%',
-    ring: '343 81% 50%',
-    sidebarBackground: '345 40% 14%',
-    sidebarForeground: '345 30% 98%',
-    sidebarBorder: '345 35% 25%',
+    primary: '#92400e',
+    secondary: '#b45309',
+    gradient: 'from-[#160d06] via-[#24150a] to-[#78350f]/30',
+    background: '25 45% 4%',
+    foreground: '25 30% 98%',
+    card: '25 38% 13%',
+    cardForeground: '25 30% 98%',
+    popover: '25 38% 13%',
+    popoverForeground: '25 30% 98%',
+    border: '25 32% 23%',
+    input: '25 32% 23%',
+    ring: '25 70% 40%',
+    sidebarBackground: '25 38% 13%',
+    sidebarForeground: '25 30% 98%',
+    sidebarBorder: '25 32% 23%',
   },
   {
     id: 'teal-cyan',
@@ -214,44 +214,44 @@ export const COLOR_THEMES: Theme[] = [
     sidebarBorder: '0 35% 25%',
   },
   {
-    id: 'slate-gray',
-    name: 'Slate Gray',
+    id: 'neon-pink',
+    name: 'Neon Pink',
     mode: 'dark',
-    primary: '#475569',
-    secondary: '#64748b',
-    gradient: 'from-[#0b1120] via-[#162032] to-[#334155]/30',
-    background: '222 47% 5%',
-    foreground: '210 40% 98%',
-    card: '215 28% 16%',
-    cardForeground: '210 40% 98%',
-    popover: '215 28% 16%',
-    popoverForeground: '210 40% 98%',
-    border: '215 25% 26%',
-    input: '215 25% 26%',
-    ring: '215 25% 35%',
-    sidebarBackground: '215 28% 16%',
-    sidebarForeground: '210 40% 98%',
-    sidebarBorder: '215 25% 26%',
+    primary: '#ff1493',
+    secondary: '#ff66b2',
+    gradient: 'from-[#240217] via-[#3a0425] to-[#ff1493]/35',
+    background: '330 65% 5%',
+    foreground: '330 40% 98%',
+    card: '330 50% 15%',
+    cardForeground: '330 40% 98%',
+    popover: '330 50% 15%',
+    popoverForeground: '330 40% 98%',
+    border: '330 45% 26%',
+    input: '330 45% 26%',
+    ring: '330 90% 65%',
+    sidebarBackground: '330 50% 15%',
+    sidebarForeground: '330 40% 98%',
+    sidebarBorder: '330 45% 26%',
   },
   {
-    id: 'amber-gold',
-    name: 'Amber Gold',
+    id: 'electric-yellow',
+    name: 'Electric Yellow',
     mode: 'dark',
-    primary: '#d97706',
-    secondary: '#f59e0b',
-    gradient: 'from-[#190f03] via-[#261605] to-[#b45309]/30',
-    background: '35 50% 4%',
-    foreground: '35 30% 98%',
-    card: '35 40% 14%',
-    cardForeground: '35 30% 98%',
-    popover: '35 40% 14%',
-    popoverForeground: '35 30% 98%',
-    border: '35 35% 25%',
-    input: '35 35% 25%',
-    ring: '38 92% 44%',
-    sidebarBackground: '35 40% 14%',
-    sidebarForeground: '35 30% 98%',
-    sidebarBorder: '35 35% 25%',
+    primary: '#facc15',
+    secondary: '#fef08a',
+    gradient: 'from-[#241d00] via-[#3a2f00] to-[#facc15]/35',
+    background: '50 65% 5%',
+    foreground: '50 40% 98%',
+    card: '50 50% 15%',
+    cardForeground: '50 40% 98%',
+    popover: '50 50% 15%',
+    popoverForeground: '50 40% 98%',
+    border: '50 45% 26%',
+    input: '50 45% 26%',
+    ring: '50 95% 55%',
+    sidebarBackground: '50 50% 15%',
+    sidebarForeground: '50 40% 98%',
+    sidebarBorder: '50 45% 26%',
   },
 ];
 
@@ -342,6 +342,29 @@ export const adjustHexBrightness = (hex: string, percent: number): string => {
   const bb = b.toString(16).padStart(2, '0');
 
   return `#${rr}${gg}${bb}`;
+};
+
+/**
+ * Calculates high-contrast text color ('#09090b' or '#ffffff') based on hex background luminance.
+ */
+export const getContrastForegroundHex = (hex: string): string => {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  if (cleanHex.length !== 6) return '#ffffff';
+
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+
+  // Relative luminance formula: Y = 0.299*R + 0.587*G + 0.114*B
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 160 ? '#09090b' : '#ffffff';
+};
+
+export const getContrastForegroundHsl = (hex: string): string => {
+  return getContrastForegroundHex(hex) === '#09090b' ? '0 0% 5%' : '0 0% 100%';
 };
 
 

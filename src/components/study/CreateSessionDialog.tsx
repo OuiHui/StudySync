@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Plus, X } from 'lucide-react';
+import { DateTimeInput } from '@/components/ui/date-time-input';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -174,7 +175,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           Create Session
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-md w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-md w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl [&>button]:hidden max-h-[90vh] flex flex-col overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
           <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
@@ -193,7 +194,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           </button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1.5">
+        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1.5 flex-1 min-h-0">
           <div className="space-y-1">
             <Label htmlFor="title" className="text-sm font-semibold text-foreground">
               Session title <span className="text-red-500 ml-0.5">*</span>
@@ -260,16 +261,14 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
               <Label htmlFor="scheduledStart" className="text-sm font-semibold text-foreground">
                 Start time <span className="text-red-500 ml-0.5">*</span>
               </Label>
-              <Input
+              <DateTimeInput
                 id="scheduledStart"
-                type="datetime-local"
                 value={formData.scheduledStart}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledStart: e.target.value }))}
+                onChange={(v) => setFormData(prev => ({ ...prev, scheduledStart: v }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 required
                 disabled={loading}
-                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
@@ -277,16 +276,14 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
               <Label htmlFor="scheduledEnd" className="text-sm font-semibold text-foreground">
                 End time <span className="text-red-500 ml-0.5">*</span>
               </Label>
-              <Input
+              <DateTimeInput
                 id="scheduledEnd"
-                type="datetime-local"
                 value={formData.scheduledEnd}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheduledEnd: e.target.value }))}
+                onChange={(v) => setFormData(prev => ({ ...prev, scheduledEnd: v }))}
                 onFocus={() => setIsDateTimePickerOpen(true)}
                 onBlur={() => setTimeout(() => setIsDateTimePickerOpen(false), 100)}
                 required
                 disabled={loading}
-                className="datetime-input bg-muted/60 border-border text-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>

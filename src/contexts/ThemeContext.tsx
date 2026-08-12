@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { DEFAULT_THEME, DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, Theme, hexToHslString, adjustHexBrightness } from '@/constants/theme';
+import { DEFAULT_THEME, DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, Theme, hexToHslString, adjustHexBrightness, getContrastForegroundHsl, getContrastForegroundHex } from '@/constants/theme';
 
 export type Mode = 'dark' | 'light' | 'system';
 
@@ -93,11 +93,14 @@ export function ThemeProvider({
     const brandHsl = hexToHslString(colorTheme.primary);
     const brandHoverHex = colorTheme.secondary || adjustHexBrightness(colorTheme.primary, -15);
     const brandHoverHsl = hexToHslString(brandHoverHex);
+    const primaryForegroundHsl = getContrastForegroundHsl(colorTheme.primary);
+    const primaryForegroundHex = getContrastForegroundHex(colorTheme.primary);
 
     root.style.setProperty('--brand-primary', brandHsl);
     root.style.setProperty('--brand-primary-hover', brandHoverHsl);
+    root.style.setProperty('--brand-primary-foreground', primaryForegroundHex);
     root.style.setProperty('--primary', brandHsl);
-    root.style.setProperty('--primary-foreground', '0 0% 100%');
+    root.style.setProperty('--primary-foreground', primaryForegroundHsl);
 
     // Inject full platform surface & structure CSS variables
     if (colorTheme.background) root.style.setProperty('--background', colorTheme.background);
