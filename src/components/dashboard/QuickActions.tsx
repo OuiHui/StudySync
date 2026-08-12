@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 
 export const QuickActions = ({ onAction }: { onAction: (action: string) => void }) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-gray-800 dark:text-white">Quick Actions</CardTitle>
+        <CardTitle className="text-foreground font-semibold">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button 
-          className="w-full justify-start bg-blue-500 hover:bg-blue-600 text-white"
+          className="w-full justify-start bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold transition-all"
           onClick={() => onAction('study-session')}
         >
           <Play size={16} className="mr-2" />
@@ -18,18 +18,18 @@ export const QuickActions = ({ onAction }: { onAction: (action: string) => void 
         </Button>
         <Button 
           variant="outline" 
-          className="w-full justify-start dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="w-full justify-start border border-border bg-card/60 hover:bg-muted text-foreground hover:border-brand/40 transition-colors"
           onClick={() => onAction('browse-groups')}
         >
-          <Users size={16} className="mr-2" />
+          <Users size={16} className="mr-2 text-brand" />
           Join Study Group
         </Button>
         <Button 
           variant="outline" 
-          className="w-full justify-start dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="w-full justify-start border border-border bg-card/60 hover:bg-muted text-foreground hover:border-brand/40 transition-colors"
           onClick={() => onAction('notes')}
         >
-          <BookOpen size={16} className="mr-2" />
+          <BookOpen size={16} className="mr-2 text-brand" />
           Browse Notes
         </Button>
       </CardContent>

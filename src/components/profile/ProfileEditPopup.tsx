@@ -89,9 +89,9 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+      <DialogContent className="max-w-lg w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <User size={18} />
             </div>
@@ -100,7 +100,7 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -137,19 +137,19 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
           {/* Form Fields */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="name" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="name" className="text-sm font-semibold text-foreground">
                 Name <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="email" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="email" className="text-sm font-semibold text-foreground">
                 Email <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <Input
@@ -157,62 +157,59 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="major" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Major</Label>
+              <Label htmlFor="major" className="text-sm font-semibold text-foreground">Major</Label>
               <Input
                 id="major"
                 value={formData.major || ''}
                 onChange={(e) => setFormData({ ...formData, major: e.target.value })}
                 placeholder="e.g. Computer Science"
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="year" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Academic Year</Label>
+              <Label htmlFor="year" className="text-sm font-semibold text-foreground">Academic Year</Label>
               <Input
                 id="year"
                 value={formData.year}
                 onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                placeholder="e.g. 3rd Year"
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                placeholder="e.g. Senior"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="bio" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Bio</Label>
+              <Label htmlFor="bio" className="text-sm font-semibold text-foreground">Bio</Label>
               <Textarea
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself..."
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
                 rows={3}
               />
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+              className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              disabled={!formData.name.trim() || !formData.email.trim()}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex items-center gap-1.5"
+              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold inline-flex items-center gap-1.5 transition-all duration-200"
             >
-              <Save size={15} />
-              Save
+              <Save size={16} /> Save
             </button>
           </div>
         </div>

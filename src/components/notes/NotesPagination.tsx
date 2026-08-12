@@ -30,7 +30,7 @@ export const NotesPagination = ({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-6 px-1 text-sm text-gray-600 dark:text-gray-300">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-6 px-1 text-sm text-muted-foreground">
       {/* Left: Navigation Buttons */}
       <div className="flex items-center space-x-1">
         <Button
@@ -38,7 +38,7 @@ export const NotesPagination = ({
           size="icon"
           disabled={currentPage === 1}
           onClick={() => setCurrentPage(currentPage - 1)}
-          className="h-9 w-9 rounded-lg border-gray-200 dark:border-gray-700"
+          className="h-9 w-9 rounded-lg border-border hover:bg-muted text-foreground"
           title="Previous Page"
         >
           <ChevronLeft size={16} />
@@ -53,8 +53,8 @@ export const NotesPagination = ({
               onClick={() => setCurrentPage(page)}
               className={`h-9 w-9 rounded-lg text-xs font-semibold ${
                 isActive
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200'
+                  ? 'bg-brand hover:bg-brand-hover text-white shadow-sm'
+                  : 'border-border text-foreground hover:bg-muted'
               }`}
             >
               {page}
@@ -67,7 +67,7 @@ export const NotesPagination = ({
           size="icon"
           disabled={currentPage >= totalPages}
           onClick={() => setCurrentPage(currentPage + 1)}
-          className="h-9 w-9 rounded-lg border-gray-200 dark:border-gray-700"
+          className="h-9 w-9 rounded-lg border-border hover:bg-muted text-foreground"
           title="Next Page"
         >
           <ChevronRight size={16} />
@@ -75,7 +75,7 @@ export const NotesPagination = ({
       </div>
 
       {/* Center: Range Summary Text */}
-      <div className="font-medium text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+      <div className="font-medium text-xs sm:text-sm text-muted-foreground">
         Showing {startItem}–{endItem} of {totalNotesCount} notes
       </div>
 
@@ -84,7 +84,7 @@ export const NotesPagination = ({
         <select
           value={itemsPerPage}
           onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          className="h-9 px-3 text-xs sm:text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/80 rounded-lg text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+          className="h-9 px-3 text-xs sm:text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
         >
           <option value={5}>5 per page</option>
           <option value={8}>8 per page</option>

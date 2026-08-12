@@ -1,34 +1,39 @@
 # Theme and Styling Architecture
 
 ## Overview
-StudySync utilizes a centralized theme system to manage dark/light modes, accent color schemes, background gradients, and container styling across the application.
+StudySync utilizes a centralized full-platform theme system to manage dark/light modes, accent color schemes, canvas background gradients, modal popover colors, card surfaces, focus rings, and sidebar styling across the entire platform.
 
-Theme mode (Light, Dark, System) is decoupled from accent color customization so that users can select their preferred mode (default: Dark/System) and customize primary/secondary accent colors independently.
+Theme presets alter the full UI experience (mode, background, modals, buttons, cards, inputs, sidebar). Standard Light and Dark themes are included as default theme presets ("Default Light" and "Default Dark").
 
 ## Theme Context & State Management
 Theme state is managed globally by `ThemeContext` (`src/contexts/ThemeContext.tsx`):
 - **`mode`**: Controls page surface theme (`'light' | 'dark' | 'system'`). Toggles the `.dark` class on `document.documentElement` and persists in `localStorage` (`ui-theme`).
-- **`colorTheme`**: Controls primary and secondary accent colors (`Theme` object with `primary`, `secondary`, `gradient`). Persists in `localStorage` (`study-app-color-theme`).
+- **`colorTheme`**: Controls full-platform theme preset configuration (`Theme` object with `id`, `name`, `mode`, `primary`, `secondary`, `gradient`, `background`, `card`, `popover`, `border`, `input`, `ring`, `sidebarBackground`, etc.). Persists in `localStorage` (`study-app-color-theme`).
 - **CSS Custom Properties**: Upon theme change, `ThemeContext` automatically updates root CSS variables:
   - `--theme-primary`: Primary hex color.
   - `--theme-secondary`: Secondary hex color.
   - `--brand-primary`: HSL value string formatted for Tailwind CSS `bg-brand`, `text-brand`, `border-brand`.
   - `--brand-primary-hover`: Hover state HSL value.
+  - `--background`, `--foreground`: Main page canvas colors.
+  - `--card`, `--card-foreground`: Card and panel surface colors.
+  - `--popover`, `--popover-foreground`: Modal, dialog, select, and popover background and text colors.
+  - `--border`, `--input`, `--ring`: Border, input, and focus ring colors.
+  - `--sidebar-background`, `--sidebar-foreground`, `--sidebar-border`: Navigation sidebar theme colors.
 
 ## Constants & Color Utilities
 All theme definitions, presets, and color calculation utilities are centralized in:
 `src/constants/theme.ts`
 
-- **`DEFAULT_THEME`**: Default application color theme (`Default Blue`, `#2a78d6`).
-- **`COLOR_THEMES`**: List of 10 curated preset accent palettes (Default Blue, Ocean Blue, Emerald Green, Royal Purple, Sunset Orange, Rose Pink, Teal Cyan, Crimson Red, Slate Gray, Amber Gold).
-- **`hexToHslString(hex)`**: Converts hex color codes (`#rrggbb`) to space-separated HSL strings (`"h s% l%"`) stored in Tailwind CSS `--brand-primary` and `--brand-primary-hover` variables.
+- **`DEFAULT_LIGHT_THEME`**: Default light platform theme (`Default Light`, `#2a78d6`).
+- **`DEFAULT_DARK_THEME`**: Default dark platform theme (`Default Dark`, `#2a78d6`).
+- **`DEFAULT_THEME`**: Default application theme (`DEFAULT_DARK_THEME`).
+- **`COLOR_THEMES`**: Curated full-platform theme presets (Default Light, Default Dark, Ocean Blue, Emerald Green, Royal Purple, Sunset Orange, Rose Pink, Teal Cyan, Crimson Red, Slate Gray, Amber Gold).
+- **`hexToHslString(hex)`**: Converts hex color codes (`#rrggbb`) to space-separated HSL strings (`"h s% l%"`) stored in Tailwind CSS CSS variables.
 - **`adjustHexBrightness(hex, percent)`**: Adjusts hex color brightness for hover states.
 
 ## Color Customizer & Settings UI
-- **`ColorCustomizer` (`src/components/common/settings/ColorCustomizer.tsx`)**: Popover available in the header bar with:
-  1. **Theme Mode Toggle**: Standard Light (☀️), Dark (🌙), and System (💻). Default is Dark/System.
-  2. **Accent Theme Presets**: Interactive grid of 10 curated accent color swatches with instant live theme updates.
-- **`AppearanceSettingsPopup` (`src/components/profile/AppearanceSettingsPopup.tsx`)**: Account Settings modal in Profile providing full mode and accent theme customization.
+- **`ColorCustomizer` (`src/components/common/settings/ColorCustomizer.tsx`)**: Popover available in the header bar providing full platform theme presets with live theme previews.
+- **`AppearanceSettingsPopup` (`src/components/profile/AppearanceSettingsPopup.tsx`)**: Account Settings modal in Profile providing full platform theme selection (Default Light, Default Dark, and preset color themes).
 
 ## Dynamic Branding & UI Components
 - **Tailwind `brand` Utility Classes**: All buttons, active sidebar tabs, dialog icons, focus rings, avatar fallbacks, and badges use dynamic Tailwind classes (`bg-brand`, `hover:bg-brand-hover`, `text-brand`, `border-brand`, `focus-visible:ring-brand`, `bg-brand/10`) linked to `--brand-primary` and `--brand-primary-hover` CSS variables.

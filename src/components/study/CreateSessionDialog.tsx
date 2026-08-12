@@ -174,9 +174,9 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           Create Session
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-md w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+      <DialogContent className="max-w-md w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <Calendar size={18} />
             </div>
@@ -186,7 +186,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -195,7 +195,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
 
         <form onSubmit={handleSubmit} className="space-y-3.5 pt-1.5">
           <div className="space-y-1">
-            <Label htmlFor="title" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+            <Label htmlFor="title" className="text-sm font-semibold text-foreground">
               Session title <span className="text-red-500 ml-0.5">*</span>
             </Label>
             <Input
@@ -205,12 +205,12 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
               placeholder="Enter session title..."
               required
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
           
           <div className="space-y-1">
-            <Label htmlFor="description" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Description</Label>
+            <Label htmlFor="description" className="text-sm font-semibold text-foreground">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -218,21 +218,21 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
               placeholder="What will you be studying?"
               rows={3}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
+              className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
             />
           </div>
           
           <div className="space-y-1">
-            <Label className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Study Group (Optional)</Label>
+            <Label className="text-sm font-semibold text-foreground">Study Group (Optional)</Label>
             <Select
               value={formData.groupId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, groupId: value }))}
               disabled={loading}
             >
-              <SelectTrigger className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus:ring-[#2a78d6] text-sm font-semibold">
+              <SelectTrigger className="bg-muted/40 border-border text-foreground rounded-lg h-10 focus:ring-brand text-sm font-semibold">
                 <SelectValue placeholder="Select a group or leave blank for solo session" />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-[#1a1f2c] border-gray-200 dark:border-slate-700 text-gray-900 dark:text-zinc-200">
+              <SelectContent className="bg-popover text-popover-foreground border-border">
                 <SelectItem value="none">No group (solo session)</SelectItem>
                 {groups.map((group) => (
                   <SelectItem key={group.id} value={group.id}>

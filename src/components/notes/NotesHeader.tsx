@@ -60,10 +60,10 @@ export const NotesHeader = ({
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
-              className="h-10 border-gray-300 dark:border-gray-700 font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="h-10 border-border font-medium text-foreground hover:bg-muted"
               onClick={() => setIsUploadPopupOpen(true)}
             >
-              <Upload size={16} className="mr-2 text-gray-600 dark:text-gray-400" />
+              <Upload size={16} className="mr-2 text-muted-foreground" />
               Upload Note
             </Button>
             <Button
@@ -81,12 +81,12 @@ export const NotesHeader = ({
       <div className="flex flex-col sm:flex-row items-center gap-3">
         {/* Search Input */}
         <div className="relative flex-1 w-full">
-          <Search size={18} className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search size={18} className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search notes by name, subject, or creator..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-10 bg-white dark:bg-gray-800/80 border-gray-200 dark:border-gray-700/80 text-sm placeholder:text-gray-400 rounded-lg focus-visible:ring-indigo-500"
+            className="pl-10 h-10 bg-card border-border text-sm placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand"
           />
         </div>
 
@@ -99,8 +99,8 @@ export const NotesHeader = ({
             disabled={!hasActiveFilters}
             className={`h-10 text-xs sm:text-sm font-medium px-3.5 rounded-lg border transition-colors ${
               hasActiveFilters
-                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 dark:hover:bg-indigo-900/50'
-                : 'border-gray-200 text-gray-400 dark:border-gray-800 dark:text-gray-600 opacity-60 cursor-not-allowed'
+                ? 'border-brand/30 bg-brand/10 text-brand hover:bg-brand/20'
+                : 'border-border text-muted-foreground/40 opacity-60 cursor-not-allowed'
             }`}
           >
             <FilterX size={15} className="mr-1.5 shrink-0" />
@@ -109,11 +109,11 @@ export const NotesHeader = ({
 
           {/* Sort Dropdown */}
           <div className="relative flex items-center">
-            <ArrowUpDown size={14} className="absolute left-3 text-gray-400 pointer-events-none" />
+            <ArrowUpDown size={14} className="absolute left-3 text-muted-foreground pointer-events-none" />
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as SortOption)}
-              className="h-10 pl-8 pr-8 text-xs sm:text-sm font-medium bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/80 rounded-lg text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer"
+              className="h-10 pl-8 pr-8 text-xs sm:text-sm font-medium bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-brand appearance-none cursor-pointer"
             >
               <option value="newest">Sort: Newest</option>
               <option value="oldest">Sort: Oldest</option>

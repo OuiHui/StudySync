@@ -130,12 +130,12 @@ export const StudyTimer = ({ onTimerUpdate, isGroupSession = false, sessionId }:
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full h-full min-h-0 items-stretch">
       {/* Large Timer Card */}
-      <Card className="md:col-span-2 border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col justify-between overflow-hidden">
-        <CardHeader className="py-2.5 flex flex-row items-center justify-between border-b dark:border-gray-700/50 shrink-0">
-          <CardTitle className="text-xs font-semibold text-gray-800 dark:text-white">
+      <Card className="md:col-span-2 border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl flex flex-col justify-between overflow-hidden">
+        <CardHeader className="py-2.5 flex flex-row items-center justify-between border-b border-border/80 shrink-0">
+          <CardTitle className="text-xs font-semibold text-foreground">
             {mode === 'work' ? 'Group Focus Session' : 'Break Time'}
-            {sessionCourse && <span className="block text-[10px] font-normal text-gray-500 dark:text-gray-400 mt-0.5">Course: {sessionCourse}</span>}
-            {currentCycle && <span className="block text-[9px] font-normal text-gray-400 dark:text-gray-400 mt-0.5">Cycle {currentCycle}</span>}
+            {sessionCourse && <span className="block text-[10px] font-normal text-muted-foreground mt-0.5">Course: {sessionCourse}</span>}
+            {currentCycle && <span className="block text-[9px] font-normal text-muted-foreground mt-0.5">Cycle {currentCycle}</span>}
           </CardTitle>
           <SessionDetailsDialog
             title={sessionTitle}

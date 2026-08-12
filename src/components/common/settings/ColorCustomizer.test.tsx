@@ -32,24 +32,24 @@ describe('ColorCustomizer Component', () => {
 
     fireEvent.click(triggerBtn);
 
-    expect(screen.getByText('Appearance & Theme')).toBeInTheDocument();
+    expect(screen.getByText('Theme Presets')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Reset/i })).toBeInTheDocument();
-    expect(screen.getByText('Theme Mode')).toBeInTheDocument();
+    expect(screen.getByText('Default Themes')).toBeInTheDocument();
+    expect(screen.getByText('Color Theme Presets')).toBeInTheDocument();
   });
 
-  it('allows selecting mode (Light/Dark/System) independently from accent color', () => {
+  it('allows selecting Default Light preset', () => {
     renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
 
     fireEvent.click(screen.getByRole('button', { name: /Theme Options/i }));
 
-    const lightModeBtn = screen.getByRole('button', { name: /Light/i });
-    fireEvent.click(lightModeBtn);
+    const lightPresetBtn = screen.getByTitle('Default Light');
+    fireEvent.click(lightPresetBtn);
 
-    expect(document.documentElement.classList.contains('light')).toBe(true);
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(onThemeChangeMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'default-light' }));
   });
 
-  it('calls onThemeChange when an accent color preset is clicked', () => {
+  it('calls onThemeChange when a color preset is clicked', () => {
     renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
 
     fireEvent.click(screen.getByRole('button', { name: /Theme Options/i }));
@@ -71,5 +71,3 @@ describe('ColorCustomizer Component', () => {
     expect(onThemeChangeMock).toHaveBeenCalledWith(defaultTheme);
   });
 });
-
-

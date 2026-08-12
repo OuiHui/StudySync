@@ -58,7 +58,7 @@ describe('ThemeContext & ThemeProvider', () => {
     );
 
     expect(screen.getByTestId('theme-val').textContent).toBe('dark');
-    expect(screen.getByTestId('color-val').textContent).toBe('Default Blue');
+    expect(screen.getByTestId('color-val').textContent).toBe('Default Dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.style.getPropertyValue('--theme-primary')).toBe('#2a78d6');
   });

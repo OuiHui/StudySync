@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
-import { Palette, RotateCcw, Sun, Moon, Laptop, Check } from 'lucide-react';
+import { Palette, RotateCcw, Sun, Moon, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { COLOR_THEMES, DEFAULT_THEME, Theme } from '@/constants/theme';
-import { useTheme, Mode } from '@/contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ColorCustomizerProps {
   onThemeChange?: (theme: Theme) => void;
@@ -15,12 +14,7 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
   const [isOpen, setIsOpen] = useState(false);
   const themeContext = useTheme();
 
-  const activeMode: Mode = themeContext.mode || 'system';
   const activeColorTheme: Theme = currentTheme || themeContext.colorTheme || DEFAULT_THEME;
-
-  const handleModeSelect = (newMode: Mode) => {
-    themeContext.setMode(newMode);
-  };
 
   const handleThemeChange = (theme: Theme) => {
     themeContext.setColorTheme(theme);
@@ -30,17 +24,19 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
   };
 
   const resetToDefault = () => {
-    themeContext.setMode('dark');
     themeContext.resetColorTheme();
     if (onThemeChange) {
       onThemeChange(DEFAULT_THEME);
     }
   };
 
+  const defaultThemes = COLOR_THEMES.filter(t => t.id === 'default-light' || t.id === 'default-dark');
+  const colorPresets = COLOR_THEMES.filter(t => t.id !== 'default-light' && t.id !== 'default-dark');
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        <Button variant="outline" size="sm" className="flex items-center gap-2 border-border hover:bg-muted transition-colors">
           <div 
             className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-sm" 
             style={{ backgroundColor: activeColorTheme.primary }} 
@@ -49,92 +45,81 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
           <span className="font-medium">Theme Options</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[340px] p-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-xl rounded-xl">
+      <PopoverContent className="w-[360px] p-4 bg-popover text-popover-foreground border border-border shadow-xl rounded-xl">
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between pb-2 border-b border-border">
             <div>
-              <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">Appearance & Theme</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Personalize mode & accent colors</p>
+              <h3 className="font-semibold text-sm">Theme Presets</h3>
+              <p className="text-xs text-muted-foreground">Select a theme to customize the platform</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={resetToDefault} className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white h-7 px-2">
+            <Button variant="ghost" size="sm" onClick={resetToDefault} className="text-xs text-muted-foreground hover:text-foreground h-7 px-2">
               <RotateCcw size={12} className="mr-1" />
               Reset
             </Button>
           </div>
 
-          {/* Mode Toggle (Light / Dark / System) */}
+          {/* Default Themes */}
           <div>
-            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-              Theme Mode
+            <label className="text-xs font-semibold text-muted-foreground block mb-2">
+              Default Themes
             </label>
-            <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100 dark:bg-gray-800/80 rounded-lg border border-gray-200/60 dark:border-gray-700/60">
-              <button
-                type="button"
-                onClick={() => handleModeSelect('light')}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeMode === 'light'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Sun size={13} className="text-amber-500" />
-                Light
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSelect('dark')}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeMode === 'dark'
-                    ? 'bg-gray-900 text-white shadow-sm dark:bg-gray-700'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Moon size={13} className="text-indigo-400" />
-                Dark
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSelect('system')}
-                className={`flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  activeMode === 'system'
-                    ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <Laptop size={13} className="text-blue-500" />
-                System
-              </button>
-            </div>
-          </div>
-
-          {/* Accent Color Presets */}
-          <div>
-            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-2">
-              Color Theme Presets
-            </label>
-
-            <div className="grid grid-cols-5 gap-2">
-              {COLOR_THEMES.map((theme) => {
-                const isSelected = activeColorTheme.name === theme.name;
+            <div className="grid grid-cols-2 gap-2.5">
+              {defaultThemes.map((theme) => {
+                const isSelected = activeColorTheme.id === theme.id || activeColorTheme.name === theme.name;
+                const isLight = theme.mode === 'light';
                 return (
                   <button
-                    key={theme.name}
+                    key={theme.id}
                     type="button"
                     title={theme.name}
                     onClick={() => handleThemeChange(theme)}
-                    className={`group relative flex flex-col items-center justify-center p-1.5 rounded-lg border-2 transition-all ${
+                    className={`group relative flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition-all ${
                       isSelected
-                        ? 'border-brand ring-2 ring-brand/20 bg-gray-50 dark:bg-gray-800'
-                        : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                        ? 'border-brand ring-2 ring-brand/20 bg-muted/80'
+                        : 'border-border hover:border-muted-foreground/30 bg-muted/30'
                     }`}
                   >
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: theme.primary }}>
-                      <div className="absolute right-0 bottom-0 w-3.5 h-3.5 rounded-tl-full" style={{ backgroundColor: theme.secondary }} />
-                      {isSelected && <Check size={12} className="text-white z-10 drop-shadow-sm" />}
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-xs ${isLight ? 'bg-amber-400 text-amber-950' : 'bg-indigo-900 text-indigo-100'}`}>
+                      {isLight ? <Sun size={13} /> : <Moon size={13} />}
                     </div>
-                    <span className="text-[10px] mt-1 text-gray-600 dark:text-gray-400 font-medium truncate w-full text-center group-hover:text-gray-900 dark:group-hover:text-gray-200">
-                      {theme.name.split(' ')[0]}
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-foreground truncate">{theme.name}</div>
+                      <div className="text-[10px] text-muted-foreground truncate">{isLight ? 'Light Mode' : 'Dark Mode'}</div>
+                    </div>
+                    {isSelected && <Check size={14} className="text-brand flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Color Presets */}
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground block mb-2">
+              Color Theme Presets
+            </label>
+
+            <div className="grid grid-cols-3 gap-2">
+              {colorPresets.map((theme) => {
+                const isSelected = activeColorTheme.id === theme.id || activeColorTheme.name === theme.name;
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    title={theme.name}
+                    onClick={() => handleThemeChange(theme)}
+                    className={`group relative flex items-center gap-2 p-2 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? 'border-brand ring-2 ring-brand/20 bg-muted/80'
+                        : 'border-border hover:border-muted-foreground/30 bg-muted/20'
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden shrink-0" style={{ backgroundColor: theme.primary }}>
+                      <div className="absolute right-0 bottom-0 w-2.5 h-2.5 rounded-tl-full" style={{ backgroundColor: theme.secondary }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground font-medium truncate group-hover:text-foreground">
+                      {theme.name}
                     </span>
                   </button>
                 );
@@ -146,5 +131,3 @@ export const ColorCustomizer = ({ onThemeChange, currentTheme }: ColorCustomizer
     </Popover>
   );
 };
-
-

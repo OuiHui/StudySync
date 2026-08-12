@@ -77,7 +77,7 @@ export const MainLayout = () => {
   };
 
   const getBackgroundGradient = () => {
-    return getThemeBackgroundGradient(globalTimer);
+    return getThemeBackgroundGradient(globalTimer, currentTheme);
   };
 
   const isSessionPage = location.pathname.includes('study-session') || location.pathname.includes('group-study-session');

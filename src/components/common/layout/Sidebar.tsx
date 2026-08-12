@@ -58,22 +58,22 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
   };
 
   return (
-    <div className={`fixed left-0 top-0 h-full bg-card text-card-foreground shadow-lg transition-[width] duration-300 ${isOpen ? 'w-64' : 'w-16'
+    <div className={`fixed left-0 top-0 h-full bg-card text-card-foreground border-r border-border shadow-xl transition-[width] duration-300 ${isOpen ? 'w-64' : 'w-16'
       } z-40`}>
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           {isOpen && (
             <div>
-              <h1 className="text-xl font-bold text-gray-800 dark:text-white">StudySync</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Collaborative Learning</p>
+              <h1 className="text-xl font-bold text-card-foreground">StudySync</h1>
+              <p className="text-sm text-muted-foreground">Collaborative Learning</p>
             </div>
           )}
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="p-2 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="p-2 text-muted-foreground hover:bg-muted hover:text-card-foreground"
           >
             {isOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
           </Button>
@@ -95,10 +95,10 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
                   onClick={() => !isDisabled && setActiveTab(item.id)}
                   className={`w-full flex items-center py-2 rounded-lg text-left transition-colors ${isOpen ? 'px-3' : 'justify-center px-0'
                     } ${isDisabled
-                      ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-600'
+                      ? 'opacity-40 cursor-not-allowed text-muted-foreground/40'
                       : isActive
                         ? 'bg-brand text-white shadow-sm font-medium'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        : 'text-muted-foreground hover:bg-muted hover:text-card-foreground'
                     }`}
                   title={!isOpen ? item.label : undefined}
                 >
@@ -116,7 +116,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
         {import.meta.env.DEV && (
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('toggle-sim-console'))}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 transition-colors text-xs font-semibold ${
+            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-brand/10 hover:bg-brand/20 text-brand border border-brand/20 transition-colors text-xs font-semibold ${
               isOpen ? 'w-full' : 'w-10 h-10 p-0 rounded-full mx-auto'
             }`}
             title="Open Simulation Console"
@@ -125,12 +125,12 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, onToggle }: SidebarPr
             {isOpen && <span>Sim Console</span>}
           </button>
         )}
-        <div className={`bg-gray-50 dark:bg-gray-700 rounded-lg transition-[width,padding] duration-300 ${
+        <div className={`bg-muted/50 border border-border rounded-lg transition-[width,padding] duration-300 ${
           isOpen ? 'p-3 w-full' : 'mx-auto p-1 w-10 h-10 flex items-center justify-center'
         }`}>
           <div className={`flex items-center w-full ${isOpen ? 'justify-between' : 'justify-center'}`}>
             {isOpen && (
-              <span className="text-sm text-gray-600 dark:text-gray-300">Account</span>
+              <span className="text-sm text-muted-foreground">Account</span>
             )}
             <UserMenu
               onProfileClick={() => setActiveTab('profile')}

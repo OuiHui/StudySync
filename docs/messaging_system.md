@@ -40,6 +40,13 @@ Left panel sidebar conversation timestamps are formatted using `formatSidebarTim
 - `is_group_chat` (BOOLEAN, default `false`)
 - `created_at` / `updated_at` (TIMESTAMP)
 
+### `public.conversation_participants`
+- `id` (UUID, PK)
+- `conversation_id` (UUID, FK -> `public.conversations`)
+- `user_id` (UUID, FK -> `auth.users`)
+- `is_active` (BOOLEAN, default `true`)
+- `last_read_at` (TIMESTAMPTZ, default `NOW()`, added in migration `20260805000200_add_dm_unread_tracking.sql`)
+
 ### `public.messages`
 - `id` (UUID, PK)
 - `conversation_id` (UUID, FK -> `public.conversations`)

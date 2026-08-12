@@ -162,22 +162,22 @@ export const GroupCard = ({
 
   return (
     <div
-      className="group/card bg-card text-card-foreground border border-border rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-200 flex flex-col justify-between cursor-pointer relative"
+      className="group/card bg-card text-card-foreground border-2 border-border/90 rounded-2xl p-5 shadow-lg shadow-black/30 hover:shadow-2xl hover:border-brand/60 hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between cursor-pointer relative"
       onClick={onClick}
     >
       <div>
         {/* Top Icon and Type row */}
         <div className="flex items-center justify-between">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${themeColors.bg}`}>
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-xs ${themeColors.bg}`}>
             {renderGroupIcon(group.icon, 20, themeColors.text)}
           </div>
           {group.is_public ? (
-            <span className="px-2.5 py-1 bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-800/30 rounded-full flex items-center gap-1.5 text-xs font-semibold">
+            <span className="px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1.5 text-xs font-semibold shadow-2xs">
               <Globe size={13} />
               <span>Public</span>
             </span>
           ) : (
-            <span className="px-2.5 py-1 bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-800/30 rounded-full flex items-center gap-1.5 text-xs font-semibold">
+            <span className="px-2.5 py-1 bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded-full flex items-center gap-1.5 text-xs font-semibold shadow-2xs">
               <Lock size={13} />
               <span>Private</span>
             </span>
@@ -188,7 +188,7 @@ export const GroupCard = ({
         <div className="flex items-center justify-between gap-3 mt-4 min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
             <h3 
-              className="text-lg font-bold text-zinc-900 dark:text-zinc-100 group-hover/card:text-blue-500 dark:group-hover/card:text-blue-400 transition-colors leading-snug truncate"
+              className="text-lg font-bold text-foreground group-hover/card:text-brand transition-colors leading-snug truncate"
               title={group.name}
             >
               {group.name}
@@ -199,7 +199,7 @@ export const GroupCard = ({
           </div>
           {isMyGroupPage && isAdmin && openGroupSettings && (
             <button
-              className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0"
+              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors flex-shrink-0"
               onClick={(e) => {
                 e.stopPropagation();
                 openGroupSettings(group);
@@ -214,7 +214,7 @@ export const GroupCard = ({
         {/* Category Subject */}
         {group.subject && (
           <p 
-            className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-wider truncate"
+            className="text-xs font-medium text-muted-foreground mt-0.5 uppercase tracking-wider truncate"
             title={group.subject}
           >
             {group.subject}
@@ -223,7 +223,7 @@ export const GroupCard = ({
 
         {/* Description */}
         <p 
-          className="text-sm italic text-zinc-800 dark:text-zinc-200 mt-3 line-clamp-2 leading-relaxed break-words"
+          className="text-sm italic text-muted-foreground/90 mt-3 line-clamp-2 leading-relaxed break-words"
           title={group.description || 'No description available'}
         >
           {group.description || 'No description available'}
@@ -232,33 +232,33 @@ export const GroupCard = ({
 
       <div>
         {/* Stats Row */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-zinc-400 mt-5 font-medium">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground mt-5 font-medium">
           <span className="flex items-center gap-1.5 flex-shrink-0">
-            <Users size={14} className="text-zinc-500 dark:text-zinc-300" />
-            <span className="text-zinc-800 dark:text-zinc-200">{group.members} {group.members === 1 ? 'member' : 'members'}</span>
+            <Users size={14} className="text-muted-foreground" />
+            <span className="text-foreground">{group.members} {group.members === 1 ? 'member' : 'members'}</span>
           </span>
           <span className="flex items-center gap-1.5 flex-shrink-0">
-            <Calendar size={14} className="text-zinc-500 dark:text-zinc-300" />
-            <span className="text-zinc-800 dark:text-zinc-200">{group.sessions ?? 0} {group.sessions === 1 ? 'session' : 'sessions'}</span>
+            <Calendar size={14} className="text-muted-foreground" />
+            <span className="text-foreground">{group.sessions ?? 0} {group.sessions === 1 ? 'session' : 'sessions'}</span>
           </span>
-          <span className="truncate flex-shrink-0 text-zinc-500 dark:text-zinc-400" title={`Admin: ${group.admin || 'Admin'}`}>
-            Admin: <span className="font-bold text-zinc-800 dark:text-zinc-100">{group.admin || 'Admin'}</span>
+          <span className="truncate flex-shrink-0 text-muted-foreground" title={`Admin: ${group.admin || 'Admin'}`}>
+            Admin: <span className="font-bold text-foreground">{group.admin || 'Admin'}</span>
           </span>
         </div>
 
         {/* Chat Activity Row (My Groups only) */}
         {isMyGroupPage && (
           <>
-            <hr className="border-zinc-200 dark:border-zinc-800 my-4" />
+            <hr className="border-border/80 my-4" />
             <div
-              className="flex items-center justify-between text-zinc-650 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors group/chat min-w-0"
+              className="flex items-center justify-between text-muted-foreground hover:text-foreground transition-colors group/chat min-w-0"
               onClick={(e) => {
                 e.stopPropagation();
                 if (openChat) openChat(group.name, group.id);
               }}
             >
               <div className="flex items-center gap-2 min-w-0">
-                <MessageSquare size={16} className="text-zinc-400 dark:text-zinc-500 group-hover/chat:text-blue-500 transition-colors flex-shrink-0" />
+                <MessageSquare size={16} className="text-muted-foreground group-hover/chat:text-brand transition-colors flex-shrink-0" />
                 <span 
                   className="text-xs truncate font-normal leading-none max-w-[180px] sm:max-w-[200px] lg:max-w-[220px]"
                   title={latestMessageText}
@@ -266,21 +266,21 @@ export const GroupCard = ({
                   {latestMessageText}
                 </span>
                 {isUnread && (
-                  <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse flex-shrink-0" title="Unread message" />
+                  <span className="w-2 h-2 rounded-full bg-brand animate-pulse flex-shrink-0" title="Unread message" />
                 )}
               </div>
-              <ArrowRight size={14} className="group-hover/chat:translate-x-1 transition-transform flex-shrink-0 text-zinc-400 dark:text-zinc-500 group-hover/chat:text-blue-500" />
+              <ArrowRight size={14} className="group-hover/chat:translate-x-1 transition-transform flex-shrink-0 text-muted-foreground group-hover/chat:text-brand" />
             </div>
           </>
         )}
         {/* Actions Row (Browse mode only) */}
         {!isMyGroupPage && (
           <>
-            <hr className="border-zinc-200 dark:border-zinc-800 my-4" />
+            <hr className="border-border/80 my-4" />
             <div className="flex items-center justify-end">
               {group.is_public ? (
                 <button
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  className="w-full bg-brand hover:bg-brand-hover text-white text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm"
                   onClick={handleJoin}
                 >
                   <ArrowRight size={14} />
@@ -290,8 +290,8 @@ export const GroupCard = ({
                 <button
                   className={`w-full text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 ${
                     hasRequested 
-                      ? 'bg-zinc-800 border border-zinc-700 text-zinc-400 cursor-not-allowed'
-                      : 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
+                      ? 'bg-muted border border-border text-muted-foreground cursor-not-allowed'
+                      : 'bg-amber-600 hover:bg-amber-700 text-white cursor-pointer shadow-sm'
                   }`}
                   disabled={hasRequested}
                   onClick={handleRequest}

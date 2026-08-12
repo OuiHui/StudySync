@@ -600,101 +600,76 @@ export const Messages: React.FC = () => {
                   </div>
                 </div>
 
+                {/* View Group button (for group chats) */}
                 {selectedConversation.isGroupChat && selectedConversation.groupId && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => navigate(`/groups?groupId=${selectedConversation.groupId}`)}
-                    className="gap-1.5 text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl"
+                    className="gap-1.5 text-xs text-foreground border-border hover:bg-muted rounded-xl"
                   >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">View Group</span>
-                    <ExternalLink className="w-3 h-3 text-gray-400" />
+                    <BookOpen size={13} />
+                    <span>View Group</span>
+                    <ExternalLink size={11} className="ml-0.5 opacity-60" />
                   </Button>
                 )}
               </div>
 
-              {/* Active Group Study Session Banner / Popup */}
-              {selectedConversation.isGroupChat && selectedConversation.activeSession && (
-                <ActiveSessionBanner
-                  session={selectedConversation.activeSession}
-                  groupName={selectedConversation.name}
-                />
-              )}
-
-              {/* Message List */}
-              <div
-                className={`flex-1 p-4 space-y-4 ${
-                  displayMessages.length === 0 ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
-                }`}
-              >
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messagesLoading ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <Loader2 className="w-6 h-6 animate-spin text-blue-500 mb-2" />
-                    <span className="text-xs">Loading conversation history...</span>
+                  <div className="flex flex-col items-center justify-center h-full text-zinc-400 gap-2">
+                    <Loader2 size={24} className="animate-spin text-brand" />
+                    <span className="text-xs">Loading message history...</span>
                   </div>
                 ) : displayMessages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center p-6 text-gray-400">
-                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-2">
-                      <MessageSquare className="w-6 h-6" />
+                  <div className="flex flex-col items-center justify-center h-full text-zinc-400">
+                    <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center text-brand mb-2">
+                      <MessageSquare size={24} />
                     </div>
-                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      No messages here yet
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1">
-                      Say hello to start the conversation with {selectedConversation.name}!
-                    </p>
+                    <p className="text-sm font-medium text-foreground">No messages yet</p>
+                    <p className="text-xs text-muted-foreground">Send a message to start the conversation!</p>
                   </div>
                 ) : (
                   displayMessages.map((msg, index) => {
-                    const isSelf = msg.senderId === user?.id;
+                    const isMe = user?.id ? msg.senderId === user.id : msg.senderName === 'You';
+                    const prevMsg = index > 0 ? displayMessages[index - 1] : null;
+                    const showSenderName = selectedConversation.isGroupChat && !isMe && (!prevMsg || prevMsg.senderId !== msg.senderId);
 
                     return (
-                      <div key={msg.id} className="space-y-1">
-                        {shouldShowDateSeparator(index) && (
-                          <div className="flex justify-center my-3 select-none">
-                            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-0.5 rounded-full border border-gray-200 dark:border-gray-700">
-                              {formatDateSeparator(msg.fullDate)}
-                            </span>
-                          </div>
+                      <div
+                        key={msg.id || index}
+                        className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                      >
+                        {showSenderName && (
+                          <span className="text-[11px] text-muted-foreground font-semibold mb-1 ml-1">
+                            {msg.senderName}
+                          </span>
                         )}
-
-                        <div className={`flex ${isSelf ? 'justify-end' : 'justify-start'} gap-2 items-end`}>
-                          {!isSelf && (
-                            <button
-                              onClick={() => openProfile(msg.senderId)}
-                              className="shrink-0 mb-1 focus:outline-none transition-transform hover:scale-105"
-                              title={msg.senderName}
-                            >
-                              <Avatar className="w-7 h-7 border border-gray-200 dark:border-gray-700">
-                                {msg.senderAvatar && <AvatarImage src={msg.senderAvatar} alt={msg.senderName} />}
-                                <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-[10px] text-gray-800 dark:text-gray-200 font-bold">
-                                  {msg.senderName.slice(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                            </button>
+                        <div className="flex items-end gap-2 max-w-[80%] sm:max-w-[70%]">
+                          {!isMe && (
+                            <Avatar className="w-7 h-7 flex-shrink-0 mb-1">
+                              <AvatarImage src={msg.senderAvatar || undefined} alt={msg.senderName} />
+                              <AvatarFallback className="bg-brand/20 text-brand font-bold text-[10px]">
+                                {(msg.senderName || 'U').substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                           )}
-
-                          <div className={`max-w-[75%] flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-                            {!isSelf && (
-                              <button
-                                onClick={() => openProfile(msg.senderId)}
-                                className="text-[10px] font-semibold text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 mb-0.5 ml-1 transition-colors"
-                              >
-                                {msg.senderName}
-                              </button>
-                            )}
-
+                          <div
+                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                              isMe
+                                ? 'bg-brand text-white rounded-br-none shadow-xs font-medium'
+                                : 'bg-muted text-foreground rounded-bl-none border border-border/60'
+                            }`}
+                          >
+                            <p className="break-words whitespace-pre-wrap">{msg.content}</p>
                             <div
-                              className={`px-3.5 py-2 rounded-2xl text-xs leading-relaxed shadow-xs ${
-                                isSelf
-                                  ? 'bg-blue-600 text-white rounded-br-none'
-                                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-none border border-gray-200 dark:border-gray-700'
+                              className={`text-[10px] mt-1 text-right ${
+                                isMe ? 'text-white/80' : 'text-muted-foreground'
                               }`}
                             >
-                              <p className="break-words whitespace-pre-wrap">{msg.content}</p>
+                              {msg.timestamp}
                             </div>
-                            <span className="text-[9px] text-gray-400 mt-0.5 px-1">{msg.timestamp}</span>
                           </div>
                         </div>
                       </div>
@@ -704,32 +679,29 @@ export const Messages: React.FC = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input Controls */}
-              <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-card">
-                <div className="flex items-center gap-2">
-                  <Textarea
+              {/* Message Input Box */}
+              <div className="p-3 border-t border-border bg-card shrink-0">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    placeholder={`Message ${selectedConversation.name}...`}
-                    className="flex-1 min-h-[40px] max-h-[100px] resize-none text-xs bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 rounded-lg p-2.5"
-                    rows={1}
+                    placeholder="Type a message..."
+                    className="flex-1 rounded-xl border-border bg-muted/40 text-foreground text-sm focus-visible:ring-brand"
                   />
-
                   <Button
-                    onClick={handleSendMessage}
-                    disabled={!inputMessage.trim() || messagesLoading}
-                    size="icon"
-                    className="h-10 w-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm"
+                    type="submit"
+                    disabled={!inputMessage.trim()}
+                    className="h-10 w-10 shrink-0 bg-brand hover:bg-brand-hover text-white rounded-lg shadow-sm"
                   >
-                    <Send className="w-4 h-4" />
+                    <Send size={16} />
                   </Button>
-                </div>
+                </form>
               </div>
             </>
           ) : (
@@ -758,14 +730,14 @@ export const Messages: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-semibold my-1">
+          <div className="grid grid-cols-2 p-1 bg-muted/50 border border-border rounded-lg text-xs font-semibold my-1">
             <button
               type="button"
               onClick={() => setNewChatTab('direct')}
               className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 newChatTab === 'direct'
-                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-brand text-white shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <User className="w-3.5 h-3.5" />
@@ -776,8 +748,8 @@ export const Messages: React.FC = () => {
               onClick={() => setNewChatTab('groups')}
               className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 newChatTab === 'groups'
-                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-brand text-white shadow-sm font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -792,7 +764,7 @@ export const Messages: React.FC = () => {
               }`}
             >
               {userFriends.length === 0 ? (
-                <div className="p-4 text-center text-xs text-gray-500">
+                <div className="p-4 text-center text-xs text-muted-foreground">
                   You haven&apos;t added any friends yet. Go to Friends to connect!
                 </div>
               ) : (
@@ -800,19 +772,19 @@ export const Messages: React.FC = () => {
                   <button
                     key={friend.user_id}
                     onClick={() => handleStartDirectChat(friend.user_id)}
-                    className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors text-left"
+                    className="w-full p-2 rounded-lg hover:bg-muted/60 border border-transparent hover:border-border flex items-center gap-3 transition-colors text-left"
                   >
-                    <Avatar className="w-8 h-8 border">
+                    <Avatar className="w-8 h-8 border border-border">
                       {friend.avatar_url && <AvatarImage src={friend.avatar_url} alt={friend.display_name} />}
-                      <AvatarFallback className="bg-blue-600 text-white font-bold text-xs">
+                      <AvatarFallback className="bg-brand text-white font-bold text-xs">
                         {friend.display_name.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-900 dark:text-white">
+                      <h4 className="text-xs font-semibold text-foreground">
                         {friend.display_name}
                       </h4>
-                      <p className="text-[10px] text-gray-500">{friend.email}</p>
+                      <p className="text-[10px] text-muted-foreground">{friend.email}</p>
                     </div>
                   </button>
                 ))

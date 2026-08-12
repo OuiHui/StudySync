@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { DEFAULT_THEME, Theme, hexToHslString, adjustHexBrightness } from '@/constants/theme';
+import { DEFAULT_THEME, DEFAULT_LIGHT_THEME, DEFAULT_DARK_THEME, Theme, hexToHslString, adjustHexBrightness } from '@/constants/theme';
 
 export type Mode = 'dark' | 'light' | 'system';
 
@@ -36,20 +36,26 @@ export function ThemeProvider({
   storageKey = 'ui-theme',
   colorStorageKey = 'study-app-color-theme',
 }: ThemeProviderProps) {
-  const [mode, setModeState] = useState<Mode>(
-    () => (localStorage.getItem(storageKey) as Mode) || defaultTheme
-  );
+  const [mode, setModeState] = useState<Mode>(() => {
+    try {
+      return (localStorage.getItem(storageKey) as Mode) || defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
+  });
 
   const [colorTheme, setColorThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem(colorStorageKey);
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem(colorStorageKey);
+      if (saved) {
         return JSON.parse(saved);
-      } catch (e) {
-        // Fallback to DEFAULT_THEME if parse fails
       }
+      const savedMode = localStorage.getItem(storageKey);
+      if (savedMode === 'light' || (!savedMode && defaultTheme === 'light')) return DEFAULT_LIGHT_THEME;
+    } catch (e) {
+      // Fallback
     }
-    return DEFAULT_THEME;
+    return DEFAULT_DARK_THEME;
   });
 
   // Handle Mode (Light/Dark/System)
@@ -70,13 +76,19 @@ export function ThemeProvider({
     root.classList.add(mode);
   }, [mode]);
 
-  // Handle Color Theme & CSS Variables
+  // Handle Color Theme & Full-Platform CSS Variables
   useEffect(() => {
     const root = window.document.documentElement;
 
+    // Apply base mode if theme defines it
+    if (colorTheme.mode) {
+      root.classList.remove('light', 'dark');
+      root.classList.add(colorTheme.mode);
+    }
+
     root.style.setProperty('--theme-primary', colorTheme.primary);
     root.style.setProperty('--theme-secondary', colorTheme.secondary);
-    
+
     // Inject HSL formatted brand primary CSS variables for Tailwind
     const brandHsl = hexToHslString(colorTheme.primary);
     const brandHoverHex = colorTheme.secondary || adjustHexBrightness(colorTheme.primary, -15);
@@ -84,21 +96,61 @@ export function ThemeProvider({
 
     root.style.setProperty('--brand-primary', brandHsl);
     root.style.setProperty('--brand-primary-hover', brandHoverHsl);
+
+    // Inject full platform surface & structure CSS variables
+    if (colorTheme.background) root.style.setProperty('--background', colorTheme.background);
+    if (colorTheme.foreground) root.style.setProperty('--foreground', colorTheme.foreground);
+    if (colorTheme.card) root.style.setProperty('--card', colorTheme.card);
+    if (colorTheme.cardForeground) root.style.setProperty('--card-foreground', colorTheme.cardForeground);
+    if (colorTheme.popover) root.style.setProperty('--popover', colorTheme.popover);
+    if (colorTheme.popoverForeground) root.style.setProperty('--popover-foreground', colorTheme.popoverForeground);
+    if (colorTheme.border) root.style.setProperty('--border', colorTheme.border);
+    if (colorTheme.input) root.style.setProperty('--input', colorTheme.input);
+    if (colorTheme.ring) root.style.setProperty('--ring', colorTheme.ring);
+    // Sidebar defaults to card surface and border tokens for full platform visual consistency
+    root.style.setProperty('--sidebar-background', colorTheme.sidebarBackground || colorTheme.card || '217 33% 15%');
+    root.style.setProperty('--sidebar-foreground', colorTheme.sidebarForeground || colorTheme.cardForeground || colorTheme.foreground || '210 40% 98%');
+    root.style.setProperty('--sidebar-border', colorTheme.sidebarBorder || colorTheme.border || '217 33% 25%');
   }, [colorTheme]);
 
   const setMode = (newMode: Mode) => {
-    localStorage.setItem(storageKey, newMode);
+    try {
+      localStorage.setItem(storageKey, newMode);
+    } catch {}
     setModeState(newMode);
+    if (newMode === 'light') {
+      setColorThemeState(DEFAULT_LIGHT_THEME);
+      try {
+        localStorage.setItem(colorStorageKey, JSON.stringify(DEFAULT_LIGHT_THEME));
+      } catch {}
+    } else if (newMode === 'dark' && (colorTheme.id === 'default-light' || colorTheme.id === 'default-dark')) {
+      setColorThemeState(DEFAULT_DARK_THEME);
+      try {
+        localStorage.setItem(colorStorageKey, JSON.stringify(DEFAULT_DARK_THEME));
+      } catch {}
+    }
   };
 
   const setColorTheme = (newColorTheme: Theme) => {
-    localStorage.setItem(colorStorageKey, JSON.stringify(newColorTheme));
+    try {
+      localStorage.setItem(colorStorageKey, JSON.stringify(newColorTheme));
+    } catch {}
+    if (newColorTheme.mode) {
+      try {
+        localStorage.setItem(storageKey, newColorTheme.mode);
+      } catch {}
+      setModeState(newColorTheme.mode);
+    }
     setColorThemeState(newColorTheme);
   };
 
   const resetColorTheme = () => {
-    localStorage.removeItem(colorStorageKey);
-    setColorThemeState(DEFAULT_THEME);
+    try {
+      localStorage.removeItem(colorStorageKey);
+      localStorage.setItem(storageKey, DEFAULT_DARK_THEME.mode || 'dark');
+    } catch {}
+    setModeState(DEFAULT_DARK_THEME.mode || 'dark');
+    setColorThemeState(DEFAULT_DARK_THEME);
   };
 
   const value: ThemeProviderContextType = {

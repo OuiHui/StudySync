@@ -24,15 +24,14 @@ export const AppearanceSettingsPopup = ({ isOpen, onClose }: AppearanceSettingsP
   };
 
   const resetToDefault = () => {
-    themeContext.setMode('dark');
     themeContext.resetColorTheme();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
+          <DialogTitle className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <Palette size={18} />
             </div>
@@ -41,7 +40,7 @@ export const AppearanceSettingsPopup = ({ isOpen, onClose }: AppearanceSettingsP
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors border border-border"
             title="Close"
           >
             <X size={18} />
@@ -51,91 +50,81 @@ export const AppearanceSettingsPopup = ({ isOpen, onClose }: AppearanceSettingsP
         <div className="space-y-6 py-3 overflow-y-auto flex-1 custom-scrollbar">
           {/* Header Action Bar */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 dark:text-zinc-400">
-              Select standard light/dark mode or choose an accent color theme preset.
+            <span className="text-xs text-muted-foreground">
+              Choose a theme preset to customize the entire platform theme.
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={resetToDefault}
-              className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white h-7 px-2"
+              className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
             >
               <RotateCcw size={12} className="mr-1" />
               Reset Defaults
             </Button>
           </div>
 
-          {/* Theme Mode Section */}
+          {/* Default Themes */}
           <div className="space-y-2.5">
-            <h3 className="font-bold text-sm text-gray-800 dark:text-zinc-200">
-              Theme Mode
+            <h3 className="font-bold text-sm">
+              Default Themes
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => handleModeSelect('light')}
-                className={`flex flex-col items-center justify-center p-3.5 rounded-xl border-2 transition-all ${
-                  activeMode === 'light'
-                    ? 'border-brand ring-2 ring-brand/20 bg-blue-50/50 dark:bg-gray-800'
-                    : 'border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 bg-gray-50/60 dark:bg-slate-900/40'
-                }`}
-              >
-                <Sun size={20} className="text-amber-500 mb-1.5" />
-                <span className="text-xs font-semibold text-gray-800 dark:text-zinc-200">Light Mode</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSelect('dark')}
-                className={`flex flex-col items-center justify-center p-3.5 rounded-xl border-2 transition-all ${
-                  activeMode === 'dark'
-                    ? 'border-brand ring-2 ring-brand/20 bg-blue-50/50 dark:bg-gray-800'
-                    : 'border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 bg-gray-50/60 dark:bg-slate-900/40'
-                }`}
-              >
-                <Moon size={20} className="text-indigo-400 mb-1.5" />
-                <span className="text-xs font-semibold text-gray-800 dark:text-zinc-200">Dark Mode</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleModeSelect('system')}
-                className={`flex flex-col items-center justify-center p-3.5 rounded-xl border-2 transition-all ${
-                  activeMode === 'system'
-                    ? 'border-brand ring-2 ring-brand/20 bg-blue-50/50 dark:bg-gray-800'
-                    : 'border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700 bg-gray-50/60 dark:bg-slate-900/40'
-                }`}
-              >
-                <Laptop size={20} className="text-blue-500 mb-1.5" />
-                <span className="text-xs font-semibold text-gray-800 dark:text-zinc-200">System</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Accent Color Palette Presets */}
-          <div className="space-y-2.5">
-            <h3 className="font-bold text-sm text-gray-800 dark:text-zinc-200">
-              Color Theme Presets
-            </h3>
-
-            <div className="grid grid-cols-5 gap-2.5">
-              {COLOR_THEMES.map((theme) => {
-                const isSelected = activeColorTheme.name === theme.name;
+            <div className="grid grid-cols-2 gap-3">
+              {COLOR_THEMES.filter(t => t.id === 'default-light' || t.id === 'default-dark').map((theme) => {
+                const isSelected = activeColorTheme.id === theme.id || activeColorTheme.name === theme.name;
+                const isLight = theme.mode === 'light';
                 return (
                   <button
-                    key={theme.name}
+                    key={theme.id}
                     type="button"
                     title={theme.name}
                     onClick={() => handleThemeChange(theme)}
-                    className={`group relative flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${
+                    className={`group relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
                       isSelected
-                        ? 'border-brand ring-2 ring-brand/20 bg-gray-50 dark:bg-gray-800'
-                        : 'border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700'
+                        ? 'border-brand ring-2 ring-brand/20 bg-muted/80'
+                        : 'border-border hover:border-muted-foreground/30 bg-muted/30'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden" style={{ backgroundColor: theme.primary }}>
-                      <div className="absolute right-0 bottom-0 w-4 h-4 rounded-tl-full" style={{ backgroundColor: theme.secondary }} />
-                      {isSelected && <Check size={14} className="text-white z-10 drop-shadow-sm" />}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-xs ${isLight ? 'bg-amber-400 text-amber-950' : 'bg-indigo-900 text-indigo-100'}`}>
+                      {isLight ? <Sun size={18} /> : <Moon size={18} />}
                     </div>
-                    <span className="text-[10px] mt-1.5 text-gray-600 dark:text-gray-400 font-medium truncate w-full text-center group-hover:text-gray-900 dark:group-hover:text-gray-200">
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-foreground truncate">{theme.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{isLight ? 'Light Mode' : 'Dark Mode'}</div>
+                    </div>
+                    {isSelected && <Check size={18} className="text-brand flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Color Theme Presets */}
+          <div className="space-y-2.5">
+            <h3 className="font-bold text-sm">
+              Color Theme Presets
+            </h3>
+
+            <div className="grid grid-cols-3 gap-3">
+              {COLOR_THEMES.filter(t => t.id !== 'default-light' && t.id !== 'default-dark').map((theme) => {
+                const isSelected = activeColorTheme.id === theme.id || activeColorTheme.name === theme.name;
+                return (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    title={theme.name}
+                    onClick={() => handleThemeChange(theme)}
+                    className={`group relative flex items-center gap-2.5 p-3 rounded-xl border-2 transition-all ${
+                      isSelected
+                        ? 'border-brand ring-2 ring-brand/20 bg-muted/80'
+                        : 'border-border hover:border-muted-foreground/30 bg-muted/20'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm relative overflow-hidden shrink-0" style={{ backgroundColor: theme.primary }}>
+                      <div className="absolute right-0 bottom-0 w-3.5 h-3.5 rounded-tl-full" style={{ backgroundColor: theme.secondary }} />
+                      {isSelected && <Check size={12} className="text-white z-10 drop-shadow-sm" />}
+                    </div>
+                    <span className="text-xs text-muted-foreground font-semibold truncate group-hover:text-foreground">
                       {theme.name}
                     </span>
                   </button>
@@ -145,7 +134,7 @@ export const AppearanceSettingsPopup = ({ isOpen, onClose }: AppearanceSettingsP
           </div>
         </div>
 
-        <div className="flex items-center justify-end pt-3 border-t border-gray-200 dark:border-slate-700/80 shrink-0">
+        <div className="flex items-center justify-end pt-3 border-t border-border shrink-0">
           <button
             type="button"
             onClick={onClose}
