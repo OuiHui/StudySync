@@ -26,19 +26,19 @@ export const SessionProgress = ({ sessions, sessionGoal, onSessionGoalChange }: 
   };
 
   return (
-    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-lg dark:text-white">Today's Progress</CardTitle>
+        <CardTitle className="text-lg text-foreground font-semibold">Today's Progress</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">{sessions}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Sessions Completed</div>
+            <div className="text-3xl font-bold text-brand">{sessions}</div>
+            <div className="text-sm text-muted-foreground">Sessions Completed</div>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+          <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
             <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className="bg-brand h-full rounded-full transition-all duration-300"
               style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }}
             ></div>
           </div>

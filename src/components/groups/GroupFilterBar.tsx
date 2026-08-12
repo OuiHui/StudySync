@@ -47,13 +47,13 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
         <div className="relative flex-1">
           <Search
             size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <Input
             placeholder="Search groups by name, course, or description..."
             value={filters.searchTerm}
             onChange={(e) => onFilterChange({ searchTerm: e.target.value })}
-            className="pl-10 rounded-xl border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800/80 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-blue-400/20 transition-all duration-200 ease-in-out h-10 text-sm"
+            className="pl-10 rounded-xl border-border bg-card text-foreground focus:border-brand focus:ring-brand/20 transition-all duration-200 ease-in-out h-10 text-sm"
             disabled={disabled}
           />
         </div>
@@ -67,11 +67,11 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
           >
             <SelectTrigger
               aria-label="Filter by course or subject"
-              className="w-[190px] font-medium"
+              className="w-[190px] font-medium border-border bg-card text-card-foreground"
             >
               <SelectValue placeholder="All Courses / Subjects" />
             </SelectTrigger>
-            <SelectContent align="start">
+            <SelectContent align="start" className="bg-popover text-popover-foreground border-border">
               <SelectItem value="all">All Courses / Subjects</SelectItem>
               {availableSubjects.map((subj) => (
                 <SelectItem key={subj} value={subj}>
@@ -89,11 +89,11 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
           >
             <SelectTrigger
               aria-label="Filter by visibility"
-              className="w-[150px] font-medium"
+              className="w-[150px] font-medium border-border bg-card text-card-foreground"
             >
               <SelectValue placeholder="All Visibility" />
             </SelectTrigger>
-            <SelectContent align="start">
+            <SelectContent align="start" className="bg-popover text-popover-foreground border-border">
               <SelectItem value="all">All Visibility</SelectItem>
               <SelectItem value="public">Public</SelectItem>
               <SelectItem value="private">Private / Invite</SelectItem>
@@ -108,11 +108,11 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
           >
             <SelectTrigger
               aria-label="Sort groups by"
-              className="w-[180px] font-medium"
+              className="w-[180px] font-medium border-border bg-card text-card-foreground"
             >
               <SelectValue placeholder="Sort by: Name (A-Z)" />
             </SelectTrigger>
-            <SelectContent align="start">
+            <SelectContent align="start" className="bg-popover text-popover-foreground border-border">
               <SelectItem value="name_asc">Sort by: Name (A-Z)</SelectItem>
               <SelectItem value="members_desc">Sort by: Most Members</SelectItem>
               <SelectItem value="newest">Sort by: Newest</SelectItem>
@@ -124,7 +124,7 @@ export const GroupFilterBar: React.FC<GroupFilterBarProps> = ({
             <button
               type="button"
               onClick={onReset}
-              className="h-10 px-3.5 flex items-center gap-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700/80 rounded-xl transition-all duration-200 ease-in-out border border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+              className="h-10 px-3.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 rounded-xl transition-all duration-200 ease-in-out border border-border"
               title="Reset Filters"
             >
               <RotateCcw size={13} />

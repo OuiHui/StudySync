@@ -22,7 +22,7 @@ export function PageTabs<T extends string = string>({
   className = ''
 }: PageTabsProps<T>) {
   return (
-    <div className={`flex items-center justify-between border-b border-gray-200 dark:border-gray-700 mb-6 ${className}`}>
+    <div className={`flex items-center justify-between border-b border-border mb-6 ${className}`}>
       <div className="flex gap-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -32,8 +32,8 @@ export function PageTabs<T extends string = string>({
               onClick={() => onTabChange(tab.id)}
               className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
                 isActive
-                  ? 'border-brand text-brand dark:text-brand font-semibold'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                  ? 'border-brand text-brand font-semibold'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
               <span>{tab.label}</span>
@@ -41,8 +41,8 @@ export function PageTabs<T extends string = string>({
                 <span
                   className={`px-1.5 py-0.5 text-xs rounded-full ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-semibold'
-                      : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                      ? 'bg-brand/15 text-brand font-semibold'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {tab.count}

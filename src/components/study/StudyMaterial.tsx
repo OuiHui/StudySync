@@ -143,9 +143,9 @@ export const StudyMaterial = () => {
   }, {} as Record<string, Note[]>);
 
   return (
-    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="dark:text-white text-lg font-bold">
+        <CardTitle className="text-foreground text-lg font-bold">
           {isCreating ? 'Create Note' : 'Study Materials'}
         </CardTitle>
         {!isCreating && (
@@ -162,42 +162,42 @@ export const StudyMaterial = () => {
       <CardContent>
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-brand" />
           </div>
         ) : isCreating ? (
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                 Title *
               </label>
               <Input
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Enter note title..."
-                className="dark:bg-gray-900 dark:border-gray-700 focus-visible:ring-blue-500"
+                className="bg-card border-border focus-visible:ring-brand"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
-                Subject (Optional)
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
+                Subject / Course
               </label>
               <Input
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
-                placeholder="e.g. Mathematics, History..."
-                className="dark:bg-gray-900 dark:border-gray-700 focus-visible:ring-blue-500"
+                placeholder="e.g. Operating Systems, General..."
+                className="bg-card border-border focus-visible:ring-brand"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
                 Content
               </label>
               <Textarea
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
-                placeholder="Write your note content here..."
-                rows={8}
-                className="dark:bg-gray-900 dark:border-gray-700 focus-visible:ring-blue-500 font-sans resize-none"
+                placeholder="Type your notes here..."
+                rows={5}
+                className="bg-card border-border focus-visible:ring-brand font-sans resize-none"
               />
             </div>
             <div className="flex justify-end space-x-2 pt-2">
@@ -205,6 +205,7 @@ export const StudyMaterial = () => {
                 variant="outline"
                 onClick={() => setIsCreating(false)}
                 disabled={isCreatingNote}
+                className="border-border text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
@@ -229,16 +230,16 @@ export const StudyMaterial = () => {
               const subjectNotes = groupedNotes[subject];
 
               return (
-                <div key={subject} className="border border-gray-100 dark:border-gray-700 rounded-lg overflow-hidden transition-all duration-200">
+                <div key={subject} className="border border-border/80 rounded-lg overflow-hidden transition-all duration-200">
                   <button
                     onClick={() => setExpandedSubject(isExpanded ? null : subject)}
-                    className="w-full flex items-center justify-between p-4 bg-gray-50/50 hover:bg-gray-100/70 dark:bg-gray-800/40 dark:hover:bg-gray-800/80 transition-colors text-left"
+                    className="w-full flex items-center justify-between p-4 bg-muted/40 hover:bg-muted/80 transition-colors text-left"
                   >
-                    <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                    <span className="font-semibold text-sm text-foreground">
                       {subject}
                     </span>
-                    <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                      <span className="text-xs px-2 py-0.5 bg-gray-200/60 dark:bg-gray-700 rounded-full font-medium">
+                    <div className="flex items-center space-x-2 text-muted-foreground">
+                      <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-medium">
                         {subjectNotes.length} {subjectNotes.length === 1 ? 'note' : 'notes'}
                       </span>
                       {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -246,7 +247,7 @@ export const StudyMaterial = () => {
                   </button>
 
                   {isExpanded && (
-                    <div className="bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-800">
+                    <div className="bg-card border-t border-border/80 divide-y divide-border/60">
                       {subjectNotes.map((note) => (
                         <button
                           key={note.id}

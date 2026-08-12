@@ -39,28 +39,28 @@ export const TimerDisplay = ({
             cx="50"
             cy="50"
             r="44"
-            stroke="currentColor"
+            stroke="hsl(var(--border))"
             strokeWidth="6"
             fill="transparent"
-            className="text-gray-200 dark:text-gray-700"
+            className="opacity-50"
           />
           <circle
             cx="50"
             cy="50"
             r="44"
-            stroke="currentColor"
+            stroke={mode === 'work' ? 'hsl(var(--brand-primary))' : '#10b981'}
             strokeWidth="6"
             fill="transparent"
             strokeDasharray={`${2 * Math.PI * 44}`}
-            strokeDashoffset={`${2 * Math.PI * 44 * (1 - progress / 100)}`}
-            className={`${mode === 'work' ? 'text-blue-500' : 'text-green-500'} transition-all duration-1000`}
+            strokeDashoffset={`${2 * Math.PI * 44 * (1 - Math.min(100, Math.max(0, progress)) / 100)}`}
             strokeLinecap="round"
+            className="transition-all duration-1000"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-3xl font-extrabold tracking-tight text-gray-800 dark:text-white">{formatTime(timeLeft)}</div>
-            <div className="text-[10px] uppercase font-bold tracking-wider text-gray-400 dark:text-gray-500 mt-1">
+            <div className="text-3xl font-extrabold tracking-tight text-foreground">{formatTime(timeLeft)}</div>
+            <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mt-1">
               {mode === 'work' ? 'work time' : 'break time'}
             </div>
           </div>
@@ -71,7 +71,7 @@ export const TimerDisplay = ({
       <div className="flex justify-center items-center space-x-2 mt-6 shrink-0">
         <Button
           onClick={onToggle}
-          className={`h-9 px-4 text-xs font-semibold ${mode === 'work' ? 'bg-brand hover:bg-brand-hover text-white' : 'bg-green-600 hover:bg-green-700 text-white'} rounded-lg flex items-center space-x-1.5`}
+          className={`h-9 px-4 text-xs font-semibold ${mode === 'work' ? 'bg-brand hover:bg-brand-hover text-white shadow-sm' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'} rounded-lg flex items-center space-x-1.5`}
         >
           {isActive ? <Pause size={14} /> : <Play size={14} />}
           <span>{isActive ? 'Pause' : 'Start'}</span>
@@ -79,7 +79,7 @@ export const TimerDisplay = ({
         <Button 
           onClick={onReset} 
           variant="outline" 
-          className="h-9 w-9 p-0 border border-gray-200 dark:border-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg flex items-center justify-center shrink-0"
+          className="h-9 w-9 p-0 border border-border bg-card text-foreground hover:bg-muted rounded-lg flex items-center justify-center shrink-0"
           title="Reset timer"
         >
           <RotateCcw size={14} />
@@ -88,7 +88,7 @@ export const TimerDisplay = ({
           <Button 
             onClick={onSettingsClick} 
             variant="outline" 
-            className="h-9 w-9 p-0 border border-gray-200 dark:border-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg flex items-center justify-center shrink-0"
+            className="h-9 w-9 p-0 border border-border bg-card text-foreground hover:bg-muted rounded-lg flex items-center justify-center shrink-0"
             title="Session settings"
           >
             <Settings size={14} />

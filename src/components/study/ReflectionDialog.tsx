@@ -72,7 +72,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
         <ModalHeader title="Session Complete!" icon={<Sparkles size={18} />} onClose={onClose} />
 
         <form onSubmit={handleSubmit} className="space-y-5 pt-1.5">
-          <div className="flex flex-col items-center space-y-2 p-4 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
+          <div className="flex flex-col items-center space-y-2 p-4 bg-muted/60 rounded-xl border border-border">
             <FormLabel required>
               How focused were you?
             </FormLabel>
@@ -92,7 +92,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
                       size={28}
                       className={`${isStarred
                           ? 'fill-amber-400 text-amber-400'
-                          : 'text-gray-300 dark:text-slate-600'
+                          : 'text-muted-foreground/40'
                         } transition-colors duration-150`}
                     />
                   </button>
@@ -100,7 +100,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
               })}
             </div>
             {rating > 0 && (
-              <span className="text-xs font-semibold text-[#2a78d6]">
+              <span className="text-xs font-semibold text-brand">
                 {rating === 1 && "Very Distracted 🥱"}
                 {rating === 2 && "Somewhat Focused 🫤"}
                 {rating === 3 && "Focused 🙂"}
@@ -121,7 +121,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
               placeholder="What did you achieve? Any obstacles you overcame?"
               rows={3}
               disabled={loading}
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
+              className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
             />
           </div>
 
@@ -129,7 +129,7 @@ export const ReflectionDialog = ({ isOpen, onClose, onSubmit, loading = false }:
             <button
               type="submit"
               disabled={loading || rating === 0}
-              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
               {loading ? 'Saving...' : 'Submit Reflection'}

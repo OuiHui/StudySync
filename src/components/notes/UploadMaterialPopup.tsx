@@ -148,10 +148,10 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+      <DialogContent className="max-w-lg w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <Upload size={18} />
             </div>
             Upload Study Material
@@ -159,7 +159,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -177,18 +177,18 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
 
           {/* File Upload */}
           <div className="space-y-1">
-            <Label htmlFor="file" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">File</Label>
+            <Label htmlFor="file" className="text-sm font-semibold text-foreground">File</Label>
             <div className="mt-1">
               <input
                 id="file"
                 type="file"
                 onChange={handleFileChange}
-                className="block w-full text-xs text-gray-500 dark:text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#2a78d6]/10 file:text-[#2a78d6] hover:file:bg-[#2a78d6]/20 cursor-pointer"
+                className="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand file:text-white hover:file:bg-brand-hover cursor-pointer transition-colors shadow-sm"
                 accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
               />
               {file && (
-                <div className="mt-2 flex items-center text-xs font-semibold text-gray-700 dark:text-zinc-300">
-                  <File size={14} className="mr-1.5 text-[#2a78d6]" />
+                <div className="mt-2 flex items-center text-xs font-semibold text-foreground">
+                  <File size={14} className="mr-1.5 text-brand" />
                   {file.name}
                 </div>
               )}
@@ -197,7 +197,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
 
           {/* Title */}
           <div className="space-y-1">
-            <Label htmlFor="title" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+            <Label htmlFor="title" className="text-sm font-semibold text-foreground">
               Title <span className="text-red-500 ml-0.5">*</span>
             </Label>
             <Input
@@ -205,20 +205,20 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter material title..."
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               required
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1">
-            <Label htmlFor="description" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">Description</Label>
+            <Label htmlFor="description" className="text-sm font-semibold text-foreground">Description</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the material..."
-              className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm leading-relaxed resize-y font-normal"
+              className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-brand focus-visible:border-brand text-sm leading-relaxed resize-y font-normal"
               rows={3}
             />
           </div>
@@ -226,13 +226,13 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
           {/* Subject */}
           <div className="space-y-1">
             <div className="flex items-center justify-between mb-1">
-              <Label htmlFor="subject" className="text-sm font-semibold text-gray-800 dark:text-zinc-200">
+              <Label htmlFor="subject" className="text-sm font-semibold text-foreground">
                 Subject <span className="text-red-500 ml-0.5">*</span>
               </Label>
               <button
                 type="button"
                 onClick={() => setShowNewSubject(!showNewSubject)}
-                className="text-xs font-semibold text-[#2a78d6] hover:underline inline-flex items-center"
+                className="text-xs font-semibold text-brand hover:underline inline-flex items-center"
               >
                 <Plus size={13} className="mr-0.5" />
                 New Subject
@@ -245,12 +245,12 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
                   value={newSubjectName}
                   onChange={(e) => setNewSubjectName(e.target.value)}
                   placeholder="Enter new subject name..."
-                  className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-9 focus-visible:ring-[#2a78d6] text-xs font-semibold"
+                  className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-9 focus-visible:ring-brand text-xs font-semibold"
                 />
                 <button
                   type="button"
                   onClick={handleCreateSubject}
-                  className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  className="bg-brand hover:bg-brand-hover text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
                 >
                   Add
                 </button>
@@ -260,7 +260,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
                     setShowNewSubject(false);
                     setNewSubjectName('');
                   }}
-                  className="bg-white hover:bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  className="bg-card hover:bg-muted text-foreground border border-border rounded-lg px-3 py-1.5 text-xs font-semibold"
                 >
                   Cancel
                 </button>
@@ -271,7 +271,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full h-10 px-3 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg text-sm font-semibold focus:outline-none focus:border-[#2a78d6]"
+              className="w-full h-10 px-3 bg-muted/40 border border-border text-foreground rounded-lg text-sm font-semibold focus:outline-none focus:border-brand"
               required
             >
               <option value="">Select a subject</option>
@@ -286,12 +286,12 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
           </div>
 
           {/* Privacy Toggle Switch */}
-          <div className="flex items-center justify-between p-3 bg-gray-100 dark:bg-[#12151e] rounded-xl border border-gray-200 dark:border-slate-700/80">
+          <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl border border-border">
             <div>
-              <Label htmlFor="privacy" className="text-sm font-semibold text-gray-800 dark:text-zinc-200 cursor-pointer">
+              <Label htmlFor="privacy" className="text-sm font-semibold text-foreground cursor-pointer">
                 Private Note
               </Label>
-              <p className="text-xs text-gray-500 dark:text-zinc-400">
+              <p className="text-xs text-muted-foreground">
                 Only visible to you
               </p>
             </div>
@@ -304,19 +304,19 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
           </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+              className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !title.trim() || !subject}
-              className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               {loading ? (
                 <>

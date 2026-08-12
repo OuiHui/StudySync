@@ -8,20 +8,23 @@ import { LeaveSessionDialog } from '@/components/study/LeaveSessionDialog';
 import { useGlobalTimer } from '@/contexts/GlobalTimerContext';
 import { useSession } from '@/contexts/SessionContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { getDashboardQueryOptions } from '@/hooks/useDashboardData';
 import { getProfileQueryOptions } from '@/hooks/useProfileData';
 import { getStudyEventsQueryOptions } from '@/hooks/useStudyEvents';
 import { StudySessionsService, StudyGroupsService, NotesService } from '@/services/database';
-import { DEFAULT_THEME, getBackgroundGradient as getThemeBackgroundGradient } from '@/constants/theme';
+import { DEFAULT_THEME, getBackgroundGradient as getThemeBackgroundGradient, Theme } from '@/constants/theme';
 
 export const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
+  const { colorTheme, setColorTheme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState(DEFAULT_THEME);
   
+  const currentTheme = colorTheme || DEFAULT_THEME;
+
   const { globalTimer, handleGlobalTimerToggle, handleCancelTimer } = useGlobalTimer();
   const { 
     isInGroupSession, 
@@ -69,14 +72,12 @@ export const MainLayout = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [globalTimer.isActive, location.pathname]);
 
-  const handleThemeChange = (theme: typeof currentTheme) => {
-    setCurrentTheme(theme);
-    document.documentElement.style.setProperty('--theme-primary', theme.primary);
-    document.documentElement.style.setProperty('--theme-secondary', theme.secondary);
+  const handleThemeChange = (theme: Theme) => {
+    setColorTheme(theme);
   };
 
   const getBackgroundGradient = () => {
-    return getThemeBackgroundGradient(globalTimer);
+    return getThemeBackgroundGradient(globalTimer, currentTheme);
   };
 
   const isSessionPage = location.pathname.includes('study-session') || location.pathname.includes('group-study-session');
@@ -190,3 +191,4 @@ export const MainLayout = () => {
 };
 
 export default MainLayout;
+

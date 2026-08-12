@@ -48,15 +48,15 @@ export const Dashboard = ({ onNavigate, hasUnreadNotifications, onMarkAllNotific
           <p className="text-gray-600 dark:text-gray-300 mt-1">Welcome back! Here's your study overview.</p>
         </div>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="relative dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="relative flex items-center gap-2 rounded-xl border border-border bg-card/90 hover:bg-brand/10 hover:border-brand/40 text-card-foreground hover:text-brand transition-all duration-200 shadow-sm px-3.5 h-9"
           onClick={() => setNotificationsOpen(true)}
         >
-          {hasUnreadNotifications ? <BellDot size={16} /> : <Bell size={16} />}
-          <span className="ml-2">Notifications</span>
+          {hasUnreadNotifications ? <BellDot size={16} className="text-brand animate-pulse" /> : <Bell size={16} className="text-brand" />}
+          <span className="font-semibold text-xs">Notifications</span>
           {hasUnreadNotifications && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-card"></div>
           )}
         </Button>
       </div>

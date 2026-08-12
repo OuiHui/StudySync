@@ -101,19 +101,19 @@ export const ProfileView = ({
       </div>
 
       {/* Info row */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-gray-600 dark:text-gray-300 mb-6 font-semibold">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground mb-6 font-semibold">
         <span className="flex items-center gap-1.5">
-          <BookOpen size={13} className="text-violet-500" />
+          <BookOpen size={13} className="text-brand" />
           {person.major}
         </span>
-        <span className="text-gray-300 dark:text-gray-700">•</span>
+        <span className="text-border">•</span>
         <span className="flex items-center gap-1.5">
-          <GraduationCap size={13} className="text-violet-500" />
+          <GraduationCap size={13} className="text-brand" />
           {person.year}
         </span>
-        <span className="text-gray-300 dark:text-gray-700">•</span>
+        <span className="text-border">•</span>
         <span className="flex items-center gap-1.5">
-          <Clock size={13} className="text-violet-500" />
+          <Clock size={13} className="text-brand" />
           {person.studyHours}h studied
         </span>
       </div>
@@ -122,11 +122,11 @@ export const ProfileView = ({
       <section className="mb-6">
         <SectionLabel>About</SectionLabel>
         {person.bio ? (
-          <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
+          <p className="text-sm text-foreground leading-relaxed">
             {person.bio}
           </p>
         ) : (
-          <p className="text-sm italic text-gray-400 dark:text-gray-500 leading-relaxed font-medium">
+          <p className="text-sm italic text-muted-foreground leading-relaxed font-medium">
             No bio available.
           </p>
         )}
@@ -139,7 +139,7 @@ export const ProfileView = ({
           {person.friendsCount > 0 && (
             <button
               onClick={onViewAllFriends}
-              className="flex items-center gap-0.5 text-xs text-violet-500 hover:text-violet-600 dark:text-violet-400 dark:hover:text-violet-300 transition-colors font-bold"
+              className="flex items-center gap-0.5 text-xs text-brand hover:underline transition-colors font-bold"
             >
               View all <ChevronRight size={13} />
             </button>
@@ -155,7 +155,7 @@ export const ProfileView = ({
                   <button
                     key={f.friend_user_id}
                     onClick={() => onOpenProfile?.(f.friend_user_id)}
-                    className={`w-9 h-9 rounded-full ${bgClass} text-white flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform focus:outline-none`}
+                    className={`w-9 h-9 rounded-full ${bgClass} text-white flex items-center justify-center ring-2 ring-background shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-transform focus:outline-none`}
                     title={f.display_name}
                   >
                     {f.avatar_url && isValidImageUrl(f.avatar_url) ? (
@@ -168,8 +168,8 @@ export const ProfileView = ({
               })}
 
               {person.friendsCount > 5 && (
-                <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center ring-2 ring-white dark:ring-gray-900 shrink-0">
-                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center ring-2 ring-background shrink-0">
+                  <span className="text-xs font-bold text-muted-foreground">
                     +{person.friendsCount - 5}
                   </span>
                 </div>
@@ -177,7 +177,7 @@ export const ProfileView = ({
             </div>
           </div>
         ) : (
-          <p className="text-xs text-gray-400 dark:text-gray-500">No friends yet.</p>
+          <p className="text-xs text-muted-foreground">No friends yet.</p>
         )}
       </section>
 
@@ -208,19 +208,19 @@ export const ProfileView = ({
                       }
                     }
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-xs text-gray-800 dark:text-gray-200 font-semibold hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:border-violet-200 dark:hover:border-violet-700/50 hover:text-violet-600 dark:hover:text-violet-300 transition-all cursor-pointer group/groupbtn"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/60 border border-border text-xs text-foreground font-semibold hover:bg-brand/10 hover:border-brand/40 hover:text-brand transition-all cursor-pointer group/groupbtn"
                   title={`View ${groupName}`}
                 >
-                  <Users size={12} className="text-violet-500 shrink-0 group-hover/groupbtn:scale-110 transition-transform" />
+                  <Users size={12} className="text-brand shrink-0 group-hover/groupbtn:scale-110 transition-transform" />
                   <span>{groupName}</span>
-                  <ExternalLink size={10} className="opacity-40 group-hover/groupbtn:opacity-100 text-violet-500 transition-opacity ml-0.5" />
+                  <ExternalLink size={10} className="opacity-40 group-hover/groupbtn:opacity-100 text-brand transition-opacity ml-0.5" />
                 </button>
               );
             })}
             {person.publicGroups.length > GROUPS_PAGE_SIZE && (
               <button
                 onClick={() => setGroupsExpanded(!groupsExpanded)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.07] border border-gray-200 dark:border-white/[0.08] text-xs text-violet-500 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/10 transition-colors font-semibold"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-muted border border-border text-xs text-brand hover:bg-brand/10 transition-colors font-semibold"
               >
                 {groupsExpanded ? (
                   <>Show less <ChevronUp size={12} /></>
@@ -231,7 +231,7 @@ export const ProfileView = ({
             )}
           </div>
         ) : (
-          <p className="text-sm italic text-gray-400 dark:text-gray-500 leading-relaxed font-medium mt-1">
+          <p className="text-sm italic text-muted-foreground leading-relaxed font-medium mt-1">
             No public study groups joined.
           </p>
         )}
@@ -242,28 +242,28 @@ export const ProfileView = ({
         <SectionLabel>Study Sessions</SectionLabel>
         {loadingSessions ? (
           <div className="flex items-center gap-2 py-2">
-            <Loader2 size={14} className="animate-spin text-gray-400 dark:text-gray-500" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">Loading sessions...</span>
+            <Loader2 size={14} className="animate-spin text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Loading sessions...</span>
           </div>
         ) : sessions.length > 0 ? (
           <div className="space-y-2 mt-2">
             {sessions.slice(0, 4).map((session) => (
               <div
                 key={session.id}
-                className="flex items-start justify-between p-3 rounded-lg bg-gray-50/50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.04]"
+                className="flex items-start justify-between p-3 rounded-lg bg-muted/50 border border-border"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-bold text-foreground truncate">
                     {session.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium">
                     <span className="flex items-center gap-0.5">
-                      <Calendar size={11} className="text-violet-500" />
+                      <Calendar size={11} className="text-brand" />
                       {formatSessionTime(session.scheduled_start)}
                     </span>
                     {session.group_name && (
                       <>
-                        <span className="text-gray-300 dark:text-gray-700">•</span>
+                        <span className="text-border">•</span>
                         <span className="truncate">{session.group_name}</span>
                       </>
                     )}
@@ -273,8 +273,8 @@ export const ProfileView = ({
                   session.status === 'active' || session.status === 'running'
                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                     : session.status === 'completed' || session.status === 'finished'
-                    ? 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-400'
-                    : 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
+                    ? 'bg-muted text-muted-foreground'
+                    : 'bg-brand/10 text-brand'
                 }`}>
                   {session.status}
                 </span>
@@ -282,7 +282,7 @@ export const ProfileView = ({
             ))}
           </div>
         ) : (
-          <p className="text-sm italic text-gray-400 dark:text-gray-500 leading-relaxed font-medium mt-1">
+          <p className="text-sm italic text-muted-foreground leading-relaxed font-medium mt-1">
             No scheduled study sessions.
           </p>
         )}

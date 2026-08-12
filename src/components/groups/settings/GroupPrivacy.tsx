@@ -106,9 +106,9 @@ export const GroupPrivacy = ({ formData, setFormData, loading, memberCount }: Gr
               <span>{memberCount} / {formData.max_members} members</span>
               <span>{formData.max_members > 0 ? Math.round((memberCount / formData.max_members) * 100) : 0}%</span>
             </div>
-            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
               <div 
-                className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500 ease-out"
+                className="h-full rounded-full bg-brand transition-all duration-500 ease-out"
                 style={{ width: `${formData.max_members > 0 ? Math.min((memberCount / formData.max_members) * 100, 100) : 0}%` }}
               />
             </div>

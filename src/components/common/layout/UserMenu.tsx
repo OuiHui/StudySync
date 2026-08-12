@@ -39,7 +39,7 @@ export function UserMenu({ onProfileClick, onSettingsClick, isProfileDisabled }:
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-[#2a78d6] text-white">
+            <AvatarFallback className="bg-brand text-white">
               {user?.email ? getInitials(user.email) : 'U'}
             </AvatarFallback>
           </Avatar>

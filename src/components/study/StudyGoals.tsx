@@ -53,10 +53,10 @@ export const StudyGoals = ({
   };
 
   return (
-    <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col h-full min-h-0">
-      <CardHeader className="py-3 shrink-0 flex flex-row items-center justify-between border-b dark:border-gray-700/50">
-        <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
-          <Target size={16} className="mr-2 text-indigo-500" />
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl flex flex-col h-full min-h-0">
+      <CardHeader className="py-3 shrink-0 flex flex-row items-center justify-between border-b border-border/80">
+        <CardTitle className="text-sm font-semibold flex items-center text-foreground">
+          <Target size={16} className="mr-2 text-brand" />
           Today's Study Goals
         </CardTitle>
       </CardHeader>
@@ -65,12 +65,12 @@ export const StudyGoals = ({
         <div className="flex-1 min-h-0 mb-3">
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : goals.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">No goals set for this session.</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">Use the input below to set a study goal.</p>
+              <p className="text-xs text-muted-foreground">No goals set for this session.</p>
+              <p className="text-[10px] text-muted-foreground/80 mt-0.5">Use the input below to set a study goal.</p>
             </div>
           ) : (
             <ScrollArea className="h-full pr-2">
@@ -78,7 +78,7 @@ export const StudyGoals = ({
                 {goals.map((goal) => (
                   <div
                     key={goal.id}
-                    className="flex items-center justify-between p-2 bg-gray-50/50 dark:bg-gray-700/20 rounded-lg border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                    className="flex items-center justify-between p-2 bg-muted/40 rounded-lg border border-border/60 hover:bg-muted/80 transition-colors group"
                   >
                     <div className="flex items-center space-x-2.5 flex-1 min-w-0">
                       <Checkbox
@@ -87,12 +87,12 @@ export const StudyGoals = ({
                         onCheckedChange={(checked) =>
                           onToggleGoal?.(goal.id, !!checked)
                         }
-                        className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded text-indigo-600 focus:ring-indigo-500"
+                        className="h-4 w-4 border-border rounded text-brand focus:ring-brand"
                       />
                       <label
                         htmlFor={`goal-${goal.id}`}
-                        className={`text-xs font-medium text-gray-700 dark:text-gray-300 truncate cursor-pointer select-none ${
-                          goal.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''
+                        className={`text-xs font-medium text-foreground truncate cursor-pointer select-none ${
+                          goal.completed ? 'line-through text-muted-foreground' : ''
                         }`}
                       >
                         {goal.title}
@@ -102,7 +102,7 @@ export const StudyGoals = ({
                       onClick={() => onDeleteGoal?.(goal.id)}
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-950/20 shrink-0"
+                      className="h-6 w-6 p-0 text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-red-500/10 shrink-0"
                     >
                       <Trash2 size={12} />
                     </Button>
@@ -114,7 +114,7 @@ export const StudyGoals = ({
         </div>
 
         {/* Add Goal form */}
-        <form onSubmit={handleSubmit} className="flex space-x-2 shrink-0 border-t dark:border-gray-700/50 pt-2.5">
+        <form onSubmit={handleSubmit} className="flex space-x-2 shrink-0 border-t border-border/80 pt-2.5">
           <Input
             placeholder="Add a new goal..."
             value={newTitle}

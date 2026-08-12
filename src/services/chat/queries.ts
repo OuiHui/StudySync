@@ -141,11 +141,15 @@ export class ChatQueries {
       const session = await checkAuth();
       if (!session) return;
 
-      await supabase
+      const { error } = await supabase
         .from('conversation_participants')
         .update({ last_read_at: new Date().toISOString() })
         .eq('conversation_id', conversationId)
         .eq('user_id', session.user.id);
+
+      if (error) {
+        console.warn('Could not update last_read_at on conversation_participants (migration 20260805000200 pending):', error.message);
+      }
     } catch (error) {
       console.error('Error marking conversation as read:', error);
     }
@@ -157,7 +161,12 @@ export class ChatQueries {
         _user_id: userId
       });
 
-      if (error || !data) return {};
+      if (error) {
+        console.warn('Could not fetch unread counts via RPC get_unread_counts (migration 20260805000200 pending):', error.message);
+        return {};
+      }
+
+      if (!data) return {};
 
       return Object.fromEntries(
         (data as { conversation_id: string; unread_count: number }[]).map(

@@ -126,10 +126,10 @@ export const ImportNoteDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <FileText size={18} />
             </div>
             Share Existing Notes
@@ -137,7 +137,7 @@ export const ImportNoteDialog = ({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -146,13 +146,13 @@ export const ImportNoteDialog = ({
 
         <div className="flex items-center space-x-2 shrink-0 my-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-slate-500" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search by title, subject, or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm"
+              className="pl-9 bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm"
             />
           </div>
         </div>
@@ -160,11 +160,11 @@ export const ImportNoteDialog = ({
         <div className="flex-1 min-h-0 py-2">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-[#2a78d6] mb-2" />
-              <span className="text-xs text-gray-500 dark:text-zinc-400">Loading your notes...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-brand mb-2" />
+              <span className="text-xs text-muted-foreground">Loading your notes...</span>
             </div>
           ) : filteredNotes.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 dark:text-zinc-400 text-xs">
+            <div className="text-center py-12 text-muted-foreground text-xs">
               {searchQuery ? 'No matching notes found.' : 'No study notes available to share.'}
             </div>
           ) : (
@@ -178,32 +178,32 @@ export const ImportNoteDialog = ({
                       onClick={() => setSelectedNoteId(note.id)}
                       className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex justify-between items-start ${
                         isSelected
-                          ? 'border-[#2a78d6] bg-[#2a78d6]/10'
-                          : 'border-gray-200 dark:border-slate-700/80 bg-gray-100 dark:bg-[#12151e] hover:border-gray-300 dark:hover:border-slate-700'
+                          ? 'border-brand bg-brand/10'
+                          : 'border-border bg-muted/60 hover:border-brand/40'
                       }`}
                     >
                       <div className="flex-1 min-w-0 pr-2">
                         <div className="flex items-center space-x-1.5 mb-1.5 flex-wrap gap-y-1">
-                          <Badge variant="outline" className="text-[9px] uppercase font-semibold border-gray-300 dark:border-slate-700">
+                          <Badge variant="outline" className="text-[9px] uppercase font-semibold border-border">
                             {note.source === 'personal' ? 'Personal' : 'Group'}
                           </Badge>
                           {note.subject && (
-                            <Badge variant="secondary" className="text-[9px] py-0 bg-gray-200 dark:bg-slate-800 text-gray-800 dark:text-zinc-300">
+                            <Badge variant="secondary" className="text-[9px] py-0 bg-brand/10 text-brand">
                               {note.subject}
                             </Badge>
                           )}
                         </div>
-                        <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                        <h4 className="text-xs font-bold text-foreground truncate">
                           {note.title}
                         </h4>
                         {note.content && (
-                          <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-1 line-clamp-1">
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
                             {note.content}
                           </p>
                         )}
                       </div>
                       {isSelected && (
-                        <div className="shrink-0 self-center bg-[#2a78d6] text-white rounded-full p-0.5">
+                        <div className="shrink-0 self-center bg-brand text-white rounded-full p-0.5">
                           <Check size={12} />
                         </div>
                       )}
@@ -215,12 +215,12 @@ export const ImportNoteDialog = ({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-200 dark:border-slate-700/80 shrink-0">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border shrink-0">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
             disabled={importing}
-            className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
+            className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -228,7 +228,7 @@ export const ImportNoteDialog = ({
             type="button"
             onClick={handleShare}
             disabled={importing || !selectedNoteId}
-            className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+            className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
           >
             {importing && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
             Share Note

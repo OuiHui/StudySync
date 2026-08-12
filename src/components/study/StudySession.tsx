@@ -180,25 +180,25 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
         )}
 
         {/* Inline Details Panel */}
-        <div className="w-full max-w-xl text-center space-y-2 select-none shrink-0 bg-white/40 dark:bg-gray-900/40 p-4 rounded-xl border border-gray-200/10 backdrop-blur-sm shadow-sm">
+        <div className="w-full max-w-xl text-center space-y-2 select-none shrink-0 bg-card/70 text-card-foreground p-4 rounded-xl border border-border backdrop-blur-sm shadow-sm">
           <h1 className={PAGE_TITLE_CLASS}>
             Solo Study Session
           </h1>
           
-          <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
+          <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground font-medium">
             <div className="flex items-center space-x-1">
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Subject:</span>
-              <span className="text-gray-700 dark:text-gray-200">Solo Study</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Subject:</span>
+              <span className="text-foreground">Solo Study</span>
             </div>
-            <div className="h-3 w-[1px] bg-gray-200 dark:bg-gray-800" />
+            <div className="h-3 w-[1px] bg-border" />
             <div className="flex items-center space-x-1">
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Start:</span>
-              <span className="text-gray-700 dark:text-gray-200">{formatTimeStr(startTime)}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Start:</span>
+              <span className="text-foreground">{formatTimeStr(startTime)}</span>
             </div>
-            <div className="h-3 w-[1px] bg-gray-200 dark:bg-gray-800" />
+            <div className="h-3 w-[1px] bg-border" />
             <div className="flex items-center space-x-1">
-              <span className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Est. End:</span>
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{getEstimatedEndTime()}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Est. End:</span>
+              <span className="text-brand font-semibold">{getEstimatedEndTime()}</span>
             </div>
           </div>
         </div>
@@ -206,9 +206,9 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
         {/* Traditional Pomodoro Workspace Grid */}
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Work Session Card */}
-          <Card className="md:col-span-2 border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader className="pb-2 border-b dark:border-gray-700/50">
-              <CardTitle className="text-sm font-semibold flex items-center text-gray-800 dark:text-white">
+          <Card className="md:col-span-2 border border-border shadow-md bg-card text-card-foreground backdrop-blur-sm">
+            <CardHeader className="pb-2 border-b border-border">
+              <CardTitle className="text-sm font-semibold flex items-center text-card-foreground">
                 Work Session
               </CardTitle>
             </CardHeader>
@@ -229,31 +229,31 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
           {/* Sidebar Cards */}
           <div className="md:col-span-1 flex flex-col gap-4">
             {/* Today's Progress Card */}
-            <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col h-full">
-              <CardHeader className="pb-2 border-b dark:border-gray-700/50">
-                <CardTitle className="text-sm font-semibold text-gray-800 dark:text-white">
+            <Card className="border border-border shadow-md bg-card text-card-foreground backdrop-blur-sm flex flex-col h-full">
+              <CardHeader className="pb-2 border-b border-border">
+                <CardTitle className="text-sm font-semibold text-card-foreground">
                   Today's Progress
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center py-6 px-4 flex-1">
-                <div className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
+                <div className="text-4xl font-extrabold text-brand mb-1">
                   {sessions}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-4">
+                <div className="text-xs text-muted-foreground font-medium mb-4">
                   Sessions Completed
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden mb-3">
+                <div className="w-full bg-brand/20 border border-brand/10 h-3 rounded-full overflow-hidden p-0.5 mb-3">
                   <div 
-                    className="bg-indigo-600 dark:bg-indigo-500 h-full transition-all duration-300" 
+                    className="bg-brand h-full rounded-full transition-all duration-300" 
                     style={{ width: `${Math.min((sessions / sessionGoal) * 100, 100)}%` }} 
                   />
                 </div>
-                <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-300">
+                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                   <span>Goal: {sessionGoal} sessions</span>
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-5 w-5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    className="h-5 w-5 hover:bg-muted text-muted-foreground hover:text-foreground"
                     onClick={() => setSettingsOpen(true)}
                   >
                     <Pencil size={12} />
@@ -263,15 +263,15 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
             </Card>
 
             {/* Timer Configuration Card */}
-            <Card className="border-0 shadow-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
-              <CardHeader className="pb-2 border-b dark:border-gray-700/50 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-gray-800 dark:text-white">
+            <Card className="border border-border shadow-md bg-card text-card-foreground backdrop-blur-sm flex flex-col">
+              <CardHeader className="pb-2 border-b border-border flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold text-card-foreground">
                   Timer Configuration
                 </CardTitle>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-5 w-5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="h-5 w-5 hover:bg-muted text-muted-foreground hover:text-foreground"
                   onClick={() => setSettingsOpen(true)}
                 >
                   <Pencil size={12} />
@@ -279,16 +279,16 @@ export const StudySession = ({ onTimerUpdate, globalTimerState }: StudySessionPr
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-500 dark:text-gray-400 font-medium">Work Duration</span>
-                  <span className="text-gray-800 dark:text-white font-semibold">{workDuration / 60} min</span>
+                  <span className="text-muted-foreground font-medium">Work Duration</span>
+                  <span className="text-foreground font-semibold">{workDuration / 60} min</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-500 dark:text-gray-400 font-medium">Break Duration</span>
-                  <span className="text-gray-800 dark:text-white font-semibold">{breakDuration / 60} min</span>
+                  <span className="text-muted-foreground font-medium">Break Duration</span>
+                  <span className="text-foreground font-semibold">{breakDuration / 60} min</span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-500 dark:text-gray-400 font-medium">Long Break</span>
-                  <span className="text-gray-800 dark:text-white font-semibold">{longBreakDuration / 60} min</span>
+                  <span className="text-muted-foreground font-medium">Long Break</span>
+                  <span className="text-foreground font-semibold">{longBreakDuration / 60} min</span>
                 </div>
               </CardContent>
             </Card>

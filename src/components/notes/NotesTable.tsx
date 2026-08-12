@@ -56,10 +56,10 @@ export const NotesTable = ({
   };
 
   return (
-    <div className="w-full max-w-full bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-200 dark:border-gray-700/80 shadow-xs overflow-hidden">
+    <div className="w-full max-w-full bg-card text-card-foreground rounded-2xl border border-border shadow-lg shadow-black/20 overflow-hidden">
       <table className="w-full text-left border-collapse table-auto">
         <thead>
-          <tr className="border-b border-gray-200 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-900/40 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {/* Note Name Column */}
             <th className="py-3 px-3">
               <div className="flex items-center justify-between space-x-1">

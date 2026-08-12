@@ -125,10 +125,10 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+      <DialogContent className="max-w-lg w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <UserPlus size={18} />
             </div>
             Invite Friends
@@ -136,7 +136,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700"
+            className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Close"
           >
             <X size={18} />
@@ -156,7 +156,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search friends by name or email..."
-              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-[#2a78d6] focus-visible:border-[#2a78d6] text-sm font-semibold"
+              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
 
@@ -187,7 +187,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
                     <div className="flex items-center space-x-3 min-w-0">
                       <Avatar className="h-9 w-9 shrink-0 border border-gray-200 dark:border-slate-700">
                         <AvatarImage src={friend.avatar_url || undefined} alt={friend.display_name} />
-                        <AvatarFallback className="bg-[#2a78d6] text-white text-xs font-semibold">
+                        <AvatarFallback className="bg-brand text-white text-xs font-semibold">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
@@ -215,7 +215,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
                           type="button"
                           disabled={invitingId === friend.user_id || isFull}
                           onClick={() => handleInvite(friend.user_id)}
-                          className="bg-[#2a78d6] hover:bg-[#2268bc] text-white rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1 transition-all duration-200"
+                          className="bg-brand hover:bg-brand-hover text-white rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1 transition-all duration-200"
                         >
                           {invitingId === friend.user_id ? (
                             <Loader2 className="h-3 w-3 animate-spin mr-1" />

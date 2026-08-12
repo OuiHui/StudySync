@@ -54,18 +54,18 @@ export const SessionDetailsDialog = ({
           <span>Details</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80">
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2a78d6]/10 text-[#2a78d6] flex items-center justify-center flex-shrink-0">
+      <DialogContent className="max-w-lg w-full bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl overflow-hidden [&>button]:hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border">
+          <DialogTitle className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center flex-shrink-0">
               <BookOpen size={18} />
             </div>
             Session Information
           </DialogTitle>
           <DialogDescription className="sr-only">Session Information details and parameters</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 pt-2 text-sm text-gray-700 dark:text-zinc-300">
-          <div className="grid grid-cols-3 gap-2 border-b border-gray-200 dark:border-slate-700/80 pb-2">
+        <div className="space-y-3 pt-2 text-sm text-foreground">
+          <div className="grid grid-cols-3 gap-2 border-b border-border pb-2">
             <span className="font-semibold text-gray-500 dark:text-zinc-400">Title:</span>
             <span className="col-span-2 text-gray-900 dark:text-white font-semibold">{title}</span>
           </div>

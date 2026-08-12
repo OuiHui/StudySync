@@ -57,9 +57,9 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
       ) : (
         <>
           <StudyCalendar compact={true} />
-          <Card className="border-0 shadow-lg dark:bg-gray-800">
+          <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-green-600 dark:text-green-400">
+              <CardTitle className="flex items-center text-emerald-500">
                 <Play size={20} className="mr-2" />
                 Live Sessions ({activeSessions.length})
               </CardTitle>
@@ -67,9 +67,9 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
             <CardContent>
               {activeSessions.length === 0 ? (
                 <div className="text-center py-8">
-                  <Play size={48} className="mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">No Live Sessions</h3>
-                  <p className="text-gray-600 dark:text-gray-300">No active study sessions at the moment</p>
+                  <Play size={48} className="mx-auto text-muted-foreground/60 mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">No Live Sessions</h3>
+                  <p className="text-muted-foreground">No active study sessions at the moment</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -93,7 +93,7 @@ export const AvailableSessionsList = ({ onJoinSession }: AvailableSessionsListPr
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg dark:bg-gray-800">
+          <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
                 <Calendar size={20} className="mr-2" />

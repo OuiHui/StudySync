@@ -4,9 +4,9 @@ import { ActivityItem } from '@/hooks/useDashboardData';
 
 export const RecentActivity = ({ activity }: { activity: ActivityItem[] }) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="text-gray-800 dark:text-white">Recent Activity</CardTitle>
+        <CardTitle className="text-foreground font-semibold">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -27,23 +27,23 @@ export const RecentActivity = ({ activity }: { activity: ActivityItem[] }) => {
               const getActivityColor = (type: string) => {
                 switch (type) {
                   case 'share':
-                  case 'note': return 'bg-green-500';
+                  case 'note': return 'bg-emerald-500';
                   case 'join':
-                  case 'group': return 'bg-purple-500';
+                  case 'group': return 'bg-brand';
                   case 'study':
                   case 'session': return 'bg-blue-500';
-                  default: return 'bg-gray-500';
+                  default: return 'bg-slate-500';
                 }
               };
 
               return (
                 <div key={index} className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 ${getActivityColor(item.type)} rounded-full flex items-center justify-center`}>
+                  <div className={`w-8 h-8 ${getActivityColor(item.type)} rounded-full flex items-center justify-center shadow-xs`}>
                     {getActivityIcon(item.type)}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">{item.description}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{item.timestamp}</p>
+                    <p className="text-sm font-medium text-foreground">{item.description}</p>
+                    <p className="text-xs text-muted-foreground">{item.timestamp}</p>
                   </div>
                 </div>
               );
@@ -51,12 +51,12 @@ export const RecentActivity = ({ activity }: { activity: ActivityItem[] }) => {
           ) : (
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-xs">
                   <BookOpen size={14} className="text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white">Welcome to StudySync!</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Start studying to see activity here</p>
+                  <p className="text-sm font-medium text-foreground">Welcome to StudySync!</p>
+                  <p className="text-xs text-muted-foreground">Start studying to see activity here</p>
                 </div>
               </div>
             </div>

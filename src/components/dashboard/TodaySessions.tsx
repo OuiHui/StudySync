@@ -6,10 +6,10 @@ import { DashboardSession } from '@/hooks/useDashboardData';
 
 export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession[], onJoin: (session: DashboardSession) => void }) => {
   return (
-    <Card className="border-0 shadow-md dark:bg-gray-800">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center text-gray-800 dark:text-white">
-          <Calendar size={20} className="mr-2 text-blue-600" />
+        <CardTitle className="flex items-center text-foreground">
+          <Calendar size={20} className="mr-2 text-brand" />
           Today's Sessions ({sessions.length})
         </CardTitle>
       </CardHeader>
@@ -17,16 +17,16 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
         {sessions.length > 0 ? (
           <div className="space-y-3">
             {sessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div key={session.id} className="flex items-center justify-between p-3 bg-brand/10 border border-brand/20 rounded-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center shadow-sm">
                     <Play size={16} className="text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-800 dark:text-white">{session.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{session.groupName}</p>
+                    <h4 className="font-medium text-foreground">{session.title}</h4>
+                    <p className="text-sm text-muted-foreground">{session.groupName}</p>
                     {session.scheduled_start && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         {format(parseISO(session.scheduled_start), 'h:mm a')}
                       </p>
                     )}
@@ -34,7 +34,7 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
                 </div>
                 <Button 
                   size="sm" 
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  className="bg-brand hover:bg-brand-hover text-white shadow-sm"
                   onClick={() => onJoin(session)}
                 >
                   Join
@@ -44,8 +44,8 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-gray-500 dark:text-gray-400">No sessions scheduled for today</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-muted-foreground">No sessions scheduled for today</p>
+            <p className="text-sm text-muted-foreground/80 mt-1">
               Join a group session to see it here
             </p>
           </div>

@@ -56,9 +56,9 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
   const sessionsPercent = Math.min((sessionsValue / sessionsGoal) * 100, 100);
 
   return (
-    <Card className="border-0 shadow-md bg-white dark:bg-gray-800">
+    <Card className="border border-border/80 bg-card text-card-foreground shadow-lg shadow-black/20 rounded-2xl">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-gray-800 dark:text-white text-lg font-semibold">Study Progress This Week</CardTitle>
+        <CardTitle className="text-foreground text-lg font-semibold">Study Progress This Week</CardTitle>
         {isEditing ? (
           <div className="flex items-center space-x-2">
             <Button
@@ -83,7 +83,7 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
             size="sm"
             variant="ghost"
             onClick={() => setIsEditing(true)}
-            className="h-8 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="h-8 text-xs text-muted-foreground hover:text-foreground"
           >
             <Settings2 size={14} className="mr-1" /> Edit Goals
           </Button>
@@ -93,30 +93,30 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
         <div className="space-y-6">
           <div>
             <div className="flex justify-between items-center text-sm mb-2">
-              <span className="text-gray-600 dark:text-gray-300">Study Hours This Week</span>
+              <span className="text-muted-foreground">Study Hours This Week</span>
               {isEditing ? (
                 <div className="flex items-center space-x-1.5">
-                  <span className="text-gray-800 dark:text-white font-medium">{hoursValue}</span>
-                  <span className="text-gray-400 dark:text-gray-500">/</span>
+                  <span className="text-foreground font-medium">{hoursValue}</span>
+                  <span className="text-muted-foreground">/</span>
                   <Input
                     type="number"
                     min="0"
                     step="any"
                     value={tempHoursGoal}
                     onChange={(e) => setTempHoursGoal(Math.max(0, parseFloat(e.target.value) || 0))}
-                    className="w-16 h-7 text-xs px-2 py-0 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-visible:ring-1"
+                    className="w-16 h-7 text-xs px-2 py-0 border-border bg-card text-foreground focus-visible:ring-1"
                   />
-                  <span className="text-gray-600 dark:text-gray-300">hours</span>
+                  <span className="text-muted-foreground">hours</span>
                 </div>
               ) : (
-                <span className="text-gray-800 dark:text-white font-medium">
+                <span className="text-foreground font-medium">
                   {hoursValue}/{hoursGoal} hours
                 </span>
               )}
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
               <div 
-                className="bg-blue-500 h-full rounded-full transition-all duration-300 ease-out" 
+                className="bg-brand h-full rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${hoursPercent}%` }}
               ></div>
             </div>
@@ -124,29 +124,29 @@ export const StudyProgress = ({ stats }: { stats: UserStats }) => {
           
           <div>
             <div className="flex justify-between items-center text-sm mb-2">
-              <span className="text-gray-600 dark:text-gray-300">Sessions Completed</span>
+              <span className="text-muted-foreground">Sessions Completed</span>
               {isEditing ? (
                 <div className="flex items-center space-x-1.5">
-                  <span className="text-gray-800 dark:text-white font-medium">{sessionsValue}</span>
-                  <span className="text-gray-400 dark:text-gray-500">/</span>
+                  <span className="text-foreground font-medium">{sessionsValue}</span>
+                  <span className="text-muted-foreground">/</span>
                   <Input
                     type="number"
                     min="1"
                     value={tempSessionsGoal}
                     onChange={(e) => setTempSessionsGoal(Math.max(1, parseInt(e.target.value, 10) || 0))}
-                    className="w-16 h-7 text-xs px-2 py-0 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus-visible:ring-1"
+                    className="w-16 h-7 text-xs px-2 py-0 border-border bg-card text-foreground focus-visible:ring-1"
                   />
-                  <span className="text-gray-600 dark:text-gray-300">sessions</span>
+                  <span className="text-muted-foreground">sessions</span>
                 </div>
               ) : (
-                <span className="text-gray-800 dark:text-white font-medium">
+                <span className="text-foreground font-medium">
                   {sessionsValue}/{sessionsGoal} sessions
                 </span>
               )}
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-brand/20 border border-brand/10 rounded-full h-3 overflow-hidden p-0.5">
               <div 
-                className="bg-green-500 h-full rounded-full transition-all duration-300 ease-out" 
+                className="bg-brand-hover h-full rounded-full transition-all duration-300 ease-out" 
                 style={{ width: `${sessionsPercent}%` }}
               ></div>
             </div>

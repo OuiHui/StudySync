@@ -3,9 +3,17 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { ColorCustomizer } from './ColorCustomizer';
 import { DEFAULT_THEME } from '@/constants/theme';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const defaultTheme = DEFAULT_THEME;
-const darkTheme = { name: 'Dark Navy', primary: '#1e293b', secondary: '#334155', gradient: 'from-slate-900 to-slate-800' };
+
+const renderWithProvider = (ui: React.ReactNode) => {
+  return render(
+    <ThemeProvider defaultTheme="dark">
+      {ui}
+    </ThemeProvider>
+  );
+};
 
 describe('ColorCustomizer Component', () => {
   let onThemeChangeMock = vi.fn();
@@ -17,54 +25,49 @@ describe('ColorCustomizer Component', () => {
   });
 
   it('renders trigger button and opens popover on click', () => {
-    render(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
+    renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
 
-    const triggerBtn = screen.getByRole('button', { name: /Customize Colors/i });
+    const triggerBtn = screen.getByRole('button', { name: /Theme Options/i });
     expect(triggerBtn).toBeInTheDocument();
 
     fireEvent.click(triggerBtn);
 
-    expect(screen.getByText('Color Theme')).toBeInTheDocument();
+    expect(screen.getByText('Theme Presets')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Reset/i })).toBeInTheDocument();
+    expect(screen.getByText('Default Themes')).toBeInTheDocument();
+    expect(screen.getByText('Color Theme Presets')).toBeInTheDocument();
   });
 
-  it('calls onThemeChange and removes dark class when a light theme is clicked', () => {
-    document.documentElement.classList.add('dark');
+  it('allows selecting Default Light preset', () => {
+    renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
 
-    render(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
+    fireEvent.click(screen.getByRole('button', { name: /Theme Options/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Customize Colors/i }));
+    const lightPresetBtn = screen.getByTitle('Default Light');
+    fireEvent.click(lightPresetBtn);
 
-    const oceanCard = screen.getByText('Ocean Blue');
-    fireEvent.click(oceanCard);
+    expect(onThemeChangeMock).toHaveBeenCalledWith(expect.objectContaining({ id: 'default-light' }));
+  });
+
+  it('calls onThemeChange when a color preset is clicked', () => {
+    renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Theme Options/i }));
+
+    const oceanBtn = screen.getByTitle('Ocean Blue');
+    fireEvent.click(oceanBtn);
 
     expect(onThemeChangeMock).toHaveBeenCalledWith(expect.objectContaining({ name: 'Ocean Blue' }));
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
-  });
-
-  it('calls onThemeChange and adds dark class when a dark theme is clicked', () => {
-    render(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Customize Colors/i }));
-
-    const darkCard = screen.getByText('Dark Navy');
-    fireEvent.click(darkCard);
-
-    expect(onThemeChangeMock).toHaveBeenCalledWith(expect.objectContaining({ name: 'Dark Navy' }));
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
   it('resets theme to default on clicking Reset button', () => {
-    document.documentElement.classList.add('dark');
+    renderWithProvider(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={defaultTheme} />);
 
-    render(<ColorCustomizer onThemeChange={onThemeChangeMock} currentTheme={darkTheme} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Customize Colors/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Theme Options/i }));
 
     const resetBtn = screen.getByRole('button', { name: /Reset/i });
     fireEvent.click(resetBtn);
 
     expect(onThemeChangeMock).toHaveBeenCalledWith(defaultTheme);
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
   });
 });

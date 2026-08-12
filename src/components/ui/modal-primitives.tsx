@@ -23,7 +23,7 @@ export const StandardDialogContent = React.forwardRef<
   return (
     <DialogContent
       ref={ref}
-      className={`${sizeClasses[size]} w-full bg-white dark:bg-[#1a1f2c] text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto [&>button]:hidden ${className}`}
+      className={`${sizeClasses[size]} w-full bg-popover text-popover-foreground border border-border rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto [&>button]:hidden ${className}`}
       {...props}
     >
       {children}
@@ -43,7 +43,7 @@ export interface ModalHeaderProps {
 }
 
 const iconVariantClasses = {
-  default: 'bg-[#2a78d6]/10 text-[#2a78d6]',
+  default: 'bg-brand/10 text-brand',
   danger: 'bg-red-500/10 text-red-500',
   warning: 'bg-amber-500/10 text-amber-500',
 };
@@ -58,14 +58,14 @@ export const ModalHeader = ({
   className = '',
 }: ModalHeaderProps) => {
   return (
-    <DialogHeader className={`flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200 dark:border-slate-700/80 shrink-0 ${className}`}>
+    <DialogHeader className={`flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border shrink-0 ${className}`}>
       <div className="flex items-center gap-2.5 min-w-0">
         {icon && (
           <div className={`w-8 h-8 rounded-lg ${iconVariantClasses[iconVariant]} flex items-center justify-center flex-shrink-0`}>
             {icon}
           </div>
         )}
-        <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight truncate">
+        <DialogTitle className="text-2xl font-bold text-foreground tracking-tight truncate">
           {title}
         </DialogTitle>
         <DialogDescription className="sr-only">
@@ -77,7 +77,7 @@ export const ModalHeader = ({
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 rounded-lg bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-zinc-300 transition-colors border border-gray-200 dark:border-slate-700 flex-shrink-0"
+          className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
           title="Close"
         >
           <X size={18} />
@@ -93,7 +93,7 @@ export interface FormLabelProps extends React.ComponentPropsWithoutRef<typeof La
 
 export const FormLabel = ({ children, required, className = '', ...props }: FormLabelProps) => {
   return (
-    <Label className={`text-sm font-semibold text-gray-800 dark:text-zinc-200 ${className}`} {...props}>
+    <Label className={`text-sm font-semibold text-foreground ${className}`} {...props}>
       {children}
       {required && <span className="text-red-500 ml-0.5">*</span>}
     </Label>
@@ -114,12 +114,12 @@ export const ModalFooter = ({
   className = '',
 }: ModalFooterProps) => {
   return (
-    <div className={`pt-3 border-t border-gray-200 dark:border-slate-700/80 flex items-center justify-end gap-2.5 shrink-0 ${className}`}>
+    <div className={`pt-3 border-t border-border flex items-center justify-end gap-2.5 shrink-0 ${className}`}>
       {onCancel && (
         <button
           type="button"
           onClick={onCancel}
-          className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+          className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
         >
           {cancelText}
         </button>
