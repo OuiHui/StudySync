@@ -34,9 +34,9 @@ export const FriendSearch = ({
   currentUserId
 }: FriendSearchProps) => {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-card text-card-foreground shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Find Friends</h3>
+    <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-border">
+        <h3 className="text-sm font-semibold text-foreground">Find Friends</h3>
       </div>
       <div className="p-5 space-y-4">
         <div className="flex gap-2">
@@ -46,23 +46,23 @@ export const FriendSearch = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="dark:bg-gray-800/60 dark:border-gray-700 dark:text-white"
+            className="bg-muted/60 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brand"
           />
           <Button 
             onClick={handleSearch} 
             disabled={searching || !searchTerm.trim()}
-            className="bg-brand hover:bg-brand-hover text-white"
+            className="bg-brand hover:bg-brand-hover text-primary-foreground"
           >
             {searching ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
           </Button>
         </div>
 
         {searchResults.length > 0 && (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
             {searchResults.map((result) => (
               <div 
                 key={result.id} 
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-100 dark:border-gray-700/40"
+                className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border border-border"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center">
@@ -79,24 +79,24 @@ export const FriendSearch = ({
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {getDisplayName(result.display_name, result.email)}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{result.email}</p>
+                    <p className="text-xs text-muted-foreground">{result.email}</p>
                   </div>
                 </div>
 
                 {result.id === currentUserId ? (
-                  <span className="text-xs text-gray-500 dark:text-gray-400">You</span>
+                  <span className="text-xs text-muted-foreground">You</span>
                 ) : result.friendship_status === 'accepted' ? (
-                  <span className="text-xs text-green-600 dark:text-green-400">Friends</span>
+                  <span className="text-xs text-emerald-500 font-semibold">Friends</span>
                 ) : result.friendship_status === 'pending' ? (
-                  <span className="text-xs text-yellow-600 dark:text-yellow-400">Pending</span>
+                  <span className="text-xs text-amber-500 font-semibold">Pending</span>
                 ) : (
                   <Button 
                     size="sm"
                     onClick={() => handleSendRequest(result.id)}
-                    className="bg-brand hover:bg-brand-hover text-white font-semibold"
+                    className="bg-brand hover:bg-brand-hover text-primary-foreground font-semibold"
                   >
                     <UserPlus size={14} className="mr-1" />
                     Add
@@ -108,8 +108,8 @@ export const FriendSearch = ({
         )}
 
         {searchTerm && searchResults.length === 0 && !searching && (
-          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-3">
-            No users found for "{searchTerm}"
+          <p className="text-sm text-muted-foreground text-center py-3">
+            No users found for &quot;{searchTerm}&quot;
           </p>
         )}
       </div>

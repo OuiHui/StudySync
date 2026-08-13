@@ -46,6 +46,8 @@ export default function Groups() {
         if (!old || !Array.isArray(old)) return [formattedGroup];
         return [formattedGroup, ...old.filter((g: any) => g.id !== newGroup.id)];
       });
+      queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['public-groups'] });
     }
   };
   const selectedGroupId = searchParams.get('groupId');

@@ -122,7 +122,7 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
                   <User size={36} />
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 bg-brand text-white p-2 rounded-full cursor-pointer hover:bg-brand-hover shadow-md transition-colors">
+              <label className="absolute bottom-0 right-0 bg-brand text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-brand-hover shadow-md transition-colors">
                 <Camera size={14} />
                 <input 
                   type="file" 
@@ -207,7 +207,7 @@ export const ProfileEditPopup = ({ isOpen, onClose, profile, onSave }: ProfileEd
             <button
               type="button"
               onClick={handleSave}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold inline-flex items-center gap-1.5 transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold inline-flex items-center gap-1.5 transition-all duration-200"
             >
               <Save size={16} /> Save
             </button>

@@ -280,7 +280,7 @@ export const GroupCard = ({
             <div className="flex items-center justify-end">
               {group.is_public ? (
                 <button
-                  className="w-full bg-brand hover:bg-brand-hover text-white text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+                  className="w-full bg-brand hover:bg-brand-hover text-primary-foreground text-xs font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-sm"
                   onClick={handleJoin}
                 >
                   <ArrowRight size={14} />

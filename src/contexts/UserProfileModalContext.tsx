@@ -146,7 +146,11 @@ export const UserProfileModalProvider = ({ children }: { children: React.ReactNo
 export const useUserProfileModal = () => {
   const context = useContext(UserProfileModalContext);
   if (context === undefined) {
-    throw new Error('useUserProfileModal must be used within a UserProfileModalProvider');
+    console.warn('useUserProfileModal was used outside of UserProfileModalProvider. Providing safe fallback.');
+    return {
+      openProfile: async () => {},
+      closeProfile: () => {}
+    };
   }
   return context;
 };

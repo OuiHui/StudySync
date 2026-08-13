@@ -392,7 +392,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: true }))}
                     disabled={loading}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${formData.is_public
-                        ? 'bg-brand text-white shadow-sm'
+                        ? 'bg-brand text-primary-foreground shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
@@ -403,7 +403,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                     onClick={() => setFormData((prev) => ({ ...prev, is_public: false }))}
                     disabled={loading}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${!formData.is_public
-                        ? 'bg-brand text-white shadow-sm'
+                        ? 'bg-brand text-primary-foreground shadow-sm'
                         : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
@@ -417,7 +417,7 @@ export const GroupSettingsDialog: React.FC<GroupSettingsDialogProps> = ({
                   type="button"
                   onClick={handleUpdateGroup}
                   disabled={loading || !formData.name.trim()}
-                  className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+                  className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
                 >
                   {loading && <Loader2 size={14} className="mr-2 animate-spin" />}
                   Save changes

@@ -19,8 +19,8 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
             {sessions.map((session) => (
               <div key={session.id} className="flex items-center justify-between p-3 bg-brand/10 border border-brand/20 rounded-xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center shadow-sm">
-                    <Play size={16} className="text-white" />
+                  <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center shadow-sm text-primary-foreground">
+                    <Play size={16} />
                   </div>
                   <div>
                     <h4 className="font-medium text-foreground">{session.title}</h4>
@@ -34,7 +34,7 @@ export const TodaySessions = ({ sessions, onJoin }: { sessions: DashboardSession
                 </div>
                 <Button 
                   size="sm" 
-                  className="bg-brand hover:bg-brand-hover text-white shadow-sm"
+                  className="bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm font-semibold"
                   onClick={() => onJoin(session)}
                 >
                   Join

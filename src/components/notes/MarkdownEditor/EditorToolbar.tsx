@@ -1,9 +1,10 @@
-﻿import React from 'react';
+import React from 'react';
 import {
   Bold, Italic, Underline, Link as LinkIcon,
   List, ListOrdered, Table, Layers,
-  ChevronDown, Undo2, Redo2,
+  Undo2, Redo2,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EditorToolbarProps {
   currentBlockStyle: string;
@@ -14,9 +15,9 @@ interface EditorToolbarProps {
   onRedo: () => void;
 }
 
-const BTN = 'p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors';
+const BTN = 'p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground rounded-md transition-colors';
 const DISABLED_BTN = `${BTN} disabled:opacity-40 disabled:hover:bg-transparent`;
-const SEPARATOR = 'h-4 w-px bg-gray-200 dark:bg-gray-700 mx-1';
+const SEPARATOR = 'h-4 w-px bg-border mx-1';
 
 const cmd = (handler: (cmd: string) => void, command: string) =>
   (e: React.MouseEvent) => { e.preventDefault(); handler(command); };
@@ -29,20 +30,20 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onUndo,
   onRedo,
 }) => (
-  <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-    {/* Block style selector */}
-    <div className="relative mr-1">
-      <select
-        value={currentBlockStyle}
-        onChange={(e) => onCommand(e.target.value)}
-        className="appearance-none pr-7 pl-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium"
-      >
-        <option value="p">Normal Text</option>
-        <option value="h1">Heading 1</option>
-        <option value="h2">Heading 2</option>
-        <option value="h3">Heading 3</option>
-      </select>
-      <ChevronDown className="absolute right-2 top-2 h-3.5 w-3.5 pointer-events-none text-gray-500" />
+  <div className="flex flex-wrap items-center gap-1 p-2 bg-card text-card-foreground border-b border-border">
+    {/* Block style selector with smooth dropdown transition */}
+    <div className="mr-1">
+      <Select value={currentBlockStyle} onValueChange={(val) => onCommand(val)}>
+        <SelectTrigger className="h-8 w-[130px] px-2.5 text-xs bg-card border border-border rounded-md hover:bg-muted text-foreground font-medium transition-all duration-200 focus:ring-1 focus:ring-brand">
+          <SelectValue placeholder="Text type" />
+        </SelectTrigger>
+        <SelectContent className="bg-popover text-popover-foreground border border-border z-50">
+          <SelectItem value="p" className="text-xs font-medium cursor-pointer">Normal Text</SelectItem>
+          <SelectItem value="h1" className="text-xs font-bold cursor-pointer">Heading 1</SelectItem>
+          <SelectItem value="h2" className="text-xs font-bold cursor-pointer">Heading 2</SelectItem>
+          <SelectItem value="h3" className="text-xs font-bold cursor-pointer">Heading 3</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
     {/* Undo / Redo */}

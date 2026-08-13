@@ -126,7 +126,7 @@ export const StudyGoals = ({
             type="submit"
             size="sm"
             disabled={submitting || !newTitle.trim()}
-            className="h-7 text-xs bg-brand hover:bg-brand-hover text-white font-medium"
+            className="h-7 text-xs bg-brand hover:bg-brand-hover text-primary-foreground font-semibold"
           >
             {submitting ? (
               <Loader2 className="h-3 w-3 animate-spin" />

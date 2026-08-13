@@ -34,7 +34,7 @@ export const StudyCalendar = ({ showAddButton = true, compact = false, onDateCli
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className={`${compact ? 'text-base' : 'text-lg'} text-foreground font-semibold`}>Study Calendar</CardTitle>
           {showAddButton && !compact && (
-            <Button size="sm" className="bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold">
+            <Button size="sm" className="bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm font-semibold">
               <Plus size={16} className="mr-2" />
               Add Event
             </Button>

@@ -228,7 +228,7 @@ export const ImportNoteDialog = ({
             type="button"
             onClick={handleShare}
             disabled={importing || !selectedNoteId}
-            className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+            className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
           >
             {importing && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
             Share Note

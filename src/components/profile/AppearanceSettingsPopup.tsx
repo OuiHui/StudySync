@@ -138,7 +138,7 @@ export const AppearanceSettingsPopup = ({ isOpen, onClose }: AppearanceSettingsP
           <button
             type="button"
             onClick={onClose}
-            className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold transition-all duration-200"
+            className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold transition-all duration-200"
           >
             Done
           </button>

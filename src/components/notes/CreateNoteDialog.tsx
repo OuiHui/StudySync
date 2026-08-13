@@ -35,7 +35,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
                 value={newNote.title}
                 onChange={(e) => setNewNote((prev: any) => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter note title..."
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
             
@@ -45,7 +45,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
                 value={newNote.subject}
                 onChange={(e) => setNewNote((prev: any) => ({ ...prev, subject: e.target.value }))}
                 placeholder="e.g., Mathematics, Physics..."
-                className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+                className="bg-muted/40 border-border text-foreground placeholder:text-muted-foreground rounded-xl h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
               />
             </div>
           </div>
@@ -59,10 +59,10 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
             <div className="space-y-1">
               <FormLabel>Permission</FormLabel>
               <Select value={newNote.permission_level} onValueChange={(value) => setNewNote((prev: any) => ({ ...prev, permission_level: value }))}>
-                <SelectTrigger className="bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white rounded-lg h-10 focus:ring-[#2a78d6] text-sm font-semibold">
+                <SelectTrigger className="bg-muted/40 border border-border text-foreground rounded-xl h-10 focus:ring-2 focus:ring-brand text-sm font-semibold transition-all">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-[#1a1f2c] border-gray-200 dark:border-slate-700 text-gray-900 dark:text-zinc-200">
+                <SelectContent className="bg-card border-border text-card-foreground shadow-2xl backdrop-blur-md rounded-xl z-50">
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="friends">Friends Only</SelectItem>
                   <SelectItem value="public">Public</SelectItem>
@@ -76,7 +76,7 @@ export const CreateNoteDialog = ({ isOpen, onOpenChange, groupId, newNote, setNe
               type="button"
               onClick={onCreate}
               disabled={!newNote.title.trim()}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               Create Note
             </button>

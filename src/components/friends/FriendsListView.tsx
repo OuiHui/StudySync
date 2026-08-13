@@ -102,11 +102,11 @@ export const FriendsListView = ({
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={onBack}
-          className="p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <ArrowLeft size={16} />
         </button>
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-base font-semibold text-foreground">
           Friends ({friendsCount})
         </h2>
       </div>
@@ -115,21 +115,21 @@ export const FriendsListView = ({
       <div className="relative mb-4">
         <Search
           size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
         />
         <input
           type="text"
           placeholder="Search friends..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-8 pr-3 py-2 rounded-lg bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-violet-500/40"
+          className="w-full pl-8 pr-3 py-2 rounded-lg bg-muted/60 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-brand font-medium"
         />
       </div>
 
       {/* List */}
       {loading ? (
         <div className="flex justify-center py-10">
-          <Loader2 size={20} className="animate-spin text-gray-400 dark:text-gray-600" />
+          <Loader2 size={20} className="animate-spin text-muted-foreground" />
         </div>
       ) : (
         <div className="space-y-1">
@@ -142,7 +142,7 @@ export const FriendsListView = ({
             return (
               <div
                 key={friend.friend_user_id}
-                className="flex items-center gap-3 px-1 py-3 rounded-lg hover:bg-gray-55 dark:hover:bg-white/[0.03] transition-colors"
+                className="flex items-center gap-3 px-1 py-3 rounded-lg hover:bg-muted/60 transition-colors"
               >
                 {/* Clickable Profile wrapper */}
                 <button
@@ -169,10 +169,10 @@ export const FriendsListView = ({
 
                   {/* Name + major */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-bold text-gray-900 dark:text-white truncate group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors">
+                    <p className="text-base font-bold text-foreground truncate group-hover:text-brand transition-colors">
                       {friend.display_name}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate font-semibold">
+                    <p className="text-sm text-muted-foreground truncate font-semibold">
                       {friend.major || 'Unknown Major'}
                     </p>
                   </div>
@@ -180,22 +180,22 @@ export const FriendsListView = ({
 
                 {/* Mutual / Add friend */}
                 {friend.friend_user_id === currentUserId ? (
-                  <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 shrink-0">
+                  <span className="text-sm font-semibold text-muted-foreground shrink-0">
                     You
                   </span>
                 ) : isAccepted ? (
-                  <div className="flex items-center gap-1.5 shrink-0 text-emerald-500 dark:text-emerald-400">
+                  <div className="flex items-center gap-1.5 shrink-0 text-emerald-500 font-semibold">
                     <UserCheck size={15} />
-                    <span className="text-sm font-semibold">Mutual!</span>
+                    <span className="text-sm">Mutual!</span>
                   </div>
                 ) : isPending ? (
-                  <span className="text-xs font-semibold text-amber-500 dark:text-amber-400 shrink-0">
+                  <span className="text-xs font-semibold text-amber-500 shrink-0">
                     Pending
                   </span>
                 ) : (
                   <button
                     onClick={() => handleAdd(friend.friend_user_id)}
-                    className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-violet-500 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors shrink-0"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-brand hover:bg-brand/10 transition-colors shrink-0"
                     title="Add friend"
                   >
                     <UserPlus size={16} />
@@ -206,7 +206,7 @@ export const FriendsListView = ({
           })}
 
           {filtered.length === 0 && (
-            <p className="text-sm text-gray-400 dark:text-gray-600 text-center py-10">
+            <p className="text-sm text-muted-foreground text-center py-10">
               No friends found.
             </p>
           )}

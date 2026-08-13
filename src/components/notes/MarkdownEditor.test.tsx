@@ -24,7 +24,9 @@ describe('MarkdownEditor Component', () => {
     render(<MarkdownEditor value="Hello" onChange={handleChange} />);
     
     const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'h1' } });
+    fireEvent.click(select);
+    const h1Option = screen.getByText('Heading 1');
+    fireEvent.click(h1Option);
     
     expect(execCommandSpy).toHaveBeenCalledWith('formatBlock', false, '<H1>');
     execCommandSpy.mockRestore();
@@ -38,9 +40,11 @@ describe('MarkdownEditor Component', () => {
     const toggleButton = screen.getByRole('button', { name: /Switch to plain text/i });
     fireEvent.click(toggleButton);
     
-    // Test heading format in plain text mode (select is modified to trigger handleCommand)
+    // Test heading format in plain text mode
     const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'h1' } });
+    fireEvent.click(select);
+    const h1Option = screen.getByText('Heading 1');
+    fireEvent.click(h1Option);
     expect(handleChange).toHaveBeenCalled();
 
     // Click bullet button

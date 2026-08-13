@@ -147,7 +147,7 @@ export const GroupStudySession = ({
             variant="default"
             size="sm"
             onClick={() => setInviteOpen(true)}
-            className="h-8 text-xs flex items-center space-x-1.5 bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold"
+            className="h-8 text-xs flex items-center space-x-1.5 bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm font-semibold"
           >
             <UserPlus size={14} />
             <span>Invite Friends</span>

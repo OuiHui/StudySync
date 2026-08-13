@@ -214,13 +214,13 @@ export const SharedNoteModal = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="border-b border-gray-200 dark:border-slate-700/80 pb-3">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+              <div className="border-b border-border pb-3">
+                <h2 className="text-xl font-bold text-foreground leading-tight">
                   {note.title}
                 </h2>
                 {note.profiles?.display_name && (
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-                    By <span className="font-semibold text-gray-700 dark:text-zinc-300">{note.profiles.display_name}</span>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    By <span className="font-semibold text-foreground">{note.profiles.display_name}</span>
                   </p>
                 )}
               </div>
@@ -233,10 +233,10 @@ export const SharedNoteModal = ({
 
               {note.content && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-gray-500 dark:text-zinc-400 uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Content
                   </h4>
-                  <div className="p-4 bg-gray-100 dark:bg-[#12151e] border border-gray-200 dark:border-slate-700/80 rounded-xl max-h-[500px] overflow-y-auto custom-scrollbar">
+                  <div className="p-4 bg-muted/40 border border-border rounded-xl max-h-[500px] overflow-y-auto custom-scrollbar">
                     <MarkdownRenderer content={note.content} />
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export const SharedNoteModal = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-700/80 pt-4 shrink-0">
+        <div className="flex items-center justify-between border-t border-border pt-4 shrink-0">
           <div>
             {onDelete && canEdit && (
               <button
@@ -264,7 +264,7 @@ export const SharedNoteModal = ({
               <button
                 type="button"
                 onClick={handleStartEdit}
-                className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors inline-flex items-center gap-1.5"
+                className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors inline-flex items-center gap-1.5"
               >
                 <Edit2 className="w-4 h-4" /> Edit Note
               </button>
@@ -276,7 +276,7 @@ export const SharedNoteModal = ({
                   type="button"
                   onClick={handleCancel}
                   disabled={isSaving}
-                  className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
+                  className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
                   <X className="w-4 h-4" /> Cancel
                 </button>
@@ -284,7 +284,7 @@ export const SharedNoteModal = ({
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving || !form.title.trim()}
-                  className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
+                  className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
                 >
                   <Save className="w-4 h-4" /> Save Changes
                 </button>
@@ -293,7 +293,7 @@ export const SharedNoteModal = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-900 dark:text-white border border-gray-200 dark:border-slate-700 rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
+                className="bg-card hover:bg-muted text-foreground border border-border rounded-xl px-4 h-10 text-sm font-semibold transition-colors"
               >
                 Close
               </button>

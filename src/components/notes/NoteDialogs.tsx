@@ -80,7 +80,7 @@ export const NoteDialogs = (props: any) => {
               type="button"
               onClick={handleCreateNote}
               disabled={!newNoteData.title.trim()}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
+              className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200 inline-flex gap-1.5"
             >
               <Save className="h-4 w-4" /> Create Note
             </button>
@@ -156,7 +156,7 @@ export const NoteDialogs = (props: any) => {
               <button
                 type="button"
                 onClick={handleSaveShare}
-                className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold flex items-center justify-center transition-all duration-200"
+                className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold flex items-center justify-center transition-all duration-200"
               >
                 Save Sharing
               </button>

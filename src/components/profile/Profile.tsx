@@ -87,7 +87,7 @@ export const Profile = () => {
           onClick={() => setEditOpen(true)}
           variant="outline"
           size="sm"
-          className="gap-1.5 text-sm dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="flex items-center gap-1.5 rounded-xl border border-border bg-card/90 hover:bg-brand/10 hover:border-brand/40 text-card-foreground hover:text-brand transition-all duration-200 shadow-sm px-3.5 h-9 text-xs font-semibold"
         >
           <Edit size={14} />
           Edit

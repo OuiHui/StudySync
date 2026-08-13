@@ -170,7 +170,7 @@ export const SessionNotes = ({
             <Button
               size="sm"
               onClick={() => setIsCreating(true)}
-              className="h-7 text-xs bg-brand hover:bg-brand-hover text-white flex items-center space-x-1"
+              className="h-7 text-xs bg-brand hover:bg-brand-hover text-primary-foreground font-semibold flex items-center space-x-1"
             >
               <Plus size={13} />
               <span>New Note</span>

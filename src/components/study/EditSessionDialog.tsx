@@ -346,7 +346,7 @@ export const EditSessionDialog = ({ session, onSessionUpdated, trigger }: EditSe
               <button
                 type="submit"
                 disabled={loading || !formData.title.trim() || !formData.scheduledStart || !formData.scheduledEnd}
-                className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+                className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
               >
                 {loading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
                 {loading ? 'Updating...' : 'Update Session'}

@@ -71,7 +71,7 @@ export const TimerDisplay = ({
       <div className="flex justify-center items-center space-x-2 mt-6 shrink-0">
         <Button
           onClick={onToggle}
-          className={`h-9 px-4 text-xs font-semibold ${mode === 'work' ? 'bg-brand hover:bg-brand-hover text-white shadow-sm' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'} rounded-lg flex items-center space-x-1.5`}
+          className={`h-9 px-4 text-xs font-semibold ${mode === 'work' ? 'bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'} rounded-lg flex items-center space-x-1.5`}
         >
           {isActive ? <Pause size={14} /> : <Play size={14} />}
           <span>{isActive ? 'Pause' : 'Start'}</span>

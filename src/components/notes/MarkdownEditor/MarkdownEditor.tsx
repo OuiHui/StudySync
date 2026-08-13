@@ -228,18 +228,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     } else if (command === 'code') {
       insertRichTextNode(() => {
         const code = document.createElement('code');
-        code.className = 'bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono';
+        code.className = 'bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border';
         return code;
       });
     } else if (command === 'details') {
       insertRichTextNode((selectedText) => {
         const details = document.createElement('details');
-        details.className = 'border rounded-md p-3 my-2 bg-gray-50 dark:bg-gray-900/30';
+        details.className = 'border border-border rounded-md p-3 my-2 bg-muted/40 text-foreground';
         const summary = document.createElement('summary');
-        summary.className = 'cursor-pointer font-semibold text-sm select-none';
+        summary.className = 'cursor-pointer font-semibold text-sm select-none text-foreground';
         summary.textContent = 'Summary (Click to expand)';
         const div = document.createElement('div');
-        div.className = 'mt-2 text-sm text-gray-700 dark:text-gray-300';
+        div.className = 'mt-2 text-sm text-foreground/80';
         div.textContent = selectedText || 'Details content goes here...';
         details.append(summary, div);
         return details;
@@ -247,15 +247,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     } else if (command === 'table') {
       insertRichTextNode(() => {
         const table = document.createElement('table');
-        table.className = 'border-collapse border border-gray-300 dark:border-gray-700 w-full my-4 text-sm';
+        table.className = 'border-collapse border border-border w-full my-4 text-sm text-foreground';
         table.innerHTML = `
           <thead><tr>
-            <th class="border border-gray-300 dark:border-gray-700 p-2 text-left bg-gray-50 dark:bg-gray-900/50">Header 1</th>
-            <th class="border border-gray-300 dark:border-gray-700 p-2 text-left bg-gray-50 dark:bg-gray-900/50">Header 2</th>
+            <th class="border border-border p-2 text-left bg-muted/40 font-semibold text-foreground">Header 1</th>
+            <th class="border border-border p-2 text-left bg-muted/40 font-semibold text-foreground">Header 2</th>
           </tr></thead>
           <tbody><tr>
-            <td class="border border-gray-300 dark:border-gray-700 p-2">Cell 1</td>
-            <td class="border border-gray-300 dark:border-gray-700 p-2">Cell 2</td>
+            <td class="border border-border p-2 text-foreground">Cell 1</td>
+            <td class="border border-border p-2 text-foreground">Cell 2</td>
           </tr></tbody>`;
         return table;
       });
@@ -373,7 +373,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   return (
-    <div className={`flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all ${className}`}>
+    <div className={`flex flex-col border border-border rounded-xl overflow-hidden bg-card text-card-foreground shadow-sm focus-within:ring-2 focus-within:ring-brand focus-within:border-brand transition-all ${className}`}>
       <EditorToolbar
         currentBlockStyle={currentBlockStyle}
         canUndo={history.canUndo}
@@ -383,7 +383,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         onRedo={handleRedo}
       />
 
-      <div className="relative flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight }}>
+      <div className="relative flex-1 overflow-y-auto custom-scrollbar bg-card text-card-foreground" style={{ minHeight }}>
         {isRichText ? (
           <div
             ref={editorRef}
@@ -393,7 +393,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onSelect={handleSelectionChange}
             onKeyUp={handleSelectionChange}
             onMouseUp={handleSelectionChange}
-            className="prose dark:prose-invert max-w-none p-4 focus:outline-none custom-scrollbar"
+            className="prose dark:prose-invert max-w-none p-4 focus:outline-none custom-scrollbar text-foreground bg-card"
             style={{ minHeight }}
           />
         ) : (
@@ -406,21 +406,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onKeyUp={handleSelectionChange}
             onMouseUp={handleSelectionChange}
             placeholder={placeholder}
-            className="w-full p-4 font-mono text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-0 focus:outline-none focus:ring-0 resize-y custom-scrollbar"
+            className="w-full p-4 font-mono text-sm bg-card text-foreground border-0 focus:outline-none focus:ring-0 resize-y custom-scrollbar"
             style={{ minHeight }}
           />
         )}
       </div>
 
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 select-none">
+      <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-t border-border text-xs text-muted-foreground select-none">
         <button
           type="button"
           onClick={toggleEditorMode}
-          className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          className="font-semibold text-brand hover:text-brand-hover transition-colors"
         >
           {isRichText ? 'Switch to plain text editing' : 'Switch to rich text editing'}
         </button>
-        <span className="flex items-center gap-1 font-semibold border px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <span className="flex items-center gap-1 font-semibold border border-border px-1.5 py-0.5 rounded-md bg-card text-foreground">
           Markdown Supported
         </span>
       </div>

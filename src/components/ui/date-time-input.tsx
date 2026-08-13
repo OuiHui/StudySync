@@ -98,62 +98,74 @@ export function DateTimeInput({
 
   const displayValue = selectedDate
     ? `${format(selectedDate, 'MMM d, yyyy')}  ${selectedHour}:${selectedMinute} ${selectedAmpm}`
-    : 'Pick date & time';
+    : '';
 
   const minDate = min ? parse(min, "yyyy-MM-dd'T'HH:mm", new Date()) : undefined;
 
   return (
-    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) onBlur?.(); }}>
-      <PopoverTrigger asChild>
-        <button
-          id={id}
-          type="button"
-          disabled={disabled}
-          onFocus={onFocus}
-          aria-required={required}
-          className={cn(
-            'flex h-10 w-full items-center rounded-lg border border-border bg-muted/40 px-3',
-            'text-sm font-semibold text-left',
-            'ring-offset-background transition-all duration-150',
-            'focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
-            !selectedDate && 'text-muted-foreground',
-            className
-          )}
+    <div className="relative flex items-center w-full">
+      <input
+        id={id}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        aria-required={required}
+        disabled={disabled}
+        placeholder={displayValue || "Pick date & time"}
+        className={cn(
+          'flex h-10 w-full items-center rounded-lg border border-border bg-muted/40 px-3 pr-9',
+          'text-sm font-semibold text-left',
+          'ring-offset-background transition-all duration-150',
+          'focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          !selectedDate && !value && 'text-muted-foreground',
+          className
+        )}
+      />
+      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) onBlur?.(); }}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            tabIndex={-1}
+            disabled={disabled}
+            className="absolute right-2 p-1 text-muted-foreground hover:text-foreground rounded-md focus:outline-none"
+            aria-label="Open date and time picker"
+          >
+            <CalendarIcon size={14} />
+          </button>
+        </PopoverTrigger>
+
+        <PopoverContent
+          align="end"
+          className="w-auto p-0 border-border bg-card shadow-xl rounded-xl overflow-hidden z-50"
+          onInteractOutside={() => setOpen(false)}
         >
-          <span className="flex-1 truncate">{displayValue}</span>
-          <CalendarIcon size={14} className="shrink-0 ml-2 text-muted-foreground" />
-        </button>
-      </PopoverTrigger>
+          <div className="flex divide-x divide-border">
+            {/* Date picker */}
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={minDate ? { before: minDate } : undefined}
+              initialFocus
+              classNames={{
+                day_selected: 'bg-brand text-white hover:bg-brand hover:text-white focus:bg-brand focus:text-white',
+                day_today: 'bg-accent text-accent-foreground font-semibold',
+              }}
+            />
 
-      <PopoverContent
-        align="start"
-        className="w-auto p-0 border-border bg-card shadow-xl rounded-xl overflow-hidden"
-        onInteractOutside={() => setOpen(false)}
-      >
-        <div className="flex divide-x divide-border">
-          {/* Date picker */}
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={minDate ? { before: minDate } : undefined}
-            initialFocus
-            classNames={{
-              day_selected: 'bg-brand text-white hover:bg-brand hover:text-white focus:bg-brand focus:text-white',
-              day_today: 'bg-accent text-accent-foreground font-semibold',
-            }}
-          />
-
-          {/* Time picker */}
-          <div className="flex divide-x divide-border text-sm">
-            <TimeColumn items={HOURS} selected={selectedHour} onSelect={handleHour} />
-            <TimeColumn items={MINUTES} selected={selectedMinute} onSelect={handleMinute} />
-            <TimeColumn items={['AM', 'PM']} selected={selectedAmpm} onSelect={handleAmpm as (v: string) => void} />
+            {/* Time picker */}
+            <div className="flex divide-x divide-border text-sm">
+              <TimeColumn items={HOURS} selected={selectedHour} onSelect={handleHour} />
+              <TimeColumn items={MINUTES} selected={selectedMinute} onSelect={handleMinute} />
+              <TimeColumn items={['AM', 'PM']} selected={selectedAmpm} onSelect={handleAmpm as (v: string) => void} />
+            </div>
           </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
@@ -169,7 +181,7 @@ function TimeColumn({ items, selected, onSelect }: { items: string[]; selected: 
             className={cn(
               'mx-1 my-0.5 rounded-md px-2 py-1.5 text-center text-sm transition-colors duration-100',
               item === selected
-                ? 'bg-brand text-white font-semibold'
+                ? 'bg-brand text-primary-foreground font-semibold'
                 : 'text-foreground hover:bg-muted'
             )}
           >

@@ -151,12 +151,12 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
           )}
 
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search friends by name or email..."
-              className="pl-9 bg-gray-100 dark:bg-[#12151e] border-gray-200 dark:border-slate-700/80 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
+              className="pl-9 bg-muted/60 border-border text-foreground placeholder:text-muted-foreground rounded-lg h-10 focus-visible:ring-brand focus-visible:border-brand text-sm font-semibold"
             />
           </div>
 
@@ -215,7 +215,7 @@ export const InviteFriendsDialog = ({ isOpen, onClose, type, id }: InviteFriends
                           type="button"
                           disabled={invitingId === friend.user_id || isFull}
                           onClick={() => handleInvite(friend.user_id)}
-                          className="bg-brand hover:bg-brand-hover text-white rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1 transition-all duration-200"
+                          className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1 transition-all duration-200"
                         >
                           {invitingId === friend.user_id ? (
                             <Loader2 className="h-3 w-3 animate-spin mr-1" />

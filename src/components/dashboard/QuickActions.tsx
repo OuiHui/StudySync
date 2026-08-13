@@ -10,7 +10,7 @@ export const QuickActions = ({ onAction }: { onAction: (action: string) => void 
       </CardHeader>
       <CardContent className="space-y-3">
         <Button 
-          className="w-full justify-start bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold transition-all"
+          className="w-full justify-start bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm font-semibold transition-all"
           onClick={() => onAction('study-session')}
         >
           <Play size={16} className="mr-2" />

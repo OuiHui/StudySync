@@ -359,7 +359,7 @@ export const Messages: React.FC = () => {
         <Button
           onClick={() => setIsNewChatOpen(true)}
           size="sm"
-          className="bg-brand hover:bg-brand-hover text-white gap-1.5 shadow-sm rounded-xl font-semibold"
+          className="bg-brand hover:bg-brand-hover text-primary-foreground gap-1.5 shadow-sm rounded-xl font-semibold"
         >
           <Plus className="w-4 h-4" />
           <span>New Chat</span>
@@ -367,28 +367,35 @@ export const Messages: React.FC = () => {
       </div>
 
       {/* Main Workspace Card */}
-      <Card className="flex-1 min-h-0 border border-gray-200 dark:border-gray-800 bg-card shadow-sm overflow-hidden flex">
+      <Card className="flex-1 min-h-0 border border-border bg-card shadow-sm overflow-hidden flex">
         {/* Left Panel: Conversation List Sidebar */}
         <div
-          className={`w-full md:w-80 border-r border-gray-200 dark:border-gray-800 flex flex-col bg-gray-50/50 dark:bg-gray-900/40 ${
+          className={`w-full md:w-80 border-r border-border flex flex-col bg-card/40 ${
             mobileShowChat ? 'hidden md:flex' : 'flex'
           }`}
         >
           {/* Category Tabs: Study Groups vs Direct Messages */}
           <div className="p-3 border-b border-border space-y-3">
-            <div className="grid grid-cols-2 p-1 bg-muted rounded-lg text-xs font-semibold">
+            <div className="grid grid-cols-2 p-1 bg-muted/60 border border-border rounded-lg text-xs font-semibold">
               <button
                 onClick={() => setActiveCategory('groups')}
                 className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                   activeCategory === 'groups'
-                    ? 'bg-card text-brand shadow-sm font-bold'
+                    ? 'bg-brand text-primary-foreground shadow-sm font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
                 <span>Study Groups</span>
                 {groupConversations.length > 0 && (
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">
+                  <Badge
+                    variant="secondary"
+                    className={`px-1.5 py-0 text-[10px] h-4 font-bold ${
+                      activeCategory === 'groups'
+                        ? 'bg-primary-foreground/20 text-primary-foreground border-transparent'
+                        : 'bg-muted/80 text-foreground'
+                    }`}
+                  >
                     {groupConversations.length}
                   </Badge>
                 )}
@@ -398,14 +405,21 @@ export const Messages: React.FC = () => {
                 onClick={() => setActiveCategory('direct')}
                 className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                   activeCategory === 'direct'
-                    ? 'bg-card text-brand shadow-sm font-bold'
+                    ? 'bg-brand text-primary-foreground shadow-sm font-semibold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Direct</span>
                 {directConversations.length > 0 && (
-                  <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">
+                  <Badge
+                    variant="secondary"
+                    className={`px-1.5 py-0 text-[10px] h-4 font-bold ${
+                      activeCategory === 'direct'
+                        ? 'bg-primary-foreground/20 text-primary-foreground border-transparent'
+                        : 'bg-muted/80 text-foreground'
+                    }`}
+                  >
                     {directConversations.length}
                   </Badge>
                 )}
@@ -464,7 +478,7 @@ export const Messages: React.FC = () => {
                     <div className="relative shrink-0">
                       <Avatar className="w-10 h-10 border border-border">
                         {conv.avatarUrl && <AvatarImage src={conv.avatarUrl} alt={conv.name} />}
-                        <AvatarFallback className="bg-brand text-white font-bold text-xs">
+                        <AvatarFallback className="bg-brand text-primary-foreground font-bold text-xs">
                           {conv.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -473,7 +487,7 @@ export const Messages: React.FC = () => {
                       {hasActiveSession && (
                         <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-gray-900"></span>
+                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-background"></span>
                         </span>
                       )}
                     </div>
@@ -481,17 +495,17 @@ export const Messages: React.FC = () => {
                     {/* Content preview */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                        <h4 className="text-xs font-bold text-foreground truncate">
                           {conv.name}
                         </h4>
                         <div className="flex items-center gap-1 shrink-0 ml-1">
                           {conv.latestMessage && (
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[10px] text-muted-foreground font-medium">
                               {formatSidebarTimestamp(conv.latestMessage.createdAt)}
                             </span>
                           )}
                           {!isSelected && (conv.unreadCount ?? 0) > 0 && (
-                            <span className="flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-blue-600 text-white text-[9px] font-bold leading-none">
+                            <span className="flex items-center justify-center h-4 min-w-[1rem] px-1 rounded-full bg-brand text-primary-foreground text-[9px] font-bold leading-none">
                               {(conv.unreadCount ?? 0) > 99 ? '99+' : conv.unreadCount}
                             </span>
                           )}
@@ -499,21 +513,21 @@ export const Messages: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                        <p className="text-[11px] text-muted-foreground truncate">
                           {conv.latestMessage ? (
                             <span>
-                              <span className="font-medium text-gray-700 dark:text-gray-300">
+                              <span className="font-semibold text-foreground/90">
                                 {conv.latestMessage.senderName}:{' '}
                               </span>
                               {conv.latestMessage.content}
                             </span>
                           ) : (
-                            <span className="italic text-gray-400">No messages yet</span>
+                            <span className="italic text-muted-foreground">No messages yet</span>
                           )}
                         </p>
 
                         {hasActiveSession && (
-                          <Badge variant="outline" className="ml-1 px-1.5 py-0 text-[9px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0">
+                          <Badge variant="outline" className="ml-1 px-1.5 py-0 text-[9px] bg-emerald-500/10 text-emerald-500 border-emerald-500/30 shrink-0 font-bold">
                             LIVE
                           </Badge>
                         )}
@@ -535,7 +549,7 @@ export const Messages: React.FC = () => {
           {selectedConversation ? (
             <>
               {/* Chat Panel Top Header */}
-              <div className="p-3.5 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-card">
+              <div className="p-3.5 border-b border-border flex items-center justify-between bg-card">
                 <div className="flex items-center gap-3">
                   <Button
                     variant="ghost"
@@ -568,31 +582,31 @@ export const Messages: React.FC = () => {
                         {selectedConversation.avatarUrl && (
                           <AvatarImage src={selectedConversation.avatarUrl} alt={selectedConversation.name} />
                         )}
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-xs">
+                        <AvatarFallback className="bg-brand text-primary-foreground font-bold text-xs">
                           {selectedConversation.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
 
                       {selectedConversation.isGroupChat && selectedConversation.activeSession && (
-                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 animate-pulse"></span>
+                        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background animate-pulse"></span>
                       )}
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5 group-hover:text-brand transition-colors">
                         <span>{selectedConversation.name}</span>
                         {selectedConversation.isGroupChat ? (
                           <Badge variant="secondary" className="text-[10px] font-normal py-0">
                             Group Chat
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] font-normal py-0 text-blue-500 border-blue-500/30">
+                          <Badge variant="outline" className="text-[10px] font-normal py-0 text-brand border-brand/30">
                             Direct
                           </Badge>
                         )}
                       </h3>
                       {selectedConversation.groupSubject && (
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <p className="text-[11px] text-muted-foreground">
                           Subject: {selectedConversation.groupSubject}
                         </p>
                       )}
@@ -606,7 +620,7 @@ export const Messages: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate(`/groups?groupId=${selectedConversation.groupId}`)}
-                    className="gap-1.5 text-xs text-foreground border-border hover:bg-muted rounded-xl"
+                    className="flex items-center gap-1.5 rounded-xl border border-border bg-card/90 hover:bg-brand/10 hover:border-brand/40 text-card-foreground hover:text-brand transition-all duration-200 shadow-sm px-3.5 h-9 text-xs font-semibold"
                   >
                     <BookOpen size={13} />
                     <span>View Group</span>
@@ -658,14 +672,14 @@ export const Messages: React.FC = () => {
                           <div
                             className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                               isMe
-                                ? 'bg-brand text-white rounded-br-none shadow-xs font-medium'
+                                ? 'bg-brand text-primary-foreground rounded-br-none shadow-xs font-medium'
                                 : 'bg-muted text-foreground rounded-bl-none border border-border/60'
                             }`}
                           >
                             <p className="break-words whitespace-pre-wrap">{msg.content}</p>
                             <div
                               className={`text-[10px] mt-1 text-right ${
-                                isMe ? 'text-white/80' : 'text-muted-foreground'
+                                isMe ? 'text-primary-foreground/80' : 'text-muted-foreground'
                               }`}
                             >
                               {msg.timestamp}
@@ -697,7 +711,7 @@ export const Messages: React.FC = () => {
                   <Button
                     type="submit"
                     disabled={!inputMessage.trim()}
-                    className="h-10 w-10 shrink-0 bg-brand hover:bg-brand-hover text-white rounded-lg shadow-sm"
+                    className="h-10 w-10 shrink-0 bg-brand hover:bg-brand-hover text-primary-foreground rounded-lg shadow-sm"
                   >
                     <Send size={16} />
                   </Button>
@@ -736,7 +750,7 @@ export const Messages: React.FC = () => {
               onClick={() => setNewChatTab('direct')}
               className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 newChatTab === 'direct'
-                  ? 'bg-brand text-white shadow-sm font-semibold'
+                  ? 'bg-brand text-primary-foreground shadow-sm font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -748,7 +762,7 @@ export const Messages: React.FC = () => {
               onClick={() => setNewChatTab('groups')}
               className={`py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 newChatTab === 'groups'
-                  ? 'bg-brand text-white shadow-sm font-semibold'
+                  ? 'bg-brand text-primary-foreground shadow-sm font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >

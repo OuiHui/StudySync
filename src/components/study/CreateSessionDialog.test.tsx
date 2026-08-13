@@ -92,7 +92,9 @@ describe('CreateSessionDialog Component', () => {
     fireEvent.change(screen.getByLabelText(/Start Time/i), { target: { value: '2026-07-02T10:00' } });
     fireEvent.change(screen.getByLabelText(/End Time/i), { target: { value: '2026-07-02T12:00' } });
 
-    expect(submitBtn).not.toBeDisabled();
+    await waitFor(() => {
+      expect(submitBtn).not.toBeDisabled();
+    });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {

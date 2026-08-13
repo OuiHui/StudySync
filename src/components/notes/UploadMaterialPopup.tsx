@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NotesService, StudyGroupsService } from '@/services/database';
 import { Switch } from '@/components/ui/switch';
 
@@ -250,7 +251,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
                 <button
                   type="button"
                   onClick={handleCreateSubject}
-                  className="bg-brand hover:bg-brand-hover text-white rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors"
                 >
                   Add
                 </button>
@@ -267,22 +268,24 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
               </div>
             ) : null}
             
-            <select
-              id="subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full h-10 px-3 bg-muted/40 border border-border text-foreground rounded-lg text-sm font-semibold focus:outline-none focus:border-brand"
-              required
-            >
-              <option value="">Select a subject</option>
-              {customSubjects.length === 0 ? (
-                <option value="" disabled>Create a subject first using + New Subject</option>
-              ) : (
-                customSubjects.map(subj => (
-                  <option key={subj.id} value={subj.name}>{subj.name}</option>
-                ))
-              )}
-            </select>
+            <Select value={subject} onValueChange={(val) => setSubject(val)}>
+              <SelectTrigger className="w-full h-10 px-3.5 bg-muted/40 border border-border text-foreground rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand transition-all">
+                <SelectValue placeholder="Select a subject..." />
+              </SelectTrigger>
+              <SelectContent className="bg-card border border-border text-card-foreground shadow-2xl backdrop-blur-md rounded-xl z-50">
+                {customSubjects.length === 0 ? (
+                  <SelectItem value="_empty" disabled className="text-muted-foreground text-xs italic">
+                    Create a subject first using + New Subject
+                  </SelectItem>
+                ) : (
+                  customSubjects.map((subj) => (
+                    <SelectItem key={subj.id} value={subj.name}>
+                      {subj.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Privacy Toggle Switch */}
@@ -316,7 +319,7 @@ export const UploadMaterialPopup = ({ isOpen, onClose, onUploadSuccess, groupId 
             <button
               type="submit"
               disabled={loading || !title.trim() || !subject}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               {loading ? (
                 <>

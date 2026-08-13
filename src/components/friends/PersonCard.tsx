@@ -115,7 +115,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
               e.stopPropagation();
               onAddFriend(person.id);
             }}
-            className="h-7 px-3 text-xs bg-brand hover:bg-brand-hover text-white shadow-sm font-semibold"
+            className="h-7 px-3 text-xs bg-brand hover:bg-brand-hover text-primary-foreground shadow-sm font-semibold"
           >
             <UserPlus size={12} className="mr-1" />
             Add
@@ -143,7 +143,7 @@ export const PersonCard = ({ person, onAddFriend, onCancelRequest, onViewProfile
               e.stopPropagation();
               onMessage?.(person.id);
             }}
-            className="h-7 px-3 text-xs text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 font-semibold"
+            className="h-7 px-3 text-xs text-muted-foreground hover:text-brand hover:bg-brand/10 border border-border/60 font-semibold transition-all rounded-lg"
           >
             <MessageSquare size={12} className="mr-1" />
             Message

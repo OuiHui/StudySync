@@ -15,7 +15,7 @@ export const ActionButton = ({ status, onAddFriend, onCancelRequest, onMessage }
       <Button
         size="sm"
         onClick={onAddFriend}
-        className="w-full h-9 text-sm bg-brand hover:bg-brand-hover text-white font-bold"
+        className="w-full h-9 text-sm bg-brand hover:bg-brand-hover text-primary-foreground font-bold"
       >
         <UserPlus size={14} className="mr-1.5" />
         Add Friend
@@ -41,7 +41,7 @@ export const ActionButton = ({ status, onAddFriend, onCancelRequest, onMessage }
         size="sm"
         variant="ghost"
         onClick={onMessage}
-        className="w-full h-9 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 border border-gray-100 dark:border-white/[0.08] font-bold"
+        className="w-full h-9 text-sm text-muted-foreground hover:text-brand hover:bg-brand/10 border border-border font-semibold transition-all rounded-xl"
       >
         <MessageSquare size={14} className="mr-1.5" />
         Message

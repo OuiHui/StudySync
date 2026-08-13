@@ -212,7 +212,7 @@ export const FindFriendsPage = () => {
                 onClick={() => setActiveFilter(f.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                   activeFilter === f.id
-                    ? 'bg-brand text-white shadow-sm'
+                    ? 'bg-brand text-primary-foreground font-semibold shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >

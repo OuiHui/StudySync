@@ -105,6 +105,9 @@ export const useGroupStudySessionData = () => {
         if (!channelRef.current) setupRealTimeSync(sessionId);
         setLoading(false);
         initCompletedRef.current = true;
+      }).catch((err) => {
+        console.error('Failed to load session details:', err);
+        setLoading(false);
       });
     }
   }, [user]);
@@ -307,21 +310,23 @@ export const useGroupStudySessionData = () => {
 
       const savedId = localStorage.getItem('active_group_session_id');
       const hasCache = localStorage.getItem('cached_session_title');
-      if (!(savedId && hasCache)) {
-        setLoading(true);
+      try {
+        await Promise.all([
+          loadSessionDetails(sessionId),
+          loadParticipants(sessionId),
+          loadGoals(sessionId),
+          loadNotes(sessionId)
+        ]);
+
+        if (cancelled) return;
+
+        setupRealTimeSync(sessionId);
+        setLoading(false);
+        initCompletedRef.current = true;
+      } catch (err) {
+        console.error('Error during group study session initialization:', err);
+        setLoading(false);
       }
-      await Promise.all([
-        loadSessionDetails(sessionId),
-        loadParticipants(sessionId),
-        loadGoals(sessionId),
-        loadNotes(sessionId)
-      ]);
-
-      if (cancelled) return;
-
-      setupRealTimeSync(sessionId);
-      setLoading(false);
-      initCompletedRef.current = true;
     };
 
     init();

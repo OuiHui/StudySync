@@ -60,7 +60,7 @@ test.describe('StudySync E2E User Flows', () => {
     }
 
     // Close notifications popover
-    const closeBtn = page.getByRole('button', { name: 'Close notifications' }).or(page.locator('button:has(svg.lucide-x)').first());
+    const closeBtn = page.getByRole('button', { name: 'Close notifications' });
     await closeBtn.click();
 
     // Popover should be hidden
@@ -128,7 +128,7 @@ test.describe('StudySync E2E User Flows', () => {
     await page.locator('textarea#description').fill('A temporary group created by Playwright E2E tests.');
     
     // Submit Create Group
-    await page.getByRole('button', { name: 'Create Group', exact: true }).click();
+    await page.locator('div[role="dialog"]').getByRole('button', { name: 'Create Group', exact: true }).click();
 
     // Wait for dialog to close and page reload if triggered
     await expect(page.getByRole('heading', { name: 'Create Study Group' })).not.toBeVisible();
@@ -198,7 +198,7 @@ test.describe('StudySync E2E User Flows', () => {
     const testNoteTitle = `E2E Test Note ${Date.now()}`;
 
     // Navigate to Notes
-    await page.getByRole('button', { name: 'Notes' }).click();
+    await page.getByRole('button', { name: 'Notes', exact: true }).click();
     await expect(page.locator('h1', { hasText: /Notes|Study Materials/i })).toBeVisible();
 
     // Open Create Note Dialog

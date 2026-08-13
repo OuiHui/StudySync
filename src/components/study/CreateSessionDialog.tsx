@@ -170,7 +170,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <button type="button" className="bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-semibold inline-flex items-center gap-1.5 transition-all shadow-sm">
+        <button type="button" className="bg-brand hover:bg-brand-hover text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold inline-flex items-center gap-1.5 transition-all shadow-sm">
           <Plus size={16} />
           Create Session
         </button>
@@ -326,7 +326,7 @@ export const CreateSessionDialog = ({ onSessionCreated }: CreateSessionDialogPro
             <button
               type="submit"
               disabled={loading || !formData.title.trim() || !formData.scheduledStart || !formData.scheduledEnd}
-              className="bg-brand hover:bg-brand-hover text-white rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
+              className="bg-brand hover:bg-brand-hover text-primary-foreground rounded-xl px-5 h-10 text-sm font-semibold disabled:opacity-50 flex items-center justify-center transition-all duration-200"
             >
               {loading ? 'Creating...' : 'Create Session'}
             </button>
